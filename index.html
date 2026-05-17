@@ -528,6 +528,15 @@ function fetchJSON(url) {
   return Promise.race([fetchPromise, timeoutPromise]);
 }
 
+function classifyFmpError(msg) {
+  if (/401/i.test(msg))                                      return 'Invalid API key (HTTP 401) — verify your key at financialmodelingprep.com.';
+  if (/403/i.test(msg))                                      return 'Access denied (HTTP 403) — API key may be wrong, or this endpoint needs a paid plan.';
+  if (/limit|quota|exceed/i.test(msg))                       return 'FMP quota message: ' + msg;
+  if (/failed to fetch|networkerror|load failed/i.test(msg)) return 'Network error — browser blocked the request. Try in a regular Safari tab (not standalone/PWA).';
+  if (/timed out/i.test(msg))                                return 'Request timed out — check your internet connection.';
+  return msg;
+}
+
 async function testConnection() {
   const key = document.getElementById('apiKey').value.trim();
   if (!key) { showMessage('Enter your FMP API key first.', 'error'); return; }
@@ -537,42 +546,51 @@ async function testConnection() {
   btn.textContent = '⟳ Testing…';
   hideMessage();
 
-  try {
-    const data = await fetchJSON(`${BASE}/profile/AAPL?apikey=${key}`);
-    const profile = Array.isArray(data) ? data[0] : data;
-    const name = profile && profile.companyName;
-    if (name) {
-      showMessage(`✓ Connected — got "${name}" from FMP. Screener ready to run.`, 'success');
-    } else {
-      showMessage('✓ Request succeeded but FMP returned no profile data. Check your key plan.', 'success');
-    }
-  } catch (err) {
-    const msg = err.message || 'Unknown error';
-    let hint = '';
-    if (/401|invalid.api.key/i.test(msg)) {
-      hint = ' API key rejected — check it at financialmodelingprep.com.';
-    } else if (/403|limit|quota|exceed/i.test(msg)) {
-      hint = ' Free quota exhausted (250 calls/day). Try again tomorrow.';
-    } else if (/failed to fetch|networkerror|load failed|cors/i.test(msg)) {
-      hint = ' Network/CORS error — try opening this page in a regular browser tab (not PWA/standalone mode).';
-    } else if (/timed out/i.test(msg)) {
-      hint = ' Request timed out — check your internet connection.';
-    }
-    showMessage(`✗ Test failed: ${msg}.${hint}`, 'error');
-  } finally {
-    btn.disabled = false;
-    btn.textContent = '⚡ Test';
+  const eps = [
+    { label: 'profile',   url: `${BASE}/profile/AAPL?apikey=${key}` },
+    { label: 'income',    url: `${BASE}/income-statement/AAPL?limit=1&apikey=${key}` },
+    { label: 'balance',   url: `${BASE}/balance-sheet-statement/AAPL?limit=1&apikey=${key}` },
+    { label: 'cashflow',  url: `${BASE}/cash-flow-statement/AAPL?limit=1&apikey=${key}` },
+    { label: 'history',   url: `${BASE}/historical-price-full/AAPL?timeseries=5&apikey=${key}` },
+    { label: 'ratios',    url: `${BASE}/ratios/AAPL?limit=1&apikey=${key}` },
+  ];
+
+  const checks = await Promise.all(eps.map(async ep => {
+    try { await fetchJSON(ep.url); return { label: ep.label, ok: true }; }
+    catch (err) { return { label: ep.label, ok: false, err: err.message }; }
+  }));
+
+  const passed = checks.filter(c => c.ok);
+  const failed = checks.filter(c => !c.ok);
+
+  if (passed.length === 6) {
+    showMessage('✓ All 6 endpoints OK — API key valid, screener ready to run.', 'success');
+  } else if (passed.length === 0) {
+    showMessage('✗ All endpoints failed: ' + classifyFmpError(failed[0].err), 'error');
+  } else {
+    const failList = failed.map(c => `${c.label} (${c.err})`).join('; ');
+    showMessage(
+      `⚠ ${passed.length}/6 endpoints OK. Failed: ${failList}. ` +
+      `Screener will run with partial data — failed endpoints mean some metrics will show —.`,
+      'error'
+    );
   }
+
+  btn.disabled = false;
+  btn.textContent = '⚡ Test';
 }
 
 async function fetchStock(symbol, key) {
+  // profile is required — throws if it fails, skipping this stock
+  // other endpoints are optional — a 403 or error returns null so partial data still shows
+  const opt = url => fetchJSON(url).catch(() => null);
   const [profiles, income, balance, cashflow, priceHist, ratios] = await Promise.all([
     fetchJSON(`${BASE}/profile/${symbol}?apikey=${key}`),
-    fetchJSON(`${BASE}/income-statement/${symbol}?limit=1&apikey=${key}`),
-    fetchJSON(`${BASE}/balance-sheet-statement/${symbol}?limit=1&apikey=${key}`),
-    fetchJSON(`${BASE}/cash-flow-statement/${symbol}?limit=1&apikey=${key}`),
-    fetchJSON(`${BASE}/historical-price-full/${symbol}?timeseries=260&apikey=${key}`),
-    fetchJSON(`${BASE}/ratios/${symbol}?limit=1&apikey=${key}`),
+    opt(`${BASE}/income-statement/${symbol}?limit=1&apikey=${key}`),
+    opt(`${BASE}/balance-sheet-statement/${symbol}?limit=1&apikey=${key}`),
+    opt(`${BASE}/cash-flow-statement/${symbol}?limit=1&apikey=${key}`),
+    opt(`${BASE}/historical-price-full/${symbol}?timeseries=260&apikey=${key}`),
+    opt(`${BASE}/ratios/${symbol}?limit=1&apikey=${key}`),
   ]);
 
   const profile = (Array.isArray(profiles) ? profiles[0] : profiles) || {};
@@ -750,20 +768,11 @@ async function runScreener() {
     : `Complete — ${results.length} of ${total} stocks loaded`;
 
   if (results.length === 0 && firstError) {
-    const msg = firstError.message || '';
-    let detail;
-    if (/401|invalid.api.key/i.test(msg)) {
-      detail = 'API key rejected (HTTP 401). Verify your key at financialmodelingprep.com and paste it again.';
-    } else if (/403|limit|quota|exceed/i.test(msg)) {
-      detail = 'Free quota exhausted (250 calls/day). Wait until midnight UTC and try again.';
-    } else if (/failed to fetch|networkerror|load failed/i.test(msg)) {
-      detail = 'Network error — browser blocked the request. Try the ⚡ Test button or open the page in a regular browser tab (not PWA standalone mode).';
-    } else if (/timed out/i.test(msg)) {
-      detail = 'All requests timed out (10s each). Check your internet connection, then click ⚡ Test to diagnose.';
-    } else {
-      detail = `All fetches failed: ${msg}. Use ⚡ Test to diagnose the connection.`;
-    }
-    showMessage(detail, 'error');
+    showMessage(
+      'All stocks failed. ' + classifyFmpError(firstError.message || '') +
+      ' Click ⚡ Test to check each endpoint individually.',
+      'error'
+    );
   } else if (!stopped && failCount > 0) {
     showMessage(
       `${failCount} stock(s) skipped (failed to load). ${results.length} results shown.`,
