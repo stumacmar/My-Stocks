@@ -487,6 +487,13 @@ let stopRequested  = false;
 
 const BASE = 'https://financialmodelingprep.com/api/v3';
 
+// These must be declared before init() runs so renderTable() and fetchJSON() can access them
+const FETCH_TIMEOUT_MS = 10000;
+const COL_KEYS = [
+  'ticker','company','sector','price','score','rag',
+  'croci','peg','sortino','alpha','beta','vol','chg6m','chg1m'
+];
+
 // ═══════════════════════════════════════════════════════════════
 //  INIT — restore saved API key
 // ═══════════════════════════════════════════════════════════════
@@ -504,8 +511,6 @@ const BASE = 'https://financialmodelingprep.com/api/v3';
 // ═══════════════════════════════════════════════════════════════
 //  FETCH HELPERS
 // ═══════════════════════════════════════════════════════════════
-
-const FETCH_TIMEOUT_MS = 10000;
 
 function fetchJSON(url) {
   let timerId;
@@ -788,11 +793,6 @@ const delay = ms => new Promise(r => setTimeout(r, ms));
 // ═══════════════════════════════════════════════════════════════
 //  SORT
 // ═══════════════════════════════════════════════════════════════
-
-const COL_KEYS = [
-  'ticker','company','sector','price','score','rag',
-  'croci','peg','sortino','alpha','beta','vol','chg6m','chg1m'
-];
 
 function sortBy(col) {
   if (sortCol === col) {
