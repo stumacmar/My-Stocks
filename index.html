@@ -352,6 +352,7 @@
   <button class="btn btn-filter" onclick="setFilter('strong',this)">Strong</button>
   <button class="btn btn-filter" onclick="setFilter('watch',this)">Watch</button>
   <button class="btn btn-filter" onclick="setFilter('avoid',this)">Avoid</button>
+  <button class="btn btn-filter" id="btnTest" onclick="testConnection()">&#9889; Test</button>
   <button class="btn btn-csv" onclick="exportCSV()">&#8595; CSV</button>
 </div>
 
@@ -494,7 +495,7 @@ const BASE = 'https://financialmodelingprep.com/api/v3';
   const keyEl = document.getElementById('apiKey');
   const saved = localStorage.getItem('fmp_api_key');
   if (saved) keyEl.value = saved;
-  keyEl.addEventListener('change', () => {
+  keyEl.addEventListener('input', () => {
     localStorage.setItem('fmp_api_key', keyEl.value.trim());
   });
   renderTable(); // show empty state
@@ -507,17 +508,56 @@ const BASE = 'https://financialmodelingprep.com/api/v3';
 const FETCH_TIMEOUT_MS = 10000;
 
 function fetchJSON(url) {
+  let timerId;
   const fetchPromise = fetch(url).then(async res => {
+    clearTimeout(timerId);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
     if (data && data['Error Message']) throw new Error(data['Error Message']);
     if (!Array.isArray(data) && data && data['message']) throw new Error(data['message']);
     return data;
   });
-  const timeoutPromise = new Promise((_, reject) =>
-    setTimeout(() => reject(new Error('Request timed out')), FETCH_TIMEOUT_MS)
-  );
+  const timeoutPromise = new Promise((_, reject) => {
+    timerId = setTimeout(() => reject(new Error('Request timed out')), FETCH_TIMEOUT_MS);
+  });
   return Promise.race([fetchPromise, timeoutPromise]);
+}
+
+async function testConnection() {
+  const key = document.getElementById('apiKey').value.trim();
+  if (!key) { showMessage('Enter your FMP API key first.', 'error'); return; }
+
+  const btn = document.getElementById('btnTest');
+  btn.disabled = true;
+  btn.textContent = '⟳ Testing…';
+  hideMessage();
+
+  try {
+    const data = await fetchJSON(`${BASE}/profile/AAPL?apikey=${key}`);
+    const profile = Array.isArray(data) ? data[0] : data;
+    const name = profile && profile.companyName;
+    if (name) {
+      showMessage(`✓ Connected — got "${name}" from FMP. Screener ready to run.`, 'success');
+    } else {
+      showMessage('✓ Request succeeded but FMP returned no profile data. Check your key plan.', 'success');
+    }
+  } catch (err) {
+    const msg = err.message || 'Unknown error';
+    let hint = '';
+    if (/401|invalid.api.key/i.test(msg)) {
+      hint = ' API key rejected — check it at financialmodelingprep.com.';
+    } else if (/403|limit|quota|exceed/i.test(msg)) {
+      hint = ' Free quota exhausted (250 calls/day). Try again tomorrow.';
+    } else if (/failed to fetch|networkerror|load failed|cors/i.test(msg)) {
+      hint = ' Network/CORS error — try opening this page in a regular browser tab (not PWA/standalone mode).';
+    } else if (/timed out/i.test(msg)) {
+      hint = ' Request timed out — check your internet connection.';
+    }
+    showMessage(`✗ Test failed: ${msg}.${hint}`, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '⚡ Test';
+  }
 }
 
 async function fetchStock(symbol, key) {
@@ -611,12 +651,12 @@ async function fetchStock(symbol, key) {
 
   // ── Score (0–6) ────────────────────────────────────────────
   let score = 0;
-  if (croci   != null && croci > 10)           score++;
+  if (croci   != null && croci > 10)          score++;
   if (peg     != null && peg > 0 && peg < 1.5) score++;
-  if (sortino != null && sortino > 0.5)         score++;
-  if (beta    != null && beta < 1.5)            score++;
-  if (alpha   != null && alpha > 0)             score++;
-  if (chg6m   != null && chg6m > 0)             score++;
+  if (sortino != null && sortino > 0.5)        score++;
+  if (beta    != null && beta < 1.5)           score++;
+  if (alpha   != null && alpha > 0)            score++;
+  if (chg6m   != null && chg6m > 0)            score++;
 
   const rag = score >= 5 ? 'strong' : score >= 3 ? 'watch' : 'avoid';
 
@@ -662,17 +702,15 @@ async function runScreener() {
   const progressFill  = document.getElementById('progressFill');
   const progressLabel = document.getElementById('progressLabel');
 
-  btnRun.disabled       = true;
-  btnRun.textContent    = '⟳ Running…';
+  btnRun.disabled      = true;
+  btnRun.textContent   = '⟳ Running…';
   btnStop.style.display = 'inline-flex';
-  btnStop.disabled      = false;
-  btnStop.textContent   = '■ Stop';
   progressWrap.classList.add('visible');
   progressFill.style.width = '0%';
   hideMessage();
   renderTable();
   updateStats();
-  await delay(50); // let browser paint before fetch loop starts
+  await delay(100); // let browser paint before fetch loop starts
 
   const total    = UNIVERSE.length;
   let done       = 0;
@@ -707,17 +745,26 @@ async function runScreener() {
     : `Complete — ${results.length} of ${total} stocks loaded`;
 
   if (results.length === 0 && firstError) {
-    showMessage(
-      `All fetches failed. Error: ${firstError.message}. ` +
-      `Check your API key is valid and the free tier quota (250 calls/day) hasn't been exhausted.`,
-      'error'
-    );
+    const msg = firstError.message || '';
+    let detail;
+    if (/401|invalid.api.key/i.test(msg)) {
+      detail = 'API key rejected (HTTP 401). Verify your key at financialmodelingprep.com and paste it again.';
+    } else if (/403|limit|quota|exceed/i.test(msg)) {
+      detail = 'Free quota exhausted (250 calls/day). Wait until midnight UTC and try again.';
+    } else if (/failed to fetch|networkerror|load failed/i.test(msg)) {
+      detail = 'Network error — browser blocked the request. Try the ⚡ Test button or open the page in a regular browser tab (not PWA standalone mode).';
+    } else if (/timed out/i.test(msg)) {
+      detail = 'All requests timed out (10s each). Check your internet connection, then click ⚡ Test to diagnose.';
+    } else {
+      detail = `All fetches failed: ${msg}. Use ⚡ Test to diagnose the connection.`;
+    }
+    showMessage(detail, 'error');
   } else if (!stopped && failCount > 0) {
     showMessage(
       `${failCount} stock(s) skipped (failed to load). ${results.length} results shown.`,
       'error'
     );
-    setTimeout(hideMessage, 6000);
+    setTimeout(hideMessage, 8000);
   } else if (!stopped) {
     showMessage(`Screener complete — ${results.length} stocks loaded.`, 'success');
     setTimeout(hideMessage, 5000);
@@ -732,7 +779,7 @@ async function runScreener() {
 
 function stopScreener() {
   stopRequested = true;
-  document.getElementById('btnStop').disabled    = true;
+  document.getElementById('btnStop').disabled = true;
   document.getElementById('btnStop').textContent = '⟳ Stopping…';
 }
 
@@ -752,6 +799,7 @@ function sortBy(col) {
     sortDir = sortDir === 'asc' ? 'desc' : 'asc';
   } else {
     sortCol = col;
+    // Default descending for numeric quality metrics; ascending for text
     sortDir = ['ticker','company','sector'].includes(col) ? 'asc' : 'desc';
   }
   renderTable();
@@ -816,6 +864,7 @@ function renderTable() {
   const filtered = getFiltered();
   const sorted   = getSorted(filtered);
 
+  // Update sort arrows
   document.querySelectorAll('th').forEach((th, i) => {
     th.classList.remove('sorted-asc', 'sorted-desc');
     if (COL_KEYS[i] === sortCol) {
