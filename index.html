@@ -504,29 +504,31 @@ const BASE = 'https://financialmodelingprep.com/api/v3';
 //  FETCH HELPERS
 // ═══════════════════════════════════════════════════════════════
 
-async function fetchJSON(url, signal) {
-  const res = await fetch(url, { signal });
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  const data = await res.json();
-  if (data && data['Error Message']) throw new Error(data['Error Message']);
-  if (!Array.isArray(data) && data && data['message']) throw new Error(data['message']);
-  return data;
+const FETCH_TIMEOUT_MS = 10000;
+
+function fetchJSON(url) {
+  const fetchPromise = fetch(url).then(async res => {
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    if (data && data['Error Message']) throw new Error(data['Error Message']);
+    if (!Array.isArray(data) && data && data['message']) throw new Error(data['message']);
+    return data;
+  });
+  const timeoutPromise = new Promise((_, reject) =>
+    setTimeout(() => reject(new Error('Request timed out')), FETCH_TIMEOUT_MS)
+  );
+  return Promise.race([fetchPromise, timeoutPromise]);
 }
 
 async function fetchStock(symbol, key) {
-  const ctrl  = new AbortController();
-  const timer = setTimeout(() => ctrl.abort(), 12000);
-  const sig   = ctrl.signal;
-  try {
   const [profiles, income, balance, cashflow, priceHist, ratios] = await Promise.all([
-    fetchJSON(`${BASE}/profile/${symbol}?apikey=${key}`, sig),
-    fetchJSON(`${BASE}/income-statement/${symbol}?limit=1&apikey=${key}`, sig),
-    fetchJSON(`${BASE}/balance-sheet-statement/${symbol}?limit=1&apikey=${key}`, sig),
-    fetchJSON(`${BASE}/cash-flow-statement/${symbol}?limit=1&apikey=${key}`, sig),
-    fetchJSON(`${BASE}/historical-price-full/${symbol}?timeseries=260&apikey=${key}`, sig),
-    fetchJSON(`${BASE}/ratios/${symbol}?limit=1&apikey=${key}`, sig),
+    fetchJSON(`${BASE}/profile/${symbol}?apikey=${key}`),
+    fetchJSON(`${BASE}/income-statement/${symbol}?limit=1&apikey=${key}`),
+    fetchJSON(`${BASE}/balance-sheet-statement/${symbol}?limit=1&apikey=${key}`),
+    fetchJSON(`${BASE}/cash-flow-statement/${symbol}?limit=1&apikey=${key}`),
+    fetchJSON(`${BASE}/historical-price-full/${symbol}?timeseries=260&apikey=${key}`),
+    fetchJSON(`${BASE}/ratios/${symbol}?limit=1&apikey=${key}`),
   ]);
-  clearTimeout(timer);
 
   const profile = (Array.isArray(profiles) ? profiles[0] : profiles) || {};
   const inc     = (Array.isArray(income)   ? income[0]   : null)      || {};
@@ -634,11 +636,6 @@ async function fetchStock(symbol, key) {
     chg6m,
     chg1m,
   };
-  } catch (err) {
-    clearTimeout(timer);
-    if (err.name === 'AbortError') throw new Error(`Timeout fetching ${symbol}`);
-    throw err;
-  }
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -673,6 +670,7 @@ async function runScreener() {
   hideMessage();
   renderTable();
   updateStats();
+  await delay(50); // let browser paint before fetch loop starts
 
   const total    = UNIVERSE.length;
   let done       = 0;
@@ -708,7 +706,8 @@ async function runScreener() {
 
   if (results.length === 0 && firstError) {
     showMessage(
-      `All fetches failed. Check your API key is valid. Error: ${firstError.message}`,
+      `All fetches failed. Error: ${firstError.message}. ` +
+      `Check your API key is valid and the free tier quota (250 calls/day) hasn't been exhausted.`,
       'error'
     );
   } else if (!stopped && failCount > 0) {
