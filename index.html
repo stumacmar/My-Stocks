@@ -4,253 +4,129 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>Stuart's Stock Screener</title>
-
-  <!-- PWA / Add to Home Screen -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Stock Screener">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="theme-color" content="#08090d">
-  <meta name="description" content="Stuart's Bloomberg-style stock screener — Sharpe, PEG, Sortino and more.">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 
   <style>
     :root {
-      --bg-0: #08090d;
-      --bg-1: #0d0f15;
-      --bg-2: #131620;
-      --line: #1f2535;
-      --text-0: #e6e8ec;
-      --text-1: #a1a8b8;
-      --text-2: #5a6175;
-      --accent: #5eead4;
-      --green: #34d399;
-      --amber: #fbbf24;
-      --red: #f87171;
+      --bg-0:#08090d; --bg-1:#0d0f15; --bg-2:#131620; --line:#1f2535;
+      --text-0:#e6e8ec; --text-1:#a1a8b8; --text-2:#5a6175;
+      --accent:#5eead4; --green:#34d399; --amber:#fbbf24; --red:#f87171;
     }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg-0);color:var(--text-0);font-family:'JetBrains Mono',monospace;
+      font-size:13px;min-height:100vh;-webkit-text-size-adjust:100%;
+      padding-bottom:env(safe-area-inset-bottom)}
 
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    /* Header */
+    .header{padding:24px 20px 20px;border-bottom:1px solid var(--line);background:var(--bg-1)}
+    .header-title{font-family:'Fraunces',serif;font-size:30px;font-weight:700;
+      color:var(--accent);letter-spacing:-0.5px}
+    .header-sub{font-size:10px;font-weight:600;letter-spacing:2.5px;text-transform:uppercase;
+      color:var(--text-2);margin-top:5px}
 
-    body {
-      background: var(--bg-0);
-      color: var(--text-0);
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 13px;
-      min-height: 100vh;
-      -webkit-text-size-adjust: 100%;
-      padding-bottom: env(safe-area-inset-bottom);
-    }
+    /* API card */
+    .section{padding:16px}
+    .api-card{background:var(--bg-2);border:1px solid var(--line);border-radius:10px;padding:16px}
+    .api-card-label{font-size:10px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;
+      color:var(--text-2);margin-bottom:10px}
+    .api-input-row{display:flex;gap:8px;align-items:center}
+    .api-input{flex:1;background:var(--bg-1);border:1px solid var(--line);border-radius:6px;
+      color:var(--text-0);font-family:'JetBrains Mono',monospace;font-size:12px;
+      padding:10px 12px;outline:none;transition:border-color .15s;min-width:0;
+      letter-spacing:.05em}
+    .api-input:focus{border-color:var(--accent)}
+    .api-input::placeholder{color:var(--text-2)}
+    .btn-eye{background:transparent;border:1px solid var(--line);border-radius:6px;
+      color:var(--text-1);padding:10px 12px;cursor:pointer;font-size:14px;
+      font-family:'JetBrains Mono',monospace;white-space:nowrap;flex-shrink:0}
+    .api-note{font-size:11px;color:var(--text-2);margin-top:10px;line-height:1.7}
+    .api-note a{color:var(--accent);text-decoration:none}
+    .api-note a:hover{text-decoration:underline}
+    .api-note strong{color:var(--text-1)}
 
-    .header {
-      padding: 24px 20px 20px;
-      border-bottom: 1px solid var(--line);
-      background: var(--bg-1);
-    }
-    .header-title {
-      font-family: 'Fraunces', serif;
-      font-size: 30px;
-      font-weight: 700;
-      color: var(--accent);
-      letter-spacing: -0.5px;
-    }
-    .header-sub {
-      font-size: 10px;
-      font-weight: 600;
-      letter-spacing: 2.5px;
-      text-transform: uppercase;
-      color: var(--text-2);
-      margin-top: 5px;
-    }
+    /* Controls */
+    .controls{display:flex;flex-wrap:wrap;gap:8px;padding:0 16px 16px;align-items:center}
+    .btn{display:inline-flex;align-items:center;gap:6px;padding:9px 16px;border-radius:7px;
+      border:1px solid transparent;cursor:pointer;font-family:'JetBrains Mono',monospace;
+      font-size:12px;font-weight:500;transition:opacity .15s,background .15s,border-color .15s;
+      white-space:nowrap;-webkit-tap-highlight-color:transparent;line-height:1}
+    .btn:disabled{opacity:.45;cursor:not-allowed}
+    .btn-primary{background:var(--accent);color:var(--bg-0)}
+    .btn-primary:not(:disabled):active{opacity:.75}
+    .btn-filter{background:transparent;border-color:var(--line);color:var(--text-1)}
+    .btn-filter.active{border-color:var(--accent);color:var(--accent)}
+    .btn-csv{background:transparent;border-color:var(--line);color:var(--text-1);margin-left:auto}
+    .btn-stop{background:transparent;border-color:var(--red);color:var(--red)}
 
-    .source-note {
-      padding: 10px 16px 4px;
-      font-size: 11px;
-      color: var(--text-2);
-    }
-    .source-note span { color: var(--accent); }
+    /* Progress */
+    .progress-wrap{padding:0 16px 14px;display:none}
+    .progress-wrap.visible{display:block}
+    .progress-bar-bg{height:3px;background:var(--line);border-radius:99px;overflow:hidden}
+    .progress-bar-fill{height:100%;background:var(--accent);border-radius:99px;
+      width:0%;transition:width .25s ease}
+    .progress-label{font-size:11px;color:var(--text-2);margin-top:7px}
 
-    .controls {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      padding: 10px 16px 16px;
-      align-items: center;
-    }
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 9px 16px;
-      border-radius: 7px;
-      border: 1px solid transparent;
-      cursor: pointer;
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 12px;
-      font-weight: 500;
-      transition: opacity 0.15s, background 0.15s, border-color 0.15s;
-      white-space: nowrap;
-      -webkit-tap-highlight-color: transparent;
-      line-height: 1;
-    }
-    .btn:disabled { opacity: 0.45; cursor: not-allowed; }
-    .btn-primary { background: var(--accent); color: var(--bg-0); }
-    .btn-primary:not(:disabled):active { opacity: 0.75; }
-    .btn-filter { background: transparent; border-color: var(--line); color: var(--text-1); }
-    .btn-filter.active { border-color: var(--accent); color: var(--accent); }
-    .btn-csv  { background: transparent; border-color: var(--line); color: var(--text-1); margin-left: auto; }
-    .btn-csv:active { border-color: var(--text-1); }
-    .btn-stop { background: transparent; border-color: var(--red); color: var(--red); }
+    /* Banner */
+    .message-banner{margin:0 16px 12px;padding:10px 14px;border-radius:7px;
+      font-size:12px;display:none;line-height:1.5}
+    .message-banner.error{display:block;background:rgba(248,113,113,.12);
+      border:1px solid rgba(248,113,113,.3);color:var(--red)}
+    .message-banner.success{display:block;background:rgba(52,211,153,.12);
+      border:1px solid rgba(52,211,153,.3);color:var(--green)}
 
-    .progress-wrap { padding: 0 16px 14px; display: none; }
-    .progress-wrap.visible { display: block; }
-    .progress-bar-bg {
-      height: 3px;
-      background: var(--line);
-      border-radius: 99px;
-      overflow: hidden;
-    }
-    .progress-bar-fill {
-      height: 100%;
-      background: var(--accent);
-      border-radius: 99px;
-      width: 0%;
-      transition: width 0.25s ease;
-    }
-    .progress-label { font-size: 11px; color: var(--text-2); margin-top: 7px; }
+    /* Stats */
+    .stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:0 16px 16px}
+    .stat-card{background:var(--bg-2);border:1px solid var(--line);border-radius:10px;
+      padding:14px 12px;text-align:center}
+    .stat-num{font-family:'Fraunces',serif;font-size:30px;font-weight:700;line-height:1}
+    .stat-num.strong{color:var(--green)} .stat-num.watch{color:var(--amber)}
+    .stat-num.avoid{color:var(--red)}    .stat-num.total{color:var(--text-0)}
+    .stat-label{font-size:9px;font-weight:600;letter-spacing:1.5px;text-transform:uppercase;
+      color:var(--text-2);margin-top:5px}
 
-    .message-banner {
-      margin: 0 16px 12px;
-      padding: 10px 14px;
-      border-radius: 7px;
-      font-size: 12px;
-      display: none;
-      line-height: 1.5;
-    }
-    .message-banner.error {
-      display: block;
-      background: rgba(248,113,113,0.12);
-      border: 1px solid rgba(248,113,113,0.3);
-      color: var(--red);
-    }
-    .message-banner.success {
-      display: block;
-      background: rgba(52,211,153,0.12);
-      border: 1px solid rgba(52,211,153,0.3);
-      color: var(--green);
-    }
+    /* Table */
+    .table-wrap{padding:0 16px 40px;overflow-x:auto;-webkit-overflow-scrolling:touch}
+    table{width:100%;border-collapse:collapse;min-width:960px}
+    thead{position:sticky;top:0;z-index:10}
+    th{background:var(--bg-1);border-bottom:2px solid var(--line);border-top:1px solid var(--line);
+      color:var(--text-2);font-size:10px;font-weight:600;letter-spacing:1px;
+      text-transform:uppercase;padding:10px 12px;text-align:right;cursor:pointer;
+      user-select:none;white-space:nowrap;-webkit-tap-highlight-color:transparent;transition:color .1s}
+    th:hover{color:var(--text-0)}
+    th:first-child,th:nth-child(2),th:nth-child(3){text-align:left}
+    th.sorted-asc::after{content:' ↑';color:var(--accent)}
+    th.sorted-desc::after{content:' ↓';color:var(--accent)}
+    td{padding:10px 12px;border-bottom:1px solid var(--line);text-align:right;
+      font-size:12px;color:var(--text-1);white-space:nowrap}
+    td:first-child,td:nth-child(2),td:nth-child(3){text-align:left}
+    tr:hover td{background:rgba(31,37,53,.5)}
+    .cell-ticker{color:var(--accent);font-weight:600;font-size:13px}
+    .cell-company{color:var(--text-0);max-width:160px;overflow:hidden;text-overflow:ellipsis;font-size:12px}
+    .cell-sector{color:var(--text-2);max-width:130px;overflow:hidden;text-overflow:ellipsis;font-size:11px}
+    .cell-score{font-family:'Fraunces',serif;font-size:18px;font-weight:700}
+    .cell-score.strong{color:var(--green)} .cell-score.watch{color:var(--amber)} .cell-score.avoid{color:var(--red)}
+    .rag-badge{display:inline-block;padding:3px 10px;border-radius:99px;
+      font-size:10px;font-weight:600;letter-spacing:1px;text-transform:uppercase}
+    .rag-badge.strong{background:rgba(52,211,153,.15);color:var(--green)}
+    .rag-badge.watch{background:rgba(251,191,36,.15);color:var(--amber)}
+    .rag-badge.avoid{background:rgba(248,113,113,.15);color:var(--red)}
+    .pass{color:var(--green)} .fail{color:var(--red)} .muted{color:var(--text-1)}
+    .empty-state{text-align:center;padding:64px 20px;color:var(--text-2)}
+    .empty-state-title{font-family:'Fraunces',serif;font-size:22px;color:var(--text-1);margin-bottom:8px}
 
-    .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 10px;
-      padding: 0 16px 16px;
-    }
-    .stat-card {
-      background: var(--bg-2);
-      border: 1px solid var(--line);
-      border-radius: 10px;
-      padding: 14px 12px;
-      text-align: center;
-    }
-    .stat-num {
-      font-family: 'Fraunces', serif;
-      font-size: 30px;
-      font-weight: 700;
-      line-height: 1;
-    }
-    .stat-num.strong { color: var(--green); }
-    .stat-num.watch  { color: var(--amber); }
-    .stat-num.avoid  { color: var(--red); }
-    .stat-num.total  { color: var(--text-0); }
-    .stat-label {
-      font-size: 9px;
-      font-weight: 600;
-      letter-spacing: 1.5px;
-      text-transform: uppercase;
-      color: var(--text-2);
-      margin-top: 5px;
-    }
-
-    .table-wrap {
-      padding: 0 16px 40px;
-      overflow-x: auto;
-      -webkit-overflow-scrolling: touch;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      min-width: 960px;
-    }
-    thead { position: sticky; top: 0; z-index: 10; }
-    th {
-      background: var(--bg-1);
-      border-bottom: 2px solid var(--line);
-      border-top: 1px solid var(--line);
-      color: var(--text-2);
-      font-size: 10px;
-      font-weight: 600;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-      padding: 10px 12px;
-      text-align: right;
-      cursor: pointer;
-      user-select: none;
-      white-space: nowrap;
-      -webkit-tap-highlight-color: transparent;
-      transition: color 0.1s;
-    }
-    th:hover { color: var(--text-0); }
-    th:first-child, th:nth-child(2), th:nth-child(3) { text-align: left; }
-    th.sorted-asc::after  { content: ' ↑'; color: var(--accent); }
-    th.sorted-desc::after { content: ' ↓'; color: var(--accent); }
-
-    td {
-      padding: 10px 12px;
-      border-bottom: 1px solid var(--line);
-      text-align: right;
-      font-size: 12px;
-      color: var(--text-1);
-      white-space: nowrap;
-    }
-    td:first-child, td:nth-child(2), td:nth-child(3) { text-align: left; }
-    tr:hover td { background: rgba(31,37,53,0.5); }
-
-    .cell-ticker  { color: var(--accent); font-weight: 600; font-size: 13px; }
-    .cell-company { color: var(--text-0); max-width: 160px; overflow: hidden; text-overflow: ellipsis; font-size: 12px; }
-    .cell-sector  { color: var(--text-2); max-width: 130px; overflow: hidden; text-overflow: ellipsis; font-size: 11px; }
-    .cell-score   { font-family: 'Fraunces', serif; font-size: 18px; font-weight: 700; }
-    .cell-score.strong { color: var(--green); }
-    .cell-score.watch  { color: var(--amber); }
-    .cell-score.avoid  { color: var(--red); }
-
-    .rag-badge {
-      display: inline-block;
-      padding: 3px 10px;
-      border-radius: 99px;
-      font-size: 10px;
-      font-weight: 600;
-      letter-spacing: 1px;
-      text-transform: uppercase;
-    }
-    .rag-badge.strong { background: rgba(52,211,153,0.15);  color: var(--green); }
-    .rag-badge.watch  { background: rgba(251,191,36,0.15);  color: var(--amber); }
-    .rag-badge.avoid  { background: rgba(248,113,113,0.15); color: var(--red); }
-
-    .pass  { color: var(--green); }
-    .fail  { color: var(--red); }
-    .muted { color: var(--text-1); }
-
-    .empty-state { text-align: center; padding: 64px 20px; color: var(--text-2); }
-    .empty-state-title { font-family: 'Fraunces', serif; font-size: 22px; color: var(--text-1); margin-bottom: 8px; }
-
-    @media (max-width: 600px) {
-      .header-title { font-size: 24px; }
-      .stats-grid { grid-template-columns: repeat(2, 1fr); }
-      .stat-num { font-size: 24px; }
-      .btn-csv { margin-left: 0; }
+    @media(max-width:600px){
+      .header-title{font-size:24px}
+      .stats-grid{grid-template-columns:repeat(2,1fr)}
+      .stat-num{font-size:24px}
+      .btn-csv{margin-left:0}
     }
   </style>
 </head>
@@ -261,23 +137,37 @@
   <div class="header-sub">S&amp;P 500 · Quality · Value · Momentum</div>
 </div>
 
-<div class="source-note">Data: <span>Yahoo Finance</span> — no API key required</div>
+<div class="section">
+  <div class="api-card">
+    <div class="api-card-label">Financial Modeling Prep API Key</div>
+    <div class="api-input-row">
+      <input type="text" class="api-input" id="apiKey"
+             placeholder="Paste your FMP API key here"
+             autocomplete="off" spellcheck="false" autocorrect="off" autocapitalize="off">
+      <button class="btn-eye" id="btnEye" onclick="toggleKeyMask()" title="Show/hide key">&#128065;</button>
+    </div>
+    <div class="api-note">
+      1. Go to <a href="https://site.financialmodelingprep.com/developer/docs" target="_blank" rel="noopener">site.financialmodelingprep.com/developer/docs</a><br>
+      2. Log in — your API key appears in the example URLs on that page<br>
+      3. Copy the key and paste it above — the eye button lets you verify it<br>
+      <strong>Free tier: 250 calls/day &middot; this screener uses ~90 calls per run (30 stocks &times; 3 endpoints)</strong>
+    </div>
+  </div>
+</div>
 
 <div class="controls">
-  <button class="btn btn-primary" id="btnRun" onclick="runScreener()">&#9654; Run Screener</button>
-  <button class="btn btn-stop"    id="btnStop" onclick="stopScreener()" style="display:none">&#9632; Stop</button>
+  <button class="btn btn-primary" id="btnRun"  onclick="runScreener()">&#9654; Run Screener</button>
+  <button class="btn btn-stop"   id="btnStop" onclick="stopScreener()" style="display:none">&#9632; Stop</button>
   <button class="btn btn-filter active" onclick="setFilter('all',this)">All</button>
   <button class="btn btn-filter"        onclick="setFilter('strong',this)">Strong</button>
   <button class="btn btn-filter"        onclick="setFilter('watch',this)">Watch</button>
   <button class="btn btn-filter"        onclick="setFilter('avoid',this)">Avoid</button>
-  <button class="btn btn-filter" id="btnTest" onclick="testConnection()">&#9889; Test</button>
+  <button class="btn btn-filter" id="btnTest"  onclick="testConnection()">&#9889; Test</button>
   <button class="btn btn-csv"           onclick="exportCSV()">&#8595; CSV</button>
 </div>
 
 <div class="progress-wrap" id="progressWrap">
-  <div class="progress-bar-bg">
-    <div class="progress-bar-fill" id="progressFill"></div>
-  </div>
+  <div class="progress-bar-bg"><div class="progress-bar-fill" id="progressFill"></div></div>
   <div class="progress-label" id="progressLabel"></div>
 </div>
 
@@ -292,24 +182,22 @@
 
 <div class="table-wrap">
   <table id="resultsTable">
-    <thead>
-      <tr>
-        <th onclick="sortBy('ticker')">Ticker</th>
-        <th onclick="sortBy('company')">Company</th>
-        <th onclick="sortBy('sector')">Sector</th>
-        <th onclick="sortBy('price')">Price</th>
-        <th onclick="sortBy('score')">Score</th>
-        <th onclick="sortBy('rag')">RAG</th>
-        <th onclick="sortBy('sharpe')">Sharpe</th>
-        <th onclick="sortBy('peg')">PEG</th>
-        <th onclick="sortBy('sortino')">Sortino</th>
-        <th onclick="sortBy('alpha')">Alpha %</th>
-        <th onclick="sortBy('beta')">Beta</th>
-        <th onclick="sortBy('vol')">Vol %</th>
-        <th onclick="sortBy('chg6m')">6M %</th>
-        <th onclick="sortBy('chg1m')">1M %</th>
-      </tr>
-    </thead>
+    <thead><tr>
+      <th onclick="sortBy('ticker')">Ticker</th>
+      <th onclick="sortBy('company')">Company</th>
+      <th onclick="sortBy('sector')">Sector</th>
+      <th onclick="sortBy('price')">Price</th>
+      <th onclick="sortBy('score')">Score</th>
+      <th onclick="sortBy('rag')">RAG</th>
+      <th onclick="sortBy('sharpe')">Sharpe</th>
+      <th onclick="sortBy('peg')">PEG</th>
+      <th onclick="sortBy('sortino')">Sortino</th>
+      <th onclick="sortBy('alpha')">Alpha %</th>
+      <th onclick="sortBy('beta')">Beta</th>
+      <th onclick="sortBy('vol')">Vol %</th>
+      <th onclick="sortBy('chg6m')">6M %</th>
+      <th onclick="sortBy('chg1m')">1M %</th>
+    </tr></thead>
     <tbody id="tableBody"></tbody>
   </table>
 </div>
@@ -317,152 +205,178 @@
 <script>
 'use strict';
 
-// ─── Universe ────────────────────────────────────────────────────
+// ── Universe ─────────────────────────────────────────────────────────────────
 const UNIVERSE = [
   'AAPL','MSFT','NVDA','AMZN','GOOGL','META','TSLA','JPM','V','UNH',
   'LLY','JNJ','MA','PG','HD','MRK','AVGO','COST','ABBV','WMT',
   'PEP','KO','NFLX','CSCO','MCD','CRM','ADBE','TXN','AMGN','QCOM'
 ];
 
-// ─── State ───────────────────────────────────────────────────────
-let results       = [];
-let currentFilter = 'all';
-let sortCol       = 'score';
-let sortDir       = 'desc';
-let running       = false;
-let stopRequested = false;
-
-// ─── Constants (must be before init IIFE) ────────────────────────
+// ── Constants (declared before init IIFE) ────────────────────────────────────
+const BASE             = 'https://financialmodelingprep.com/api/v3';
 const FETCH_TIMEOUT_MS = 12000;
 const COL_KEYS = [
   'ticker','company','sector','price','score','rag',
   'sharpe','peg','sortino','alpha','beta','vol','chg6m','chg1m'
 ];
 
-// Yahoo Finance public endpoints — no API key, CORS enabled
-const YF_QUOTE = 'https://query1.finance.yahoo.com/v7/finance/quote';
-const YF_CHART = 'https://query1.finance.yahoo.com/v8/finance/chart';
+// ── State ────────────────────────────────────────────────────────────────────
+let results       = [];
+let currentFilter = 'all';
+let sortCol       = 'score';
+let sortDir       = 'desc';
+let running       = false;
+let stopRequested = false;
+let keyMasked     = true;
 
-// ─── Init ────────────────────────────────────────────────────────
+// ── Init ─────────────────────────────────────────────────────────────────────
 (function init() {
+  const el    = document.getElementById('apiKey');
+  const saved = localStorage.getItem('fmp_key');
+  if (saved) el.value = saved;
+  el.style.webkitTextSecurity = 'disc'; // masked by default on mobile
+  el.style['-webkit-text-security'] = 'disc';
+  el.addEventListener('input', () => {
+    localStorage.setItem('fmp_key', el.value.trim());
+  });
   renderTable();
 })();
 
-// ─── Fetch helpers ───────────────────────────────────────────────
+function toggleKeyMask() {
+  keyMasked = !keyMasked;
+  const el  = document.getElementById('apiKey');
+  const eye = document.getElementById('btnEye');
+  // -webkit-text-security works on iOS Safari; fall back to type swap on others
+  if (CSS.supports('-webkit-text-security', 'disc')) {
+    el.style.webkitTextSecurity = keyMasked ? 'disc' : 'none';
+    el.style['-webkit-text-security'] = keyMasked ? 'disc' : 'none';
+  } else {
+    el.type = keyMasked ? 'password' : 'text';
+  }
+  eye.textContent = keyMasked ? '🙈' : '👁';
+}
+
+// ── Fetch helpers ────────────────────────────────────────────────────────────
 function fetchJSON(url) {
   let timerId;
-  const fetchPromise = fetch(url).then(async res => {
+  const req = fetch(url).then(async res => {
     clearTimeout(timerId);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    return res.json();
+    const data = await res.json();
+    if (data?.['Error Message']) throw new Error(data['Error Message']);
+    if (!Array.isArray(data) && data?.message) throw new Error(data.message);
+    return data;
   });
-  const timeoutPromise = new Promise((_, reject) => {
-    timerId = setTimeout(() => reject(new Error('Request timed out')), FETCH_TIMEOUT_MS);
+  const timeout = new Promise((_, rej) => {
+    timerId = setTimeout(() => rej(new Error('Request timed out')), FETCH_TIMEOUT_MS);
   });
-  return Promise.race([fetchPromise, timeoutPromise]);
+  return Promise.race([req, timeout]);
 }
 
-async function fetchQuotes(symbols) {
-  const url = `${YF_QUOTE}?symbols=${symbols.join(',')}&fields=` +
-    'shortName,longName,regularMarketPrice,trailingPE,beta,sector,52WeekChange';
-  const data = await fetchJSON(url);
-  const map = {};
-  (data?.quoteResponse?.result || []).forEach(q => { map[q.symbol] = q; });
-  return map;
+function errMsg(e) {
+  const m = (e?.message || '').toLowerCase();
+  if (/http 401|invalid api/i.test(m))
+    return 'HTTP 401 — API key is invalid. Copy your exact key from site.financialmodelingprep.com/developer/docs and paste it above.';
+  if (/http 403/i.test(m))
+    return 'HTTP 403 — API key rejected. Your key may be copied incorrectly. Click the 👁 button to see what you pasted and compare it with your key at site.financialmodelingprep.com/developer/docs';
+  if (/http 429/i.test(m))
+    return 'HTTP 429 — Too many requests. Wait a few minutes and try again.';
+  if (/limit|quota|exceed/i.test(m))
+    return 'Daily quota exhausted (250 calls/day free tier). Try again tomorrow.';
+  if (/load failed|failed to fetch|networkerror/i.test(m))
+    return 'Network error — check your internet connection.';
+  if (/timed out/i.test(m))
+    return 'Request timed out — check your internet connection.';
+  return e?.message || 'Unknown error';
 }
 
-async function fetchHistory(symbol) {
-  try {
-    const data = await fetchJSON(`${YF_CHART}/${symbol}?interval=1d&range=1y`);
-    const result = data?.chart?.result?.[0];
-    // adjclose preferred; fall back to close
-    const closes = result?.indicators?.adjclose?.[0]?.adjclose
-                ?? result?.indicators?.quote?.[0]?.close
-                ?? [];
-    // Filter nulls, return newest-first
-    return closes.filter(v => v != null).reverse();
-  } catch {
-    return [];
-  }
-}
-
-// ─── Test connection ─────────────────────────────────────────────
+// ── Test connection ──────────────────────────────────────────────────────────
 async function testConnection() {
+  const key = document.getElementById('apiKey').value.trim();
+  if (!key) {
+    showMessage('Paste your FMP API key first, then tap Test.', 'error');
+    return;
+  }
   const btn = document.getElementById('btnTest');
   btn.disabled = true;
   btn.textContent = '⟳ Testing…';
   hideMessage();
-
   try {
-    const map = await fetchQuotes(['AAPL']);
-    const q = map['AAPL'];
-    if (q?.regularMarketPrice) {
-      showMessage(
-        `✓ Connected — AAPL $${q.regularMarketPrice.toFixed(2)} (${q.longName || q.shortName}). Screener ready.`,
-        'success'
-      );
+    const data    = await fetchJSON(`${BASE}/profile/AAPL?apikey=${key}`);
+    const profile = Array.isArray(data) ? data[0] : data;
+    if (profile?.companyName) {
+      showMessage(`✓ Key valid — got "${profile.companyName}" from FMP. Ready to run.`, 'success');
     } else {
-      showMessage('✓ Response received but no price data. Try running the screener anyway.', 'success');
+      showMessage('✓ Request succeeded but response was empty. Try running the screener.', 'success');
     }
-  } catch (err) {
-    const msg = err.message || '';
-    let hint = /failed to fetch|networkerror|load failed/i.test(msg)
-      ? ' Check your internet connection.'
-      : /timed out/i.test(msg)
-        ? ' Request timed out — slow connection?'
-        : '';
-    showMessage(`✗ Test failed: ${msg}.${hint}`, 'error');
+  } catch (e) {
+    showMessage('✗ ' + errMsg(e), 'error');
   } finally {
     btn.disabled = false;
     btn.textContent = '⚡ Test';
   }
 }
 
-// ─── Per-stock calculation ────────────────────────────────────────
-function calcStock(symbol, q, prices) {
-  // Daily returns, newest-first prices
-  const nRet = Math.min(252, prices.length - 1);
-  const rets = new Array(nRet);
+// ── Per-stock fetch + calculate ───────────────────────────────────────────────
+async function fetchStock(symbol, key) {
+  // profile is required (price, beta, company, sector)
+  // history + ratios are optional — null if endpoint fails
+  const opt = url => fetchJSON(url).catch(() => null);
+
+  const [profileArr, priceHist, ratiosArr] = await Promise.all([
+    fetchJSON(`${BASE}/profile/${symbol}?apikey=${key}`),
+    opt(`${BASE}/historical-price-full/${symbol}?timeseries=260&apikey=${key}`),
+    opt(`${BASE}/ratios/${symbol}?limit=1&apikey=${key}`),
+  ]);
+
+  const p = (Array.isArray(profileArr) ? profileArr[0] : profileArr) || {};
+  const r = (Array.isArray(ratiosArr)  ? ratiosArr[0]  : ratiosArr)  || {};
+
+  const historical = priceHist?.historical ?? [];
+  const prices     = historical.map(h => h.adjClose ?? h.close);   // newest-first
+
+  const nRet  = Math.min(252, prices.length - 1);
+  const rets  = [];
   for (let i = 0; i < nRet; i++) {
-    rets[i] = (prices[i] - prices[i + 1]) / prices[i + 1];
+    rets.push((prices[i] - prices[i + 1]) / prices[i + 1]);
   }
 
-  const price = q?.regularMarketPrice ?? (prices[0] ?? null);
+  const price = p.price ?? (prices[0] ?? null);
 
-  // ── Sharpe (annualised, risk-free 5%) ─────────────────────────
+  // ── Sharpe (annualised, risk-free 5%) ──────────────────────────────────────
   let sharpe = null;
   if (rets.length > 20) {
     const avg = rets.reduce((a, b) => a + b, 0) / rets.length;
-    const variance = rets.reduce((s, r) => s + (r - avg) ** 2, 0) / rets.length;
-    const annVol = Math.sqrt(variance * 252);
-    if (annVol > 0) sharpe = (avg * 252 - 0.05) / annVol;
+    const v   = rets.reduce((s, r) => s + (r - avg) ** 2, 0) / rets.length;
+    const av  = Math.sqrt(v * 252);
+    if (av > 0) sharpe = (avg * 252 - 0.05) / av;
   }
 
-  // ── PEG proxy: trailing PE / 52-week price return % ───────────
+  // ── PEG — from ratios; fall back to PE / 1yr-return proxy ─────────────────
   let peg = null;
-  {
-    const pe  = q?.trailingPE ?? null;
-    const yr  = q?.['52WeekChange'] != null ? q['52WeekChange'] * 100 : null;
-    if (pe != null && pe > 0 && yr != null && yr > 1) peg = pe / yr;
+  if (r.priceEarningsToGrowthRatio > 0) {
+    peg = r.priceEarningsToGrowthRatio;
+  } else if (r.peRatio > 0 && prices.length >= 252) {
+    const yr = (prices[0] - prices[251]) / prices[251] * 100;
+    if (yr > 1) peg = r.peRatio / yr;
   }
 
-  // ── Sortino ───────────────────────────────────────────────────
+  // ── Sortino ────────────────────────────────────────────────────────────────
   let sortino = null;
   if (rets.length > 0) {
     const avg = rets.reduce((a, b) => a + b, 0) / rets.length;
     const dn  = rets.filter(r => r < 0);
     if (dn.length === 0) {
-      sortino = 3.0;
+      sortino = 3;
     } else {
       const dd = Math.sqrt(dn.reduce((s, r) => s + r * r, 0) / dn.length);
-      sortino  = dd > 0 ? (avg / dd) * Math.sqrt(252) : 3.0;
+      sortino  = dd > 0 ? (avg / dd) * Math.sqrt(252) : 3;
     }
   }
 
-  // ── Beta ──────────────────────────────────────────────────────
-  const beta = q?.beta ?? null;
+  // ── Beta, Vol, Momentum, Alpha ─────────────────────────────────────────────
+  const beta = p.beta ?? null;
 
-  // ── Volatility ────────────────────────────────────────────────
   let vol = null;
   if (rets.length > 0) {
     const avg = rets.reduce((a, b) => a + b, 0) / rets.length;
@@ -470,118 +384,92 @@ function calcStock(symbol, q, prices) {
     vol = Math.sqrt(v) * Math.sqrt(252) * 100;
   }
 
-  // ── Momentum ──────────────────────────────────────────────────
   let chg6m = null, chg1m = null;
   if (price != null && prices[125] != null) chg6m = (price - prices[125]) / prices[125] * 100;
   if (price != null && prices[21]  != null) chg1m = (price - prices[21])  / prices[21]  * 100;
 
-  // ── Alpha proxy ───────────────────────────────────────────────
   const alpha = chg6m != null ? chg6m * 2 - 10 : null;
 
-  // ── Score 0–6 ─────────────────────────────────────────────────
+  // ── Score 0–6 ──────────────────────────────────────────────────────────────
   let score = 0;
-  if (sharpe  != null && sharpe > 0.3)           score++;
-  if (peg     != null && peg > 0 && peg < 1.5)   score++;
-  if (sortino != null && sortino > 0.5)           score++;
-  if (beta    != null && beta < 1.5)              score++;
-  if (alpha   != null && alpha > 0)               score++;
-  if (chg6m   != null && chg6m > 0)              score++;
+  if (sharpe  != null && sharpe > 0.3)          score++;
+  if (peg     != null && peg > 0 && peg < 1.5)  score++;
+  if (sortino != null && sortino > 0.5)         score++;
+  if (beta    != null && beta < 1.5)            score++;
+  if (alpha   != null && alpha > 0)             score++;
+  if (chg6m   != null && chg6m > 0)            score++;
 
   const rag = score >= 5 ? 'strong' : score >= 3 ? 'watch' : 'avoid';
 
   return {
-    ticker:  symbol,
-    company: q?.longName || q?.shortName || '',
-    sector:  q?.sector   || '',
-    price,
-    score, rag, sharpe, peg, sortino, alpha, beta, vol, chg6m, chg1m,
+    ticker: symbol, company: p.companyName || '', sector: p.sector || '',
+    price, score, rag, sharpe, peg, sortino, alpha, beta, vol, chg6m, chg1m,
   };
 }
 
-// ─── Run screener ────────────────────────────────────────────────
+// ── Run screener ─────────────────────────────────────────────────────────────
 async function runScreener() {
   if (running) return;
-  running       = true;
-  stopRequested = false;
-  results       = [];
+  const key = document.getElementById('apiKey').value.trim();
+  if (!key) {
+    showMessage('Paste your FMP API key above first.', 'error');
+    return;
+  }
+  localStorage.setItem('fmp_key', key);
 
-  const btnRun        = document.getElementById('btnRun');
-  const btnStop       = document.getElementById('btnStop');
-  const progressWrap  = document.getElementById('progressWrap');
-  const progressFill  = document.getElementById('progressFill');
-  const progressLabel = document.getElementById('progressLabel');
+  running = true; stopRequested = false; results = [];
+
+  const btnRun       = document.getElementById('btnRun');
+  const btnStop      = document.getElementById('btnStop');
+  const progressWrap = document.getElementById('progressWrap');
+  const progressFill = document.getElementById('progressFill');
+  const progressLabel= document.getElementById('progressLabel');
 
   btnRun.disabled       = true;
   btnRun.textContent    = '⟳ Running…';
   btnStop.style.display = 'inline-flex';
   progressWrap.classList.add('visible');
-  progressFill.style.width = '0%';
-  progressLabel.textContent = 'Fetching quotes…';
-  hideMessage();
-  renderTable();
-  updateStats();
+  progressFill.style.width    = '0%';
+  progressLabel.textContent   = 'Starting…';
+  hideMessage(); renderTable(); updateStats();
   await delay(100);
 
-  // ── Step 1: batch quote fetch (1 API call for all 30 stocks) ──
-  let quoteMap = {};
-  try {
-    quoteMap = await fetchQuotes(UNIVERSE);
-  } catch (err) {
-    showMessage(
-      `Failed to load quotes: ${err.message}. Check your internet and tap ⚡ Test.`,
-      'error'
-    );
-    running               = false;
-    btnRun.disabled       = false;
-    btnRun.textContent    = '▶ Run Screener';
-    btnStop.style.display = 'none';
-    progressWrap.classList.remove('visible');
-    return;
-  }
-
-  // ── Step 2: per-stock history + calculate ─────────────────────
   const total = UNIVERSE.length;
-  let done = 0, failCount = 0;
+  let done = 0, failCount = 0, firstErr = null;
 
-  for (const symbol of UNIVERSE) {
+  for (const sym of UNIVERSE) {
     if (stopRequested) break;
-
-    progressLabel.textContent = `Loading ${symbol}… (${done + 1} of ${total})`;
+    progressLabel.textContent = `Fetching ${sym}… (${done + 1}/${total})`;
     progressFill.style.width  = `${(done / total) * 100}%`;
-
     try {
-      const prices = await fetchHistory(symbol);
-      const stock  = calcStock(symbol, quoteMap[symbol], prices);
-      results.push(stock);
-      renderTable();
-      updateStats();
-    } catch (err) {
-      console.warn(`[${symbol}]`, err.message);
+      const s = await fetchStock(sym, key);
+      results.push(s);
+      renderTable(); updateStats();
+    } catch (e) {
+      console.warn(`[${sym}]`, e.message);
+      if (!firstErr) firstErr = e;
       failCount++;
     }
-
     done++;
-    if (done < total && !stopRequested) await delay(100);
+    if (done < total && !stopRequested) await delay(150);
   }
 
-  const stopped = stopRequested;
   progressFill.style.width  = '100%';
-  progressLabel.textContent = stopped
+  progressLabel.textContent = stopRequested
     ? `Stopped — ${results.length} stocks loaded`
-    : `Complete — ${results.length} of ${total} stocks loaded`;
+    : `Complete — ${results.length}/${total} stocks loaded`;
 
-  if (results.length === 0) {
-    showMessage('No stocks loaded. Check your internet connection and try ⚡ Test.', 'error');
-  } else if (!stopped && failCount > 0) {
-    showMessage(`${failCount} stock(s) skipped. ${results.length} results shown.`, 'error');
+  if (results.length === 0 && firstErr) {
+    showMessage('✗ ' + errMsg(firstErr), 'error');
+  } else if (!stopRequested && failCount > 0) {
+    showMessage(`${failCount} stock(s) skipped. ${results.length} shown.`, 'error');
     setTimeout(hideMessage, 8000);
-  } else if (!stopped) {
-    showMessage(`Screener complete — ${results.length} stocks loaded.`, 'success');
+  } else if (!stopRequested) {
+    showMessage(`Complete — ${results.length} stocks loaded.`, 'success');
     setTimeout(hideMessage, 5000);
   }
 
-  running               = false;
-  stopRequested         = false;
+  running = false; stopRequested = false;
   btnRun.disabled       = false;
   btnRun.textContent    = results.length ? '⟳ Refresh' : '▶ Run Screener';
   btnStop.style.display = 'none';
@@ -589,101 +477,94 @@ async function runScreener() {
 
 function stopScreener() {
   stopRequested = true;
-  document.getElementById('btnStop').disabled    = true;
-  document.getElementById('btnStop').textContent = '⟳ Stopping…';
+  const btn = document.getElementById('btnStop');
+  btn.disabled = true; btn.textContent = '⟳ Stopping…';
 }
 
 const delay = ms => new Promise(r => setTimeout(r, ms));
 
-// ─── Sort ────────────────────────────────────────────────────────
+// ── Sort ─────────────────────────────────────────────────────────────────────
 function sortBy(col) {
   sortDir = sortCol === col ? (sortDir === 'asc' ? 'desc' : 'asc')
                             : (['ticker','company','sector'].includes(col) ? 'asc' : 'desc');
   sortCol = col;
   renderTable();
 }
-
 function getSorted(data) {
   return [...data].sort((a, b) => {
     let av = a[sortCol], bv = b[sortCol];
     if (av == null && bv == null) return 0;
-    if (av == null) return 1;
-    if (bv == null) return -1;
+    if (av == null) return 1; if (bv == null) return -1;
     if (typeof av === 'string') return sortDir === 'asc' ? av.localeCompare(bv) : bv.localeCompare(av);
     return sortDir === 'asc' ? av - bv : bv - av;
   });
 }
 
-// ─── Filter ──────────────────────────────────────────────────────
+// ── Filter ───────────────────────────────────────────────────────────────────
 function setFilter(f, btn) {
   currentFilter = f;
   document.querySelectorAll('.btn-filter').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
-  renderTable();
-  updateStats();
+  renderTable(); updateStats();
 }
-
 function getFiltered() {
   return currentFilter === 'all' ? results : results.filter(r => r.rag === currentFilter);
 }
 
-// ─── Render ──────────────────────────────────────────────────────
+// ── Render ───────────────────────────────────────────────────────────────────
 function fmtPrice(v) {
   if (v == null) return '—';
   return '$' + Number(v).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
-
-function metricTD(val, passes, dp, suffix) {
+function metricTD(val, passes, dp, sfx) {
   if (val == null || !isFinite(val)) return '<td class="muted">—</td>';
-  return `<td class="${passes(val) ? 'pass' : 'fail'}">${val.toFixed(dp)}${suffix}</td>`;
+  return `<td class="${passes(val)?'pass':'fail'}">${val.toFixed(dp)}${sfx}</td>`;
+}
+function esc(s) {
+  return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
 function renderTable() {
-  const tbody   = document.getElementById('tableBody');
-  const sorted  = getSorted(getFiltered());
+  const tbody  = document.getElementById('tableBody');
+  const sorted = getSorted(getFiltered());
 
   document.querySelectorAll('th').forEach((th, i) => {
-    th.classList.remove('sorted-asc', 'sorted-desc');
+    th.classList.remove('sorted-asc','sorted-desc');
     if (COL_KEYS[i] === sortCol) th.classList.add(sortDir === 'asc' ? 'sorted-asc' : 'sorted-desc');
   });
 
-  if (sorted.length === 0) {
-    const title = results.length === 0 ? 'Ready to screen' : 'No results';
-    const sub   = results.length === 0 ? 'Press ▶ Run Screener to start' : 'No stocks match the current filter';
+  if (!sorted.length) {
+    const [t, s] = results.length
+      ? ['No results', 'No stocks match the current filter']
+      : ['Ready to screen', 'Paste your API key above and press ▶ Run Screener'];
     tbody.innerHTML = `<tr><td colspan="14"><div class="empty-state">
-      <div class="empty-state-title">${title}</div>${sub}</div></td></tr>`;
+      <div class="empty-state-title">${t}</div>${s}</div></td></tr>`;
     return;
   }
 
-  tbody.innerHTML = sorted.map(s => `
-    <tr>
-      <td class="cell-ticker">${s.ticker}</td>
-      <td class="cell-company" title="${esc(s.company)}">${esc(s.company) || '—'}</td>
-      <td class="cell-sector"  title="${esc(s.sector)}">${esc(s.sector)  || '—'}</td>
-      <td class="muted">${fmtPrice(s.price)}</td>
-      <td class="cell-score ${s.rag}">${s.score}/6</td>
-      <td><span class="rag-badge ${s.rag}">${s.rag}</span></td>
-      ${metricTD(s.sharpe,  v => v > 0.3,              2, ''  )}
-      ${metricTD(s.peg,     v => v > 0 && v < 1.5,     2, ''  )}
-      ${metricTD(s.sortino, v => v > 0.5,              2, ''  )}
-      ${metricTD(s.alpha,   v => v > 0,                1, '%' )}
-      ${metricTD(s.beta,    v => v < 1.5,              2, ''  )}
-      ${metricTD(s.vol,     () => true,                1, '%' )}
-      ${metricTD(s.chg6m,   v => v > 0,               1, '%' )}
-      ${metricTD(s.chg1m,   v => v > 0,               1, '%' )}
-    </tr>
-  `).join('');
+  tbody.innerHTML = sorted.map(s => `<tr>
+    <td class="cell-ticker">${s.ticker}</td>
+    <td class="cell-company" title="${esc(s.company)}">${esc(s.company)||'—'}</td>
+    <td class="cell-sector"  title="${esc(s.sector)}">${esc(s.sector)||'—'}</td>
+    <td class="muted">${fmtPrice(s.price)}</td>
+    <td class="cell-score ${s.rag}">${s.score}/6</td>
+    <td><span class="rag-badge ${s.rag}">${s.rag}</span></td>
+    ${metricTD(s.sharpe,  v=>v>0.3,             2,'')}
+    ${metricTD(s.peg,     v=>v>0&&v<1.5,         2,'')}
+    ${metricTD(s.sortino, v=>v>0.5,              2,'')}
+    ${metricTD(s.alpha,   v=>v>0,               1,'%')}
+    ${metricTD(s.beta,    v=>v<1.5,             2,'')}
+    ${metricTD(s.vol,     ()=>true,             1,'%')}
+    ${metricTD(s.chg6m,   v=>v>0,              1,'%')}
+    ${metricTD(s.chg1m,   v=>v>0,              1,'%')}
+  </tr>`).join('');
 }
 
-function esc(s) {
-  return (s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-
-// ─── Stats ───────────────────────────────────────────────────────
+// ── Stats ────────────────────────────────────────────────────────────────────
 function updateStats() {
-  const strong  = results.filter(r => r.rag === 'strong').length;
-  const watch   = results.filter(r => r.rag === 'watch').length;
-  const avoid   = results.filter(r => r.rag === 'avoid').length;
+  const strong  = results.filter(r=>r.rag==='strong').length;
+  const watch   = results.filter(r=>r.rag==='watch').length;
+  const avoid   = results.filter(r=>r.rag==='avoid').length;
   const showing = getFiltered().length;
   document.getElementById('statStrong').textContent  = results.length ? strong  : '—';
   document.getElementById('statWatch').textContent   = results.length ? watch   : '—';
@@ -691,43 +572,29 @@ function updateStats() {
   document.getElementById('statShowing').textContent = results.length ? showing : '—';
 }
 
-// ─── CSV export ──────────────────────────────────────────────────
+// ── CSV ──────────────────────────────────────────────────────────────────────
 function exportCSV() {
   const filtered = getFiltered();
-  if (!filtered.length) {
-    showMessage('No data to export. Run the screener first.', 'error');
-    setTimeout(hideMessage, 4000);
-    return;
-  }
-  const headers = ['Ticker','Company','Sector','Price','Score','RAG','Sharpe','PEG','Sortino','Alpha %','Beta','Vol %','6M %','1M %'];
-  const rows = filtered.map(s => [
-    s.ticker, csvStr(s.company), csvStr(s.sector),
-    s.price   != null ? s.price.toFixed(2)   : '',
-    s.score, s.rag,
-    s.sharpe  != null ? s.sharpe.toFixed(2)  : '',
-    s.peg     != null ? s.peg.toFixed(2)     : '',
-    s.sortino != null ? s.sortino.toFixed(2) : '',
-    s.alpha   != null ? s.alpha.toFixed(2)   : '',
-    s.beta    != null ? s.beta.toFixed(2)    : '',
-    s.vol     != null ? s.vol.toFixed(2)     : '',
-    s.chg6m   != null ? s.chg6m.toFixed(2)  : '',
-    s.chg1m   != null ? s.chg1m.toFixed(2)  : '',
+  if (!filtered.length) { showMessage('No data to export.','error'); setTimeout(hideMessage,4000); return; }
+  const hdr = ['Ticker','Company','Sector','Price','Score','RAG','Sharpe','PEG','Sortino','Alpha %','Beta','Vol %','6M %','1M %'];
+  const rows = filtered.map(s=>[
+    s.ticker, `"${(s.company||'').replace(/"/g,'""')}"`, `"${(s.sector||'').replace(/"/g,'""')}"`,
+    s.price   !=null?s.price.toFixed(2):'',   s.score, s.rag,
+    s.sharpe  !=null?s.sharpe.toFixed(2):'',  s.peg    !=null?s.peg.toFixed(2):'',
+    s.sortino !=null?s.sortino.toFixed(2):'', s.alpha  !=null?s.alpha.toFixed(2):'',
+    s.beta    !=null?s.beta.toFixed(2):'',    s.vol    !=null?s.vol.toFixed(2):'',
+    s.chg6m   !=null?s.chg6m.toFixed(2):'',  s.chg1m  !=null?s.chg1m.toFixed(2):'',
   ]);
-  const csv  = [headers.join(','), ...rows.map(r => r.join(','))].join('\r\n');
-  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-  const url  = URL.createObjectURL(blob);
-  const a    = document.createElement('a');
-  a.href = url;
-  a.download = `stuarts-stock-screener-${new Date().toISOString().slice(0,10)}.csv`;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  setTimeout(() => URL.revokeObjectURL(url), 10000);
+  const csv  = [hdr.join(','), ...rows.map(r=>r.join(','))].join('\r\n');
+  const url  = URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8;'}));
+  const a    = Object.assign(document.createElement('a'), {
+    href: url, download: `stuarts-screener-${new Date().toISOString().slice(0,10)}.csv`
+  });
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(url), 10000);
 }
 
-function csvStr(s) { return '"' + (s || '').replace(/"/g, '""') + '"'; }
-
-// ─── Messages ────────────────────────────────────────────────────
+// ── Messages ─────────────────────────────────────────────────────────────────
 function showMessage(text, type) {
   const el = document.getElementById('msgBanner');
   el.textContent = text;
