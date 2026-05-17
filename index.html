@@ -132,8 +132,9 @@
     .btn-primary:not(:disabled):active { opacity: 0.75; }
     .btn-filter { background: transparent; border-color: var(--line); color: var(--text-1); }
     .btn-filter.active { border-color: var(--accent); color: var(--accent); }
-    .btn-csv { background: transparent; border-color: var(--line); color: var(--text-1); margin-left: auto; }
+    .btn-csv  { background: transparent; border-color: var(--line); color: var(--text-1); margin-left: auto; }
     .btn-csv:active { border-color: var(--text-1); }
+    .btn-stop { background: transparent; border-color: var(--red); color: var(--red); }
 
     /* ── Progress ── */
     .progress-wrap { padding: 0 16px 14px; display: none; }
@@ -346,6 +347,7 @@
 <!-- Controls -->
 <div class="controls">
   <button class="btn btn-primary" id="btnRun" onclick="runScreener()">&#9654; Run Screener</button>
+  <button class="btn btn-stop" id="btnStop" onclick="stopScreener()" style="display:none">&#9632; Stop</button>
   <button class="btn btn-filter active" onclick="setFilter('all',this)">All</button>
   <button class="btn btn-filter" onclick="setFilter('strong',this)">Strong</button>
   <button class="btn btn-filter" onclick="setFilter('watch',this)">Watch</button>
@@ -475,11 +477,12 @@ const UNIVERSE_FULL = [
 //  STATE
 // ═══════════════════════════════════════════════════════════════
 
-let results      = [];   // all fetched stocks
-let currentFilter = 'all';
-let sortCol      = 'score';
-let sortDir      = 'desc';
-let running      = false;
+let results        = [];   // all fetched stocks
+let currentFilter  = 'all';
+let sortCol        = 'score';
+let sortDir        = 'desc';
+let running        = false;
+let stopRequested  = false;
 
 const BASE = 'https://financialmodelingprep.com/api/v3';
 
@@ -501,23 +504,29 @@ const BASE = 'https://financialmodelingprep.com/api/v3';
 //  FETCH HELPERS
 // ═══════════════════════════════════════════════════════════════
 
-async function fetchJSON(url) {
-  const res = await fetch(url);
+async function fetchJSON(url, signal) {
+  const res = await fetch(url, { signal });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   const data = await res.json();
   if (data && data['Error Message']) throw new Error(data['Error Message']);
+  if (!Array.isArray(data) && data && data['message']) throw new Error(data['message']);
   return data;
 }
 
 async function fetchStock(symbol, key) {
+  const ctrl  = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), 12000);
+  const sig   = ctrl.signal;
+  try {
   const [profiles, income, balance, cashflow, priceHist, ratios] = await Promise.all([
-    fetchJSON(`${BASE}/profile/${symbol}?apikey=${key}`),
-    fetchJSON(`${BASE}/income-statement/${symbol}?limit=1&apikey=${key}`),
-    fetchJSON(`${BASE}/balance-sheet-statement/${symbol}?limit=1&apikey=${key}`),
-    fetchJSON(`${BASE}/cash-flow-statement/${symbol}?limit=1&apikey=${key}`),
-    fetchJSON(`${BASE}/historical-price-full/${symbol}?timeseries=260&apikey=${key}`),
-    fetchJSON(`${BASE}/ratios/${symbol}?limit=1&apikey=${key}`),
+    fetchJSON(`${BASE}/profile/${symbol}?apikey=${key}`, sig),
+    fetchJSON(`${BASE}/income-statement/${symbol}?limit=1&apikey=${key}`, sig),
+    fetchJSON(`${BASE}/balance-sheet-statement/${symbol}?limit=1&apikey=${key}`, sig),
+    fetchJSON(`${BASE}/cash-flow-statement/${symbol}?limit=1&apikey=${key}`, sig),
+    fetchJSON(`${BASE}/historical-price-full/${symbol}?timeseries=260&apikey=${key}`, sig),
+    fetchJSON(`${BASE}/ratios/${symbol}?limit=1&apikey=${key}`, sig),
   ]);
+  clearTimeout(timer);
 
   const profile = (Array.isArray(profiles) ? profiles[0] : profiles) || {};
   const inc     = (Array.isArray(income)   ? income[0]   : null)      || {};
@@ -600,12 +609,12 @@ async function fetchStock(symbol, key) {
 
   // ── Score (0–6) ────────────────────────────────────────────
   let score = 0;
-  if (croci   != null && croci > 10)          score++;
+  if (croci   != null && croci > 10)           score++;
   if (peg     != null && peg > 0 && peg < 1.5) score++;
-  if (sortino != null && sortino > 0.5)        score++;
-  if (beta    != null && beta < 1.5)           score++;
-  if (alpha   != null && alpha > 0)            score++;
-  if (chg6m   != null && chg6m > 0)            score++;
+  if (sortino != null && sortino > 0.5)         score++;
+  if (beta    != null && beta < 1.5)            score++;
+  if (alpha   != null && alpha > 0)             score++;
+  if (chg6m   != null && chg6m > 0)             score++;
 
   const rag = score >= 5 ? 'strong' : score >= 3 ? 'watch' : 'avoid';
 
@@ -625,6 +634,11 @@ async function fetchStock(symbol, key) {
     chg6m,
     chg1m,
   };
+  } catch (err) {
+    clearTimeout(timer);
+    if (err.name === 'AbortError') throw new Error(`Timeout fetching ${symbol}`);
+    throw err;
+  }
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -641,28 +655,35 @@ async function runScreener() {
   }
   localStorage.setItem('fmp_api_key', key);
 
-  running = true;
-  results = [];
+  running       = true;
+  stopRequested = false;
+  results       = [];
 
-  const btnRun       = document.getElementById('btnRun');
-  const progressWrap = document.getElementById('progressWrap');
-  const progressFill = document.getElementById('progressFill');
+  const btnRun        = document.getElementById('btnRun');
+  const btnStop       = document.getElementById('btnStop');
+  const progressWrap  = document.getElementById('progressWrap');
+  const progressFill  = document.getElementById('progressFill');
   const progressLabel = document.getElementById('progressLabel');
 
-  btnRun.disabled    = true;
-  btnRun.textContent = '⟳ Running…';
+  btnRun.disabled       = true;
+  btnRun.textContent    = '⟳ Running…';
+  btnStop.style.display = 'inline-flex';
+  btnStop.disabled      = false;
+  btnStop.textContent   = '■ Stop';
   progressWrap.classList.add('visible');
   progressFill.style.width = '0%';
   hideMessage();
   renderTable();
   updateStats();
 
-  const total      = UNIVERSE.length;
-  let done         = 0;
-  let firstError   = null;
-  let failCount    = 0;
+  const total    = UNIVERSE.length;
+  let done       = 0;
+  let firstError = null;
+  let failCount  = 0;
 
   for (const symbol of UNIVERSE) {
+    if (stopRequested) break;
+
     progressLabel.textContent = `Fetching ${symbol}… (${done + 1} of ${total})`;
     progressFill.style.width  = `${(done / total) * 100}%`;
 
@@ -678,31 +699,42 @@ async function runScreener() {
     }
 
     done++;
-    if (done < total) await delay(200);
+    if (done < total && !stopRequested) await delay(200);
   }
 
-  progressFill.style.width    = '100%';
-  progressLabel.textContent   = `Complete — ${results.length} of ${total} stocks loaded`;
+  const stopped = stopRequested;
+  progressFill.style.width  = '100%';
+  progressLabel.textContent = stopped
+    ? `Stopped — ${results.length} stocks loaded`
+    : `Complete — ${results.length} of ${total} stocks loaded`;
 
   if (results.length === 0 && firstError) {
     showMessage(
-      `All fetches failed. Check your API key is valid. (${firstError.message})`,
+      `All fetches failed. Check your API key is valid. Error: ${firstError.message}`,
       'error'
     );
-  } else if (failCount > 0) {
+  } else if (!stopped && failCount > 0) {
     showMessage(
-      `${failCount} stock(s) could not be loaded and were skipped. ${results.length} results shown.`,
+      `${failCount} stock(s) skipped (failed to load). ${results.length} results shown.`,
       'error'
     );
     setTimeout(hideMessage, 6000);
-  } else {
+  } else if (!stopped) {
     showMessage(`Screener complete — ${results.length} stocks loaded.`, 'success');
     setTimeout(hideMessage, 5000);
   }
 
-  running              = false;
-  btnRun.disabled      = false;
-  btnRun.textContent   = '⟳ Refresh';
+  running               = false;
+  stopRequested         = false;
+  btnRun.disabled       = false;
+  btnRun.textContent    = results.length ? '⟳ Refresh' : '▶ Run Screener';
+  btnStop.style.display = 'none';
+}
+
+function stopScreener() {
+  stopRequested = true;
+  document.getElementById('btnStop').disabled    = true;
+  document.getElementById('btnStop').textContent = '⟳ Stopping…';
 }
 
 const delay = ms => new Promise(r => setTimeout(r, ms));
@@ -721,7 +753,6 @@ function sortBy(col) {
     sortDir = sortDir === 'asc' ? 'desc' : 'asc';
   } else {
     sortCol = col;
-    // Default descending for numeric quality metrics; ascending for text
     sortDir = ['ticker','company','sector'].includes(col) ? 'asc' : 'desc';
   }
   renderTable();
@@ -786,7 +817,6 @@ function renderTable() {
   const filtered = getFiltered();
   const sorted   = getSorted(filtered);
 
-  // Update sort arrows
   document.querySelectorAll('th').forEach((th, i) => {
     th.classList.remove('sorted-asc', 'sorted-desc');
     if (COL_KEYS[i] === sortCol) {
