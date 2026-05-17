@@ -11,9 +11,8 @@
   <meta name="apple-mobile-web-app-title" content="Stock Screener">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="theme-color" content="#08090d">
-  <meta name="description" content="Stuart's Bloomberg-style stock screener — CROCI, PEG, Sortino and more.">
+  <meta name="description" content="Stuart's Bloomberg-style stock screener — Sharpe, PEG, Sortino and more.">
 
-  <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -45,7 +44,6 @@
       padding-bottom: env(safe-area-inset-bottom);
     }
 
-    /* ── Header ── */
     .header {
       padding: 24px 20px 20px;
       border-bottom: 1px solid var(--line);
@@ -67,48 +65,18 @@
       margin-top: 5px;
     }
 
-    /* ── API Key Card ── */
-    .section { padding: 16px; }
-    .api-card {
-      background: var(--bg-2);
-      border: 1px solid var(--line);
-      border-radius: 10px;
-      padding: 16px;
-    }
-    .api-card-label {
-      font-size: 10px;
-      font-weight: 600;
-      letter-spacing: 1.5px;
-      text-transform: uppercase;
+    .source-note {
+      padding: 10px 16px 4px;
+      font-size: 11px;
       color: var(--text-2);
-      margin-bottom: 10px;
     }
-    .api-input-row { display: flex; gap: 8px; }
-    .api-input {
-      flex: 1;
-      background: var(--bg-1);
-      border: 1px solid var(--line);
-      border-radius: 6px;
-      color: var(--text-0);
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 12px;
-      padding: 10px 12px;
-      outline: none;
-      transition: border-color 0.15s;
-      min-width: 0;
-    }
-    .api-input:focus { border-color: var(--accent); }
-    .api-input::placeholder { color: var(--text-2); }
-    .api-note { font-size: 11px; color: var(--text-2); margin-top: 10px; line-height: 1.6; }
-    .api-note a { color: var(--accent); text-decoration: none; }
-    .api-note a:hover { text-decoration: underline; }
+    .source-note span { color: var(--accent); }
 
-    /* ── Controls ── */
     .controls {
       display: flex;
       flex-wrap: wrap;
       gap: 8px;
-      padding: 0 16px 16px;
+      padding: 10px 16px 16px;
       align-items: center;
     }
     .btn {
@@ -136,7 +104,6 @@
     .btn-csv:active { border-color: var(--text-1); }
     .btn-stop { background: transparent; border-color: var(--red); color: var(--red); }
 
-    /* ── Progress ── */
     .progress-wrap { padding: 0 16px 14px; display: none; }
     .progress-wrap.visible { display: block; }
     .progress-bar-bg {
@@ -154,7 +121,6 @@
     }
     .progress-label { font-size: 11px; color: var(--text-2); margin-top: 7px; }
 
-    /* ── Message Banner ── */
     .message-banner {
       margin: 0 16px 12px;
       padding: 10px 14px;
@@ -176,7 +142,6 @@
       color: var(--green);
     }
 
-    /* ── Stats Grid ── */
     .stats-grid {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
@@ -209,7 +174,6 @@
       margin-top: 5px;
     }
 
-    /* ── Table ── */
     .table-wrap {
       padding: 0 16px 40px;
       overflow-x: auto;
@@ -239,9 +203,7 @@
       transition: color 0.1s;
     }
     th:hover { color: var(--text-0); }
-    th:first-child,
-    th:nth-child(2),
-    th:nth-child(3) { text-align: left; }
+    th:first-child, th:nth-child(2), th:nth-child(3) { text-align: left; }
     th.sorted-asc::after  { content: ' ↑'; color: var(--accent); }
     th.sorted-desc::after { content: ' ↓'; color: var(--accent); }
 
@@ -253,31 +215,13 @@
       color: var(--text-1);
       white-space: nowrap;
     }
-    td:first-child,
-    td:nth-child(2),
-    td:nth-child(3) { text-align: left; }
+    td:first-child, td:nth-child(2), td:nth-child(3) { text-align: left; }
     tr:hover td { background: rgba(31,37,53,0.5); }
 
-    .cell-ticker { color: var(--accent); font-weight: 600; font-size: 13px; }
-    .cell-company {
-      color: var(--text-0);
-      max-width: 160px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      font-size: 12px;
-    }
-    .cell-sector {
-      color: var(--text-2);
-      max-width: 130px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      font-size: 11px;
-    }
-    .cell-score {
-      font-family: 'Fraunces', serif;
-      font-size: 18px;
-      font-weight: 700;
-    }
+    .cell-ticker  { color: var(--accent); font-weight: 600; font-size: 13px; }
+    .cell-company { color: var(--text-0); max-width: 160px; overflow: hidden; text-overflow: ellipsis; font-size: 12px; }
+    .cell-sector  { color: var(--text-2); max-width: 130px; overflow: hidden; text-overflow: ellipsis; font-size: 11px; }
+    .cell-score   { font-family: 'Fraunces', serif; font-size: 18px; font-weight: 700; }
     .cell-score.strong { color: var(--green); }
     .cell-score.watch  { color: var(--amber); }
     .cell-score.avoid  { color: var(--red); }
@@ -295,23 +239,13 @@
     .rag-badge.watch  { background: rgba(251,191,36,0.15);  color: var(--amber); }
     .rag-badge.avoid  { background: rgba(248,113,113,0.15); color: var(--red); }
 
-    .pass { color: var(--green); }
-    .fail { color: var(--red); }
+    .pass  { color: var(--green); }
+    .fail  { color: var(--red); }
     .muted { color: var(--text-1); }
 
-    .empty-state {
-      text-align: center;
-      padding: 64px 20px;
-      color: var(--text-2);
-    }
-    .empty-state-title {
-      font-family: 'Fraunces', serif;
-      font-size: 22px;
-      color: var(--text-1);
-      margin-bottom: 8px;
-    }
+    .empty-state { text-align: center; padding: 64px 20px; color: var(--text-2); }
+    .empty-state-title { font-family: 'Fraunces', serif; font-size: 22px; color: var(--text-1); margin-bottom: 8px; }
 
-    /* ── Mobile ── */
     @media (max-width: 600px) {
       .header-title { font-size: 24px; }
       .stats-grid { grid-template-columns: repeat(2, 1fr); }
@@ -322,72 +256,40 @@
 </head>
 <body>
 
-<!-- Header -->
 <div class="header">
   <div class="header-title">Stuart's Stock Screener</div>
   <div class="header-sub">S&amp;P 500 · Quality · Value · Momentum</div>
 </div>
 
-<!-- API Key -->
-<div class="section">
-  <div class="api-card">
-    <div class="api-card-label">Financial Modeling Prep API Key</div>
-    <div class="api-input-row">
-      <input type="password" class="api-input" id="apiKey"
-             placeholder="Paste your FMP API key here…"
-             autocomplete="off" spellcheck="false">
-    </div>
-    <div class="api-note">
-      Free key at <a href="https://financialmodelingprep.com" target="_blank" rel="noopener">financialmodelingprep.com</a>
-      — 250 calls/day free tier (30 stocks). Upgrade to Starter ($25/mo) for full S&amp;P 500.
-    </div>
-  </div>
-</div>
+<div class="source-note">Data: <span>Yahoo Finance</span> — no API key required</div>
 
-<!-- Controls -->
 <div class="controls">
   <button class="btn btn-primary" id="btnRun" onclick="runScreener()">&#9654; Run Screener</button>
-  <button class="btn btn-stop" id="btnStop" onclick="stopScreener()" style="display:none">&#9632; Stop</button>
+  <button class="btn btn-stop"    id="btnStop" onclick="stopScreener()" style="display:none">&#9632; Stop</button>
   <button class="btn btn-filter active" onclick="setFilter('all',this)">All</button>
-  <button class="btn btn-filter" onclick="setFilter('strong',this)">Strong</button>
-  <button class="btn btn-filter" onclick="setFilter('watch',this)">Watch</button>
-  <button class="btn btn-filter" onclick="setFilter('avoid',this)">Avoid</button>
+  <button class="btn btn-filter"        onclick="setFilter('strong',this)">Strong</button>
+  <button class="btn btn-filter"        onclick="setFilter('watch',this)">Watch</button>
+  <button class="btn btn-filter"        onclick="setFilter('avoid',this)">Avoid</button>
   <button class="btn btn-filter" id="btnTest" onclick="testConnection()">&#9889; Test</button>
-  <button class="btn btn-csv" onclick="exportCSV()">&#8595; CSV</button>
+  <button class="btn btn-csv"           onclick="exportCSV()">&#8595; CSV</button>
 </div>
 
-<!-- Progress -->
 <div class="progress-wrap" id="progressWrap">
   <div class="progress-bar-bg">
     <div class="progress-bar-fill" id="progressFill"></div>
   </div>
-  <div class="progress-label" id="progressLabel">Fetching…</div>
+  <div class="progress-label" id="progressLabel"></div>
 </div>
 
-<!-- Message Banner -->
 <div class="message-banner" id="msgBanner"></div>
 
-<!-- Stats -->
 <div class="stats-grid">
-  <div class="stat-card">
-    <div class="stat-num strong" id="statStrong">—</div>
-    <div class="stat-label">Strong</div>
-  </div>
-  <div class="stat-card">
-    <div class="stat-num watch" id="statWatch">—</div>
-    <div class="stat-label">Watch</div>
-  </div>
-  <div class="stat-card">
-    <div class="stat-num avoid" id="statAvoid">—</div>
-    <div class="stat-label">Avoid</div>
-  </div>
-  <div class="stat-card">
-    <div class="stat-num total" id="statShowing">—</div>
-    <div class="stat-label">Showing</div>
-  </div>
+  <div class="stat-card"><div class="stat-num strong" id="statStrong">—</div><div class="stat-label">Strong</div></div>
+  <div class="stat-card"><div class="stat-num watch"  id="statWatch">—</div><div class="stat-label">Watch</div></div>
+  <div class="stat-card"><div class="stat-num avoid"  id="statAvoid">—</div><div class="stat-label">Avoid</div></div>
+  <div class="stat-card"><div class="stat-num total"  id="statShowing">—</div><div class="stat-label">Showing</div></div>
 </div>
 
-<!-- Table -->
 <div class="table-wrap">
   <table id="resultsTable">
     <thead>
@@ -398,7 +300,7 @@
         <th onclick="sortBy('price')">Price</th>
         <th onclick="sortBy('score')">Score</th>
         <th onclick="sortBy('rag')">RAG</th>
-        <th onclick="sortBy('croci')">CROCI %</th>
+        <th onclick="sortBy('sharpe')">Sharpe</th>
         <th onclick="sortBy('peg')">PEG</th>
         <th onclick="sortBy('sortino')">Sortino</th>
         <th onclick="sortBy('alpha')">Alpha %</th>
@@ -415,112 +317,44 @@
 <script>
 'use strict';
 
-// ═══════════════════════════════════════════════════════════════
-//  UNIVERSE
-// ═══════════════════════════════════════════════════════════════
-
+// ─── Universe ────────────────────────────────────────────────────
 const UNIVERSE = [
   'AAPL','MSFT','NVDA','AMZN','GOOGL','META','TSLA','JPM','V','UNH',
   'LLY','JNJ','MA','PG','HD','MRK','AVGO','COST','ABBV','WMT',
   'PEP','KO','NFLX','CSCO','MCD','CRM','ADBE','TXN','AMGN','QCOM'
 ];
 
-// Full S&P 500 — replace UNIVERSE with UNIVERSE_FULL when on Starter plan ($25/mo, unlimited calls)
-/*
-const UNIVERSE_FULL = [
-  'MMM','AOS','ABT','ABBV','ACN','ADBE','AMD','AES','AFL','A','APD','ABNB',
-  'AKAM','ALB','ARE','ALGN','ALLE','LNT','ALL','GOOGL','GOOG','MO','AMZN',
-  'AMCR','AEE','AAL','AEP','AXP','AIG','AMT','AWK','AMP','AME','AMGN',
-  'APH','ADI','ANSS','AON','APA','AAPL','AMAT','APTV','ACGL','ADM','ANET',
-  'AJG','AIZ','T','ATO','ADSK','ADP','AZO','AVB','AVY','AXON','BKR','BALL',
-  'BAC','BK','BBWI','BAX','BDX','BRK.B','BBY','BIO','TECH','BIIB','BLK',
-  'BX','BA','BSX','BMY','AVGO','BR','BRO','BG','CDNS','CZR','CPT','CPB',
-  'COF','CAH','KMX','CCL','CARR','CAT','CBOE','CBRE','CDW','CE','COR',
-  'CNC','CNP','CF','CRL','SCHW','CHTR','CVX','CMG','CB','CHD','CI','CINF',
-  'CTAS','CSCO','C','CFG','CLX','CME','CMS','KO','CTSH','CL','CMCSA','CAG',
-  'COP','ED','STZ','CEG','COO','CPRT','GLW','CPAY','CTVA','CSGP','COST',
-  'CTRA','CCI','CSX','CMI','CVS','DHR','DRI','DVA','DAY','DECK','DE','DELL',
-  'DAL','DVN','DXCM','FANG','DLR','DFS','DG','DLTR','D','DPZ','DOV','DOW',
-  'DHI','DTE','DUK','DD','EMN','ETN','EBAY','ECL','EIX','EW','EA','ELV',
-  'EMR','ENPH','ETR','EOG','EPAM','EQT','EFX','EQIX','EQR','ESS','EL',
-  'ETSY','EG','ES','EXC','EXPE','EXPD','EXR','XOM','FFIV','FDS','FICO',
-  'FAST','FRT','FDX','FIS','FITB','FSLR','FE','FI','FMC','F','FTNT','FTV',
-  'FOXA','FOX','BEN','FCX','GRMN','IT','GE','GEHC','GEV','GEN','GNRC',
-  'GD','GIS','GM','GPC','GILD','GPN','GL','GDDY','GS','HAL','HIG','HAS',
-  'HCA','DOC','HSIC','HSY','HES','HPE','HLT','HOLX','HD','HON','HRL',
-  'HST','HWM','HPQ','HUBB','HUM','HBAN','HII','IBM','IEX','IDXX','ITW',
-  'INCY','IR','PODD','INTC','ICE','IFF','IP','IPG','INTU','ISRG','IVZ',
-  'INVH','IQV','IRM','JKHY','J','JBL','JPM','K','KVUE','KDP','KEY','KEYS',
-  'KMB','KIM','KMI','KKR','KLAC','KHC','KR','LH','LRCX','LW','LVS','LDOS',
-  'LEN','LII','LLY','LIN','LKQ','LMT','L','LOW','LULU','LYB','MTB','MPC',
-  'MKTX','MAR','MMC','MLM','MAS','MA','MTCH','MKC','MCD','MCK','MDT','MRK',
-  'META','MET','MTD','MGM','MCHP','MU','MSFT','MAA','MRNA','MHK','MOH',
-  'TAP','MDLZ','MPWR','MNST','MCO','MS','MOS','MSI','MSCI','NDAQ','NTAP',
-  'NFLX','NEM','NWSA','NWS','NEE','NKE','NI','NDSN','NSC','NTRS','NOC',
-  'NCLH','NRG','NUE','NVDA','NVR','NXPI','ORLY','OXY','ODFL','OMC','ON',
-  'OKE','ORCL','OTIS','PCAR','PKG','PLTR','PH','PAYX','PAYC','PYPL','PNR',
-  'PEP','PFE','PCG','PM','PSX','PNW','PNC','POOL','PPG','PPL','PFG','PG',
-  'PGR','PLD','PRU','PEG','PTC','PSA','PHM','QCOM','PWR','RJF','RTX','O',
-  'REG','REGN','RF','RSG','RMD','RVTY','ROK','ROL','ROP','ROST','RCL',
-  'SPGI','CRM','SBAC','SLB','STX','SRE','NOW','SHW','SPG','SWKS','SJM',
-  'SW','SNA','SOLV','SO','LUV','SWK','SBUX','STT','STLD','STE','SYK',
-  'SYF','SNPS','SYY','TMUS','TROW','TTWO','TPR','TRGP','TGT','TEL','TDY',
-  'TFX','TER','TSLA','TXN','TXT','TMO','TJX','TSCO','TT','TDG','TRV',
-  'TRMB','TFC','TYL','TSN','USB','UBER','UDR','ULTA','UNP','UAL','UPS',
-  'URI','UNH','UHS','VLO','VTR','VLTO','VRSN','VRSK','VZ','VRTX','VTRS',
-  'VICI','V','VST','VMC','WRB','GWW','WAB','WBA','WMT','DIS','WBD','WM',
-  'WAT','WEC','WFC','WELL','WST','WDC','WY','WMB','WTW','WYNN','XEL',
-  'XYL','YUM','ZBRA','ZBH','ZTS'
-];
-*/
+// ─── State ───────────────────────────────────────────────────────
+let results       = [];
+let currentFilter = 'all';
+let sortCol       = 'score';
+let sortDir       = 'desc';
+let running       = false;
+let stopRequested = false;
 
-// ═══════════════════════════════════════════════════════════════
-//  STATE
-// ═══════════════════════════════════════════════════════════════
-
-let results        = [];   // all fetched stocks
-let currentFilter  = 'all';
-let sortCol        = 'score';
-let sortDir        = 'desc';
-let running        = false;
-let stopRequested  = false;
-
-const BASE = 'https://financialmodelingprep.com/api/v3';
-
-// These must be declared before init() runs so renderTable() and fetchJSON() can access them
-const FETCH_TIMEOUT_MS = 10000;
+// ─── Constants (must be before init IIFE) ────────────────────────
+const FETCH_TIMEOUT_MS = 12000;
 const COL_KEYS = [
   'ticker','company','sector','price','score','rag',
-  'croci','peg','sortino','alpha','beta','vol','chg6m','chg1m'
+  'sharpe','peg','sortino','alpha','beta','vol','chg6m','chg1m'
 ];
 
-// ═══════════════════════════════════════════════════════════════
-//  INIT — restore saved API key
-// ═══════════════════════════════════════════════════════════════
+// Yahoo Finance public endpoints — no API key, CORS enabled
+const YF_QUOTE = 'https://query1.finance.yahoo.com/v7/finance/quote';
+const YF_CHART = 'https://query1.finance.yahoo.com/v8/finance/chart';
 
+// ─── Init ────────────────────────────────────────────────────────
 (function init() {
-  const keyEl = document.getElementById('apiKey');
-  const saved = localStorage.getItem('fmp_api_key');
-  if (saved) keyEl.value = saved;
-  keyEl.addEventListener('input', () => {
-    localStorage.setItem('fmp_api_key', keyEl.value.trim());
-  });
-  renderTable(); // show empty state
+  renderTable();
 })();
 
-// ═══════════════════════════════════════════════════════════════
-//  FETCH HELPERS
-// ═══════════════════════════════════════════════════════════════
-
+// ─── Fetch helpers ───────────────────────────────────────────────
 function fetchJSON(url) {
   let timerId;
   const fetchPromise = fetch(url).then(async res => {
     clearTimeout(timerId);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const data = await res.json();
-    if (data && data['Error Message']) throw new Error(data['Error Message']);
-    if (!Array.isArray(data) && data && data['message']) throw new Error(data['message']);
-    return data;
+    return res.json();
   });
   const timeoutPromise = new Promise((_, reject) => {
     timerId = setTimeout(() => reject(new Error('Request timed out')), FETCH_TIMEOUT_MS);
@@ -528,193 +362,145 @@ function fetchJSON(url) {
   return Promise.race([fetchPromise, timeoutPromise]);
 }
 
-function classifyFmpError(msg) {
-  if (/401/i.test(msg))                                      return 'Invalid API key (HTTP 401) — verify your key at financialmodelingprep.com.';
-  if (/403/i.test(msg))                                      return 'Access denied (HTTP 403) — API key may be wrong, or this endpoint needs a paid plan.';
-  if (/limit|quota|exceed/i.test(msg))                       return 'FMP quota message: ' + msg;
-  if (/failed to fetch|networkerror|load failed/i.test(msg)) return 'Network error — browser blocked the request. Try in a regular Safari tab (not standalone/PWA).';
-  if (/timed out/i.test(msg))                                return 'Request timed out — check your internet connection.';
-  return msg;
+async function fetchQuotes(symbols) {
+  const url = `${YF_QUOTE}?symbols=${symbols.join(',')}&fields=` +
+    'shortName,longName,regularMarketPrice,trailingPE,beta,sector,52WeekChange';
+  const data = await fetchJSON(url);
+  const map = {};
+  (data?.quoteResponse?.result || []).forEach(q => { map[q.symbol] = q; });
+  return map;
 }
 
-async function testConnection() {
-  const key = document.getElementById('apiKey').value.trim();
-  if (!key) { showMessage('Enter your FMP API key first.', 'error'); return; }
+async function fetchHistory(symbol) {
+  try {
+    const data = await fetchJSON(`${YF_CHART}/${symbol}?interval=1d&range=1y`);
+    const result = data?.chart?.result?.[0];
+    // adjclose preferred; fall back to close
+    const closes = result?.indicators?.adjclose?.[0]?.adjclose
+                ?? result?.indicators?.quote?.[0]?.close
+                ?? [];
+    // Filter nulls, return newest-first
+    return closes.filter(v => v != null).reverse();
+  } catch {
+    return [];
+  }
+}
 
+// ─── Test connection ─────────────────────────────────────────────
+async function testConnection() {
   const btn = document.getElementById('btnTest');
   btn.disabled = true;
   btn.textContent = '⟳ Testing…';
   hideMessage();
 
-  const eps = [
-    { label: 'profile',   url: `${BASE}/profile/AAPL?apikey=${key}` },
-    { label: 'income',    url: `${BASE}/income-statement/AAPL?limit=1&apikey=${key}` },
-    { label: 'balance',   url: `${BASE}/balance-sheet-statement/AAPL?limit=1&apikey=${key}` },
-    { label: 'cashflow',  url: `${BASE}/cash-flow-statement/AAPL?limit=1&apikey=${key}` },
-    { label: 'history',   url: `${BASE}/historical-price-full/AAPL?timeseries=5&apikey=${key}` },
-    { label: 'ratios',    url: `${BASE}/ratios/AAPL?limit=1&apikey=${key}` },
-  ];
-
-  const checks = await Promise.all(eps.map(async ep => {
-    try { await fetchJSON(ep.url); return { label: ep.label, ok: true }; }
-    catch (err) { return { label: ep.label, ok: false, err: err.message }; }
-  }));
-
-  const passed = checks.filter(c => c.ok);
-  const failed = checks.filter(c => !c.ok);
-
-  if (passed.length === 6) {
-    showMessage('✓ All 6 endpoints OK — API key valid, screener ready to run.', 'success');
-  } else if (passed.length === 0) {
-    showMessage('✗ All endpoints failed: ' + classifyFmpError(failed[0].err), 'error');
-  } else {
-    const failList = failed.map(c => `${c.label} (${c.err})`).join('; ');
-    showMessage(
-      `⚠ ${passed.length}/6 endpoints OK. Failed: ${failList}. ` +
-      `Screener will run with partial data — failed endpoints mean some metrics will show —.`,
-      'error'
-    );
+  try {
+    const map = await fetchQuotes(['AAPL']);
+    const q = map['AAPL'];
+    if (q?.regularMarketPrice) {
+      showMessage(
+        `✓ Connected — AAPL $${q.regularMarketPrice.toFixed(2)} (${q.longName || q.shortName}). Screener ready.`,
+        'success'
+      );
+    } else {
+      showMessage('✓ Response received but no price data. Try running the screener anyway.', 'success');
+    }
+  } catch (err) {
+    const msg = err.message || '';
+    let hint = /failed to fetch|networkerror|load failed/i.test(msg)
+      ? ' Check your internet connection.'
+      : /timed out/i.test(msg)
+        ? ' Request timed out — slow connection?'
+        : '';
+    showMessage(`✗ Test failed: ${msg}.${hint}`, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '⚡ Test';
   }
-
-  btn.disabled = false;
-  btn.textContent = '⚡ Test';
 }
 
-async function fetchStock(symbol, key) {
-  // profile is required — throws if it fails, skipping this stock
-  // other endpoints are optional — a 403 or error returns null so partial data still shows
-  const opt = url => fetchJSON(url).catch(() => null);
-  const [profiles, income, balance, cashflow, priceHist, ratios] = await Promise.all([
-    fetchJSON(`${BASE}/profile/${symbol}?apikey=${key}`),
-    opt(`${BASE}/income-statement/${symbol}?limit=1&apikey=${key}`),
-    opt(`${BASE}/balance-sheet-statement/${symbol}?limit=1&apikey=${key}`),
-    opt(`${BASE}/cash-flow-statement/${symbol}?limit=1&apikey=${key}`),
-    opt(`${BASE}/historical-price-full/${symbol}?timeseries=260&apikey=${key}`),
-    opt(`${BASE}/ratios/${symbol}?limit=1&apikey=${key}`),
-  ]);
-
-  const profile = (Array.isArray(profiles) ? profiles[0] : profiles) || {};
-  const inc     = (Array.isArray(income)   ? income[0]   : null)      || {};
-  const bal     = (Array.isArray(balance)  ? balance[0]  : null)      || {};
-  const cf      = (Array.isArray(cashflow) ? cashflow[0] : null)      || {};
-  const rat     = (Array.isArray(ratios)   ? ratios[0]   : null)      || {};
-
-  // Price history — historical is newest-first
-  const historical = (priceHist && Array.isArray(priceHist.historical))
-    ? priceHist.historical
-    : [];
-  const prices = historical.map(h => h.adjClose ?? h.close);
-
-  // Daily returns over last 252 trading days (newest first)
+// ─── Per-stock calculation ────────────────────────────────────────
+function calcStock(symbol, q, prices) {
+  // Daily returns, newest-first prices
   const nRet = Math.min(252, prices.length - 1);
-  const returns = new Array(nRet);
+  const rets = new Array(nRet);
   for (let i = 0; i < nRet; i++) {
-    returns[i] = (prices[i] - prices[i + 1]) / prices[i + 1];
+    rets[i] = (prices[i] - prices[i + 1]) / prices[i + 1];
   }
 
-  const currentPrice = profile.price != null ? profile.price : (prices[0] ?? null);
+  const price = q?.regularMarketPrice ?? (prices[0] ?? null);
 
-  // ── CROCI ──────────────────────────────────────────────────
-  let croci = null;
-  {
-    const opIncome    = inc.operatingIncome;
-    const da          = cf.depreciationAndAmortization;
-    const totalAssets = bal.totalAssets;
-    const currLiab    = bal.totalCurrentLiabilities;
-    if (opIncome != null && da != null && totalAssets != null && currLiab != null) {
-      const NOPAT = opIncome * 0.79;
-      const GCF   = NOPAT + Math.abs(da);
-      const GIC   = totalAssets + Math.abs(da) * 5 - currLiab;
-      if (GIC > 0) croci = (GCF / GIC) * 100;
-    }
+  // ── Sharpe (annualised, risk-free 5%) ─────────────────────────
+  let sharpe = null;
+  if (rets.length > 20) {
+    const avg = rets.reduce((a, b) => a + b, 0) / rets.length;
+    const variance = rets.reduce((s, r) => s + (r - avg) ** 2, 0) / rets.length;
+    const annVol = Math.sqrt(variance * 252);
+    if (annVol > 0) sharpe = (avg * 252 - 0.05) / annVol;
   }
 
-  // ── PEG ────────────────────────────────────────────────────
+  // ── PEG proxy: trailing PE / 52-week price return % ───────────
   let peg = null;
   {
-    const raw = rat.priceEarningsToGrowthRatio;
-    if (raw != null && raw > 0) peg = raw;
+    const pe  = q?.trailingPE ?? null;
+    const yr  = q?.['52WeekChange'] != null ? q['52WeekChange'] * 100 : null;
+    if (pe != null && pe > 0 && yr != null && yr > 1) peg = pe / yr;
   }
 
-  // ── Sortino ────────────────────────────────────────────────
+  // ── Sortino ───────────────────────────────────────────────────
   let sortino = null;
-  if (returns.length > 0) {
-    const avg      = returns.reduce((a, b) => a + b, 0) / returns.length;
-    const downside = returns.filter(r => r < 0);
-    if (downside.length === 0) {
+  if (rets.length > 0) {
+    const avg = rets.reduce((a, b) => a + b, 0) / rets.length;
+    const dn  = rets.filter(r => r < 0);
+    if (dn.length === 0) {
       sortino = 3.0;
     } else {
-      const dd = Math.sqrt(downside.reduce((s, r) => s + r * r, 0) / downside.length);
-      sortino  = dd !== 0 ? (avg / dd) * Math.sqrt(252) : 3.0;
+      const dd = Math.sqrt(dn.reduce((s, r) => s + r * r, 0) / dn.length);
+      sortino  = dd > 0 ? (avg / dd) * Math.sqrt(252) : 3.0;
     }
   }
 
-  // ── Beta ───────────────────────────────────────────────────
-  const beta = profile.beta != null ? profile.beta : null;
+  // ── Beta ──────────────────────────────────────────────────────
+  const beta = q?.beta ?? null;
 
-  // ── Volatility ─────────────────────────────────────────────
+  // ── Volatility ────────────────────────────────────────────────
   let vol = null;
-  if (returns.length > 0) {
-    const avg      = returns.reduce((a, b) => a + b, 0) / returns.length;
-    const variance = returns.reduce((s, r) => s + (r - avg) ** 2, 0) / returns.length;
-    vol = Math.sqrt(variance) * Math.sqrt(252) * 100;
+  if (rets.length > 0) {
+    const avg = rets.reduce((a, b) => a + b, 0) / rets.length;
+    const v   = rets.reduce((s, r) => s + (r - avg) ** 2, 0) / rets.length;
+    vol = Math.sqrt(v) * Math.sqrt(252) * 100;
   }
 
-  // ── chg6m / chg1m ──────────────────────────────────────────
+  // ── Momentum ──────────────────────────────────────────────────
   let chg6m = null, chg1m = null;
-  if (currentPrice != null && prices[125] != null) {
-    chg6m = (currentPrice - prices[125]) / prices[125] * 100;
-  }
-  if (currentPrice != null && prices[21] != null) {
-    chg1m = (currentPrice - prices[21])  / prices[21]  * 100;
-  }
+  if (price != null && prices[125] != null) chg6m = (price - prices[125]) / prices[125] * 100;
+  if (price != null && prices[21]  != null) chg1m = (price - prices[21])  / prices[21]  * 100;
 
-  // ── Alpha ──────────────────────────────────────────────────
-  const alpha = chg6m != null ? (chg6m * 2) - 10 : null;
+  // ── Alpha proxy ───────────────────────────────────────────────
+  const alpha = chg6m != null ? chg6m * 2 - 10 : null;
 
-  // ── Score (0–6) ────────────────────────────────────────────
+  // ── Score 0–6 ─────────────────────────────────────────────────
   let score = 0;
-  if (croci   != null && croci > 10)          score++;
-  if (peg     != null && peg > 0 && peg < 1.5) score++;
-  if (sortino != null && sortino > 0.5)        score++;
-  if (beta    != null && beta < 1.5)           score++;
-  if (alpha   != null && alpha > 0)            score++;
-  if (chg6m   != null && chg6m > 0)            score++;
+  if (sharpe  != null && sharpe > 0.3)           score++;
+  if (peg     != null && peg > 0 && peg < 1.5)   score++;
+  if (sortino != null && sortino > 0.5)           score++;
+  if (beta    != null && beta < 1.5)              score++;
+  if (alpha   != null && alpha > 0)               score++;
+  if (chg6m   != null && chg6m > 0)              score++;
 
   const rag = score >= 5 ? 'strong' : score >= 3 ? 'watch' : 'avoid';
 
   return {
-    ticker: symbol,
-    company: profile.companyName || '',
-    sector:  profile.sector      || '',
-    price: currentPrice,
-    score,
-    rag,
-    croci,
-    peg,
-    sortino,
-    alpha,
-    beta,
-    vol,
-    chg6m,
-    chg1m,
+    ticker:  symbol,
+    company: q?.longName || q?.shortName || '',
+    sector:  q?.sector   || '',
+    price,
+    score, rag, sharpe, peg, sortino, alpha, beta, vol, chg6m, chg1m,
   };
 }
 
-// ═══════════════════════════════════════════════════════════════
-//  RUN SCREENER
-// ═══════════════════════════════════════════════════════════════
-
+// ─── Run screener ────────────────────────────────────────────────
 async function runScreener() {
   if (running) return;
-
-  const key = document.getElementById('apiKey').value.trim();
-  if (!key) {
-    showMessage('Please enter your FMP API key first.', 'error');
-    return;
-  }
-  localStorage.setItem('fmp_api_key', key);
-
   running       = true;
   stopRequested = false;
   results       = [];
@@ -725,40 +511,57 @@ async function runScreener() {
   const progressFill  = document.getElementById('progressFill');
   const progressLabel = document.getElementById('progressLabel');
 
-  btnRun.disabled      = true;
-  btnRun.textContent   = '⟳ Running…';
+  btnRun.disabled       = true;
+  btnRun.textContent    = '⟳ Running…';
   btnStop.style.display = 'inline-flex';
   progressWrap.classList.add('visible');
   progressFill.style.width = '0%';
+  progressLabel.textContent = 'Fetching quotes…';
   hideMessage();
   renderTable();
   updateStats();
-  await delay(100); // let browser paint before fetch loop starts
+  await delay(100);
 
-  const total    = UNIVERSE.length;
-  let done       = 0;
-  let firstError = null;
-  let failCount  = 0;
+  // ── Step 1: batch quote fetch (1 API call for all 30 stocks) ──
+  let quoteMap = {};
+  try {
+    quoteMap = await fetchQuotes(UNIVERSE);
+  } catch (err) {
+    showMessage(
+      `Failed to load quotes: ${err.message}. Check your internet and tap ⚡ Test.`,
+      'error'
+    );
+    running               = false;
+    btnRun.disabled       = false;
+    btnRun.textContent    = '▶ Run Screener';
+    btnStop.style.display = 'none';
+    progressWrap.classList.remove('visible');
+    return;
+  }
+
+  // ── Step 2: per-stock history + calculate ─────────────────────
+  const total = UNIVERSE.length;
+  let done = 0, failCount = 0;
 
   for (const symbol of UNIVERSE) {
     if (stopRequested) break;
 
-    progressLabel.textContent = `Fetching ${symbol}… (${done + 1} of ${total})`;
+    progressLabel.textContent = `Loading ${symbol}… (${done + 1} of ${total})`;
     progressFill.style.width  = `${(done / total) * 100}%`;
 
     try {
-      const stock = await fetchStock(symbol, key);
+      const prices = await fetchHistory(symbol);
+      const stock  = calcStock(symbol, quoteMap[symbol], prices);
       results.push(stock);
       renderTable();
       updateStats();
     } catch (err) {
       console.warn(`[${symbol}]`, err.message);
-      if (!firstError) firstError = err;
       failCount++;
     }
 
     done++;
-    if (done < total && !stopRequested) await delay(200);
+    if (done < total && !stopRequested) await delay(100);
   }
 
   const stopped = stopRequested;
@@ -767,17 +570,10 @@ async function runScreener() {
     ? `Stopped — ${results.length} stocks loaded`
     : `Complete — ${results.length} of ${total} stocks loaded`;
 
-  if (results.length === 0 && firstError) {
-    showMessage(
-      'All stocks failed. ' + classifyFmpError(firstError.message || '') +
-      ' Click ⚡ Test to check each endpoint individually.',
-      'error'
-    );
+  if (results.length === 0) {
+    showMessage('No stocks loaded. Check your internet connection and try ⚡ Test.', 'error');
   } else if (!stopped && failCount > 0) {
-    showMessage(
-      `${failCount} stock(s) skipped (failed to load). ${results.length} results shown.`,
-      'error'
-    );
+    showMessage(`${failCount} stock(s) skipped. ${results.length} results shown.`, 'error');
     setTimeout(hideMessage, 8000);
   } else if (!stopped) {
     showMessage(`Screener complete — ${results.length} stocks loaded.`, 'success');
@@ -793,24 +589,17 @@ async function runScreener() {
 
 function stopScreener() {
   stopRequested = true;
-  document.getElementById('btnStop').disabled = true;
+  document.getElementById('btnStop').disabled    = true;
   document.getElementById('btnStop').textContent = '⟳ Stopping…';
 }
 
 const delay = ms => new Promise(r => setTimeout(r, ms));
 
-// ═══════════════════════════════════════════════════════════════
-//  SORT
-// ═══════════════════════════════════════════════════════════════
-
+// ─── Sort ────────────────────────────────────────────────────────
 function sortBy(col) {
-  if (sortCol === col) {
-    sortDir = sortDir === 'asc' ? 'desc' : 'asc';
-  } else {
-    sortCol = col;
-    // Default descending for numeric quality metrics; ascending for text
-    sortDir = ['ticker','company','sector'].includes(col) ? 'asc' : 'desc';
-  }
+  sortDir = sortCol === col ? (sortDir === 'asc' ? 'desc' : 'asc')
+                            : (['ticker','company','sector'].includes(col) ? 'asc' : 'desc');
+  sortCol = col;
   renderTable();
 }
 
@@ -820,17 +609,12 @@ function getSorted(data) {
     if (av == null && bv == null) return 0;
     if (av == null) return 1;
     if (bv == null) return -1;
-    if (typeof av === 'string') {
-      return sortDir === 'asc' ? av.localeCompare(bv) : bv.localeCompare(av);
-    }
+    if (typeof av === 'string') return sortDir === 'asc' ? av.localeCompare(bv) : bv.localeCompare(av);
     return sortDir === 'asc' ? av - bv : bv - av;
   });
 }
 
-// ═══════════════════════════════════════════════════════════════
-//  FILTER
-// ═══════════════════════════════════════════════════════════════
-
+// ─── Filter ──────────────────────────────────────────────────────
 function setFilter(f, btn) {
   currentFilter = f;
   document.querySelectorAll('.btn-filter').forEach(b => b.classList.remove('active'));
@@ -840,61 +624,34 @@ function setFilter(f, btn) {
 }
 
 function getFiltered() {
-  return currentFilter === 'all'
-    ? results
-    : results.filter(r => r.rag === currentFilter);
+  return currentFilter === 'all' ? results : results.filter(r => r.rag === currentFilter);
 }
 
-// ═══════════════════════════════════════════════════════════════
-//  RENDER
-// ═══════════════════════════════════════════════════════════════
-
-function fmt(val, dp = 1, suffix = '') {
-  if (val == null || !isFinite(val)) return '—';
-  return val.toFixed(dp) + suffix;
+// ─── Render ──────────────────────────────────────────────────────
+function fmtPrice(v) {
+  if (v == null) return '—';
+  return '$' + Number(v).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
-function fmtPrice(val) {
-  if (val == null) return '—';
-  return '$' + Number(val).toLocaleString('en-US', {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2
-  });
-}
-
-function metricTD(val, passes, dp = 1, suffix = '') {
+function metricTD(val, passes, dp, suffix) {
   if (val == null || !isFinite(val)) return '<td class="muted">—</td>';
-  const cls = passes(val) ? 'pass' : 'fail';
-  return `<td class="${cls}">${val.toFixed(dp)}${suffix}</td>`;
+  return `<td class="${passes(val) ? 'pass' : 'fail'}">${val.toFixed(dp)}${suffix}</td>`;
 }
 
 function renderTable() {
-  const tbody    = document.getElementById('tableBody');
-  const filtered = getFiltered();
-  const sorted   = getSorted(filtered);
+  const tbody   = document.getElementById('tableBody');
+  const sorted  = getSorted(getFiltered());
 
-  // Update sort arrows
   document.querySelectorAll('th').forEach((th, i) => {
     th.classList.remove('sorted-asc', 'sorted-desc');
-    if (COL_KEYS[i] === sortCol) {
-      th.classList.add(sortDir === 'asc' ? 'sorted-asc' : 'sorted-desc');
-    }
+    if (COL_KEYS[i] === sortCol) th.classList.add(sortDir === 'asc' ? 'sorted-asc' : 'sorted-desc');
   });
 
   if (sorted.length === 0) {
     const title = results.length === 0 ? 'Ready to screen' : 'No results';
-    const sub   = results.length === 0
-      ? 'Enter your API key above and press Run Screener'
-      : 'No stocks match the current filter';
-    tbody.innerHTML = `
-      <tr>
-        <td colspan="14">
-          <div class="empty-state">
-            <div class="empty-state-title">${title}</div>
-            ${sub}
-          </div>
-        </td>
-      </tr>`;
+    const sub   = results.length === 0 ? 'Press ▶ Run Screener to start' : 'No stocks match the current filter';
+    tbody.innerHTML = `<tr><td colspan="14"><div class="empty-state">
+      <div class="empty-state-title">${title}</div>${sub}</div></td></tr>`;
     return;
   }
 
@@ -906,63 +663,48 @@ function renderTable() {
       <td class="muted">${fmtPrice(s.price)}</td>
       <td class="cell-score ${s.rag}">${s.score}/6</td>
       <td><span class="rag-badge ${s.rag}">${s.rag}</span></td>
-      ${metricTD(s.croci,   v => v > 10,               1, '%')}
-      ${metricTD(s.peg,     v => v > 0 && v < 1.5,     2,  '')}
-      ${metricTD(s.sortino, v => v > 0.5,               2,  '')}
-      ${metricTD(s.alpha,   v => v > 0,                 1, '%')}
-      ${metricTD(s.beta,    v => v < 1.5,               2,  '')}
-      ${metricTD(s.vol,     () => true,                 1, '%')}
-      ${metricTD(s.chg6m,   v => v > 0,                 1, '%')}
-      ${metricTD(s.chg1m,   v => v > 0,                 1, '%')}
+      ${metricTD(s.sharpe,  v => v > 0.3,              2, ''  )}
+      ${metricTD(s.peg,     v => v > 0 && v < 1.5,     2, ''  )}
+      ${metricTD(s.sortino, v => v > 0.5,              2, ''  )}
+      ${metricTD(s.alpha,   v => v > 0,                1, '%' )}
+      ${metricTD(s.beta,    v => v < 1.5,              2, ''  )}
+      ${metricTD(s.vol,     () => true,                1, '%' )}
+      ${metricTD(s.chg6m,   v => v > 0,               1, '%' )}
+      ${metricTD(s.chg1m,   v => v > 0,               1, '%' )}
     </tr>
   `).join('');
 }
 
-function esc(str) {
-  return (str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+function esc(s) {
+  return (s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
-// ═══════════════════════════════════════════════════════════════
-//  STATS
-// ═══════════════════════════════════════════════════════════════
-
+// ─── Stats ───────────────────────────────────────────────────────
 function updateStats() {
   const strong  = results.filter(r => r.rag === 'strong').length;
   const watch   = results.filter(r => r.rag === 'watch').length;
   const avoid   = results.filter(r => r.rag === 'avoid').length;
   const showing = getFiltered().length;
-
   document.getElementById('statStrong').textContent  = results.length ? strong  : '—';
   document.getElementById('statWatch').textContent   = results.length ? watch   : '—';
   document.getElementById('statAvoid').textContent   = results.length ? avoid   : '—';
   document.getElementById('statShowing').textContent = results.length ? showing : '—';
 }
 
-// ═══════════════════════════════════════════════════════════════
-//  CSV EXPORT
-// ═══════════════════════════════════════════════════════════════
-
+// ─── CSV export ──────────────────────────────────────────────────
 function exportCSV() {
   const filtered = getFiltered();
-  if (filtered.length === 0) {
+  if (!filtered.length) {
     showMessage('No data to export. Run the screener first.', 'error');
     setTimeout(hideMessage, 4000);
     return;
   }
-
-  const headers = [
-    'Ticker','Company','Sector','Price','Score','RAG',
-    'CROCI %','PEG','Sortino','Alpha %','Beta','Vol %','6M %','1M %'
-  ];
-
+  const headers = ['Ticker','Company','Sector','Price','Score','RAG','Sharpe','PEG','Sortino','Alpha %','Beta','Vol %','6M %','1M %'];
   const rows = filtered.map(s => [
-    s.ticker,
-    csvStr(s.company),
-    csvStr(s.sector),
-    s.price  != null ? s.price.toFixed(2)   : '',
-    s.score,
-    s.rag,
-    s.croci   != null ? s.croci.toFixed(2)   : '',
+    s.ticker, csvStr(s.company), csvStr(s.sector),
+    s.price   != null ? s.price.toFixed(2)   : '',
+    s.score, s.rag,
+    s.sharpe  != null ? s.sharpe.toFixed(2)  : '',
     s.peg     != null ? s.peg.toFixed(2)     : '',
     s.sortino != null ? s.sortino.toFixed(2) : '',
     s.alpha   != null ? s.alpha.toFixed(2)   : '',
@@ -971,12 +713,11 @@ function exportCSV() {
     s.chg6m   != null ? s.chg6m.toFixed(2)  : '',
     s.chg1m   != null ? s.chg1m.toFixed(2)  : '',
   ]);
-
   const csv  = [headers.join(','), ...rows.map(r => r.join(','))].join('\r\n');
   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
   const url  = URL.createObjectURL(blob);
   const a    = document.createElement('a');
-  a.href     = url;
+  a.href = url;
   a.download = `stuarts-stock-screener-${new Date().toISOString().slice(0,10)}.csv`;
   document.body.appendChild(a);
   a.click();
@@ -984,20 +725,14 @@ function exportCSV() {
   setTimeout(() => URL.revokeObjectURL(url), 10000);
 }
 
-function csvStr(s) {
-  return '"' + (s || '').replace(/"/g, '""') + '"';
-}
+function csvStr(s) { return '"' + (s || '').replace(/"/g, '""') + '"'; }
 
-// ═══════════════════════════════════════════════════════════════
-//  MESSAGES
-// ═══════════════════════════════════════════════════════════════
-
+// ─── Messages ────────────────────────────────────────────────────
 function showMessage(text, type) {
   const el = document.getElementById('msgBanner');
   el.textContent = text;
-  el.className   = `message-banner ${type}`;
+  el.className = `message-banner ${type}`;
 }
-
 function hideMessage() {
   document.getElementById('msgBanner').className = 'message-banner';
 }
