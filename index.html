@@ -184,10 +184,12 @@
     .cell-score.strong { color: var(--green); }
     .cell-score.watch  { color: var(--amber); }
     .cell-score.avoid  { color: var(--red); }
+    .cell-score.elite  { color: #f6c90e; text-shadow: 0 0 8px rgba(246,201,14,0.4); }
     .rag-badge { display: inline-block; padding: 3px 10px; border-radius: 99px; font-size: 10px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; }
     .rag-badge.strong { background: rgba(52,211,153,0.15);  color: var(--green); }
     .rag-badge.watch  { background: rgba(251,191,36,0.15);  color: var(--amber); }
     .rag-badge.avoid  { background: rgba(248,113,113,0.15); color: var(--red); }
+    .rag-badge.elite  { background: rgba(246,201,14,0.15);  color: #f6c90e; border: 1px solid rgba(246,201,14,0.4); }
     .analyst-badge { display: inline-block; padding: 2px 8px; border-radius: 99px; font-size: 10px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; }
     .analyst-badge.buy  { background: rgba(52,211,153,0.15);  color: var(--green); }
     .analyst-badge.hold { background: rgba(251,191,36,0.15);  color: var(--amber); }
@@ -1311,8 +1313,8 @@ function _renderVirtual() {
       <td class="cell-company"  title="${esc(s.company)}">${esc(s.company)   || '&mdash;'}</td>
       <td class="cell-industry" title="${esc(s.industry)}">${esc(s.industry) || '&mdash;'}</td>
       <td class="muted">${fmtPrice(s.price)}</td>
-      <td class="cell-score ${s.rag}">${s.score}/${s.maxScore}</td>
-      <td><span class="rag-badge ${s.rag}">${s.rag}</span></td>
+      <td class="cell-score ${s.score === 7 && s.maxScore === 7 ? 'elite' : s.rag}">${s.score}/${s.maxScore}</td>
+      <td><span class="rag-badge ${s.score === 7 && s.maxScore === 7 ? 'elite' : s.rag}">${s.score === 7 && s.maxScore === 7 ? '★ PERFECT' : s.rag}</span></td>
       ${metricTD(s.croci,   v => v > 10,           1, '%')}
       ${metricTD(s.peg,     v => v > 0 && v < 1.5, 2, '')}
       ${metricTD(s.sortino, v => v > 0.5,          2, '')}
@@ -1406,7 +1408,8 @@ function openStockSheet(ticker) {
   const favData = isFav ? favorites.get(ticker) : null;
 
   // Build header
-  const ragBadge = `<span class="rag-badge ${s.rag}" style="margin-left:8px">${s.rag}</span>`;
+  const isElite  = s.score === 7 && s.maxScore === 7;
+  const ragBadge = `<span class="rag-badge ${isElite ? 'elite' : s.rag}" style="margin-left:8px">${isElite ? '★ PERFECT' : s.rag}</span>`;
   let headerHTML = `
     <div class="sheet-header">
       <div>
