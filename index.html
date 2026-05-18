@@ -866,10 +866,11 @@ async function fetchStock(symbol, apiKey) {
 
   // CROCI
   const opIncome = i.operatingIncome || 0;
-  const da       = Math.abs(c.depreciationAndAmortization || 0);
+  const da       = Math.abs(i.depreciationAndAmortization || c.depreciationAndAmortization || 0);
   const assets   = b.totalAssets || 1;
   const curLiab  = b.totalCurrentLiabilities || 0;
-  const gcf      = opIncome * 0.79 + da;
+  const nopat    = opIncome * 0.79;
+  const gcf      = nopat + da;
   const gic      = assets + da * 5 - curLiab;
   const croci    = gic > 0 ? (gcf / gic) * 100 : null;
 
@@ -898,7 +899,7 @@ async function fetchStock(symbol, apiKey) {
 
   const alpha = chg6m != null ? +((chg6m * 2) - 10).toFixed(1) : null;
   const beta  = p.beta ? +parseFloat(p.beta).toFixed(2) : null;
-  const rawPeg = r.priceEarningsToGrowthRatio ?? r.pegRatio ?? null;
+  const rawPeg = r.priceToEarningsGrowthRatio ?? null;
   const peg   = rawPeg != null && rawPeg !== 0 ? +parseFloat(rawPeg).toFixed(2) : null;
 
   // Pearson correlation with SPY
