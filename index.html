@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>Stuart's Stock Screener</title>
+  <title>Stuart's Stock Screener v3.1</title>
 
   <!-- PWA / Add to Home Screen -->
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -432,6 +432,7 @@
 <div class="header">
   <div class="header-title">Stuart's Stock Screener</div>
   <div class="header-sub">Quality · Value · Momentum</div>
+  <div style="font-size:10px;color:var(--text-2);margin-top:4px;letter-spacing:0.5px">v3.1</div>
 </div>
 
 <!-- Universe Toggle -->
@@ -622,7 +623,7 @@ const BASE          = 'https://financialmodelingprep.com/stable';
 const DEFAULT_KEY   = 'Uq0TKcRxFVhqq4CvmOk2EStbeyTsONCi';
 const FETCH_TIMEOUT = 12000;
 const STOCK_TIMEOUT = 45000;
-const STOCK_DELAY   = 1300;  // ms between stocks — safe at 300 calls/min FMP Starter
+const STOCK_DELAY   = 600;   // ms between stocks — sequential calls, well within 300/min
 
 // ── State ─────────────────────────────────────────────────────────────────────
 let results         = [];
@@ -732,85 +733,82 @@ function withTimeout(promise, ms, message, extras = {}) {
   return Promise.race([promise, timeout]).finally(() => clearTimeout(timerId));
 }
 
-async function fetchStock(symbol, key) {
-  const q = encodeURIComponent(symbol);
-  const STAGES = [
-    { name: 'profile',                 url: `${BASE}/profile?symbol=${q}&apikey=${key}` },
-    { name: 'income-statement',        url: `${BASE}/income-statement?symbol=${q}&limit=1&apikey=${key}` },
-    { name: 'balance-sheet-statement', url: `${BASE}/balance-sheet-statement?symbol=${q}&limit=1&apikey=${key}` },
-    { name: 'cash-flow-statement',     url: `${BASE}/cash-flow-statement?symbol=${q}&limit=1&apikey=${key}` },
-    { name: 'historical-price',        url: `${BASE}/historical-price-eod/full?symbol=${q}&apikey=${key}` },
-    { name: 'ratios',                  url: `${BASE}/ratios?symbol=${q}&limit=1&apikey=${key}` },
-  ];
+async function fetchStock(symbol, apiKey) {
+  const BASE = "https://financialmodelingprep.com/stable";
 
-  const settled    = await Promise.allSettled(STAGES.map(ep => fetchJSON(ep.url)));
-  const firstFail  = settled.findIndex(r => r.status === 'rejected');
-  if (firstFail !== -1) {
-    const reason = settled[firstFail].reason;
-    const err    = new Error(reason.message || String(reason));
-    err.stage    = STAGES[firstFail].name;
-    err.status   = reason.status || null;
-    throw err;
-  }
+  const fetchWithTimeout = async (url) => {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 8000);
+    try {
+      const res = await fetch(url, { signal: controller.signal });
+      clearTimeout(timeout);
+      const text = await res.text();
+      if (text.includes("Error Message") || text.includes("Legacy")) {
+        throw new Error(text.slice(0, 100));
+      }
+      return JSON.parse(text);
+    } catch(e) {
+      clearTimeout(timeout);
+      throw new Error(`${url.split('?')[0].split('/').pop()}: ${e.message}`);
+    }
+  };
 
-  const [profiles, incomes, balances, cashflows, priceData, ratiosArr] = settled.map(r => r.value);
+  // Sequential calls — Safari handles these reliably
+  const profile  = await fetchWithTimeout(`${BASE}/profile?symbol=${symbol}&apikey=${apiKey}`);
+  const income   = await fetchWithTimeout(`${BASE}/income-statement?symbol=${symbol}&limit=1&apikey=${apiKey}`);
+  const balance  = await fetchWithTimeout(`${BASE}/balance-sheet-statement?symbol=${symbol}&limit=1&apikey=${apiKey}`);
+  const cashflow = await fetchWithTimeout(`${BASE}/cash-flow-statement?symbol=${symbol}&limit=1&apikey=${apiKey}`);
+  const history  = await fetchWithTimeout(`${BASE}/historical-price-eod/full?symbol=${symbol}&apikey=${apiKey}`);
+  const ratios   = await fetchWithTimeout(`${BASE}/ratios?symbol=${symbol}&limit=1&apikey=${apiKey}`);
 
-  const p   = (Array.isArray(profiles)  ? profiles[0]  : profiles)  || {};
-  const inc = (Array.isArray(incomes)   ? incomes[0]   : incomes)   || {};
-  const bal = (Array.isArray(balances)  ? balances[0]  : balances)  || {};
-  const cf  = (Array.isArray(cashflows) ? cashflows[0] : cashflows) || {};
-  const rat = (Array.isArray(ratiosArr) ? ratiosArr[0] : ratiosArr) || {};
+  const p = Array.isArray(profile)  ? profile[0]  : profile;
+  const i = Array.isArray(income)   ? income[0]   : {};
+  const b = Array.isArray(balance)  ? balance[0]  : {};
+  const c = Array.isArray(cashflow) ? cashflow[0] : {};
+  const r = Array.isArray(ratios)   ? ratios[0]   : {};
+  const prices = Array.isArray(history)
+    ? history.map(d => d.close).filter(Boolean)
+    : (history?.historical || []).map(d => d.close).filter(Boolean);
 
-  const prices       = Array.isArray(priceData) ? priceData.map(d => d.close) : [];
-  const currentPrice = p.price ?? (prices[0] ?? null);
-
-  const nRet   = Math.min(252, prices.length - 1);
-  const rets   = [];
-  for (let i = 0; i < nRet; i++) rets.push((prices[i] - prices[i+1]) / prices[i+1]);
+  if (!p || !p.price) throw new Error("No price data returned");
 
   // CROCI
-  let croci = null;
-  {
-    const opInc = inc.operatingIncome, da = cf.depreciationAndAmortization;
-    const ta    = bal.totalAssets,    cl = bal.totalCurrentLiabilities;
-    if (opInc != null && da != null && ta != null && cl != null) {
-      const GCF = opInc * 0.79 + Math.abs(da);
-      const GIC = ta + Math.abs(da) * 5 - cl;
-      if (GIC > 0) croci = (GCF / GIC) * 100;
-    }
+  const opIncome = i.operatingIncome || 0;
+  const da       = Math.abs(c.depreciationAndAmortization || 0);
+  const assets   = b.totalAssets || 1;
+  const curLiab  = b.totalCurrentLiabilities || 0;
+  const gcf      = opIncome * 0.79 + da;
+  const gic      = assets + da * 5 - curLiab;
+  const croci    = gic > 0 ? (gcf / gic) * 100 : null;
+
+  // Price changes
+  const price = p.price;
+  const p6m   = prices[125];
+  const p1m   = prices[21];
+  const chg6m = price && p6m ? ((price - p6m) / p6m) * 100 : null;
+  const chg1m = price && p1m ? ((price - p1m) / p1m) * 100 : null;
+
+  // Returns for Sortino + Vol
+  const returns = [];
+  for (let j = 0; j < Math.min(prices.length - 1, 252); j++) {
+    if (prices[j] && prices[j+1]) returns.push((prices[j] - prices[j+1]) / prices[j+1]);
   }
 
-  // PEG
-  let peg = null;
-  { const raw = rat.priceEarningsToGrowthRatio; if (raw != null && raw > 0) peg = raw; }
-
-  // Sortino
-  let sortino = null;
-  if (rets.length > 0) {
-    const avg  = rets.reduce((a,b) => a+b, 0) / rets.length;
-    const down = rets.filter(r => r < 0);
-    if (down.length === 0) { sortino = 3.0; }
-    else {
-      const dd = Math.sqrt(down.reduce((s,r) => s+r*r, 0) / down.length);
-      sortino  = dd > 0 ? (avg / dd) * Math.sqrt(252) : 3.0;
-    }
+  let sortino = null, vol = null;
+  if (returns.length > 20) {
+    const avg  = returns.reduce((a,b) => a+b, 0) / returns.length;
+    const down = returns.filter(r => r < 0);
+    const dd   = down.length > 0
+      ? Math.sqrt(down.reduce((a,b) => a+b*b, 0) / down.length) : 0;
+    sortino    = dd > 0 ? +(((avg/dd) * Math.sqrt(252)).toFixed(2)) : 3.0;
+    const v    = returns.reduce((a,b) => a + Math.pow(b - avg, 2), 0) / returns.length;
+    vol        = +(Math.sqrt(v) * Math.sqrt(252) * 100).toFixed(1);
   }
 
-  const beta = p.beta ?? null;
-
-  // Volatility
-  let vol = null;
-  if (rets.length > 0) {
-    const avg = rets.reduce((a,b) => a+b, 0) / rets.length;
-    const vr  = rets.reduce((s,r) => s+(r-avg)**2, 0) / rets.length;
-    vol = Math.sqrt(vr) * Math.sqrt(252) * 100;
-  }
-
-  let chg6m = null, chg1m = null;
-  if (currentPrice != null && prices[125] != null) chg6m = (currentPrice - prices[125]) / prices[125] * 100;
-  if (currentPrice != null && prices[21]  != null) chg1m = (currentPrice - prices[21])  / prices[21]  * 100;
-
-  const alpha = chg6m != null ? chg6m * 2 - 10 : null;
+  const alpha = chg6m != null ? +((chg6m * 2) - 10).toFixed(1) : null;
+  const beta  = p.beta ? +parseFloat(p.beta).toFixed(2) : null;
+  const peg   = r.priceEarningsToGrowthRatio
+    ? +parseFloat(r.priceEarningsToGrowthRatio).toFixed(2) : null;
 
   let score = 0;
   if (croci   != null && croci > 10)           score++;
@@ -818,13 +816,13 @@ async function fetchStock(symbol, key) {
   if (sortino != null && sortino > 0.5)        score++;
   if (beta    != null && beta < 1.5)           score++;
   if (alpha   != null && alpha > 0)            score++;
-  if (chg6m   != null && chg6m > 0)           score++;
+  if (chg6m   != null && chg6m > 0)            score++;
 
   const rag = score >= 5 ? 'strong' : score >= 3 ? 'watch' : 'avoid';
 
   return {
-    ticker: symbol, company: p.companyName || '', industry: p.industry || '',
-    price: currentPrice, score, rag, croci, peg, sortino, alpha, beta, vol, chg6m, chg1m,
+    ticker: symbol, company: p.companyName || '', industry: p.industry || p.sector || '',
+    price: +price.toFixed(2), score, rag, croci, peg, sortino, alpha, beta, vol, chg6m, chg1m,
   };
 }
 
@@ -906,7 +904,7 @@ async function runScreener() {
     console.log('[Screener] Starting run —', total, 'tickers, universe:', currentUniverse);
     await delay(80);
 
-    let done = 0, failCount = 0, firstErr = null;
+    let done = 0, failCount = 0, firstErr = null, firstErrHTML = '';
     for (let i = 0; i < universe.length; i++) {
       if (stopRequested) break;
 
@@ -943,7 +941,10 @@ async function runScreener() {
         const stage = err.stage || 'unknown';
         const msg   = err.message || 'unknown error';
         console.error('[Screener] FAIL', symbol, `stage:${stage}`, `status:${err.status || '—'}`, msg);
-        if (!firstErr) firstErr = err;
+        if (!firstErr) {
+          firstErr     = err;
+          firstErrHTML = `<span style="font-size:13px;font-weight:700">First error on ${esc(symbol)}: ${esc(msg)}</span>`;
+        }
         failCount++;
         failures.push({
           symbol,
@@ -954,7 +955,8 @@ async function runScreener() {
           isRateLimit: err.status === 429 || /rate.?limit|too.?many/i.test(msg),
         });
         liveErrors.style.display = 'block';
-        liveErrors.textContent   = `${failures.length} failed — last: ${symbol} (${stage}: ${msg})`;
+        liveErrors.innerHTML = firstErrHTML
+          + (failCount > 1 ? `<br><span style="font-size:10px">${failCount} failed — last: ${esc(symbol)} (${esc(stage)}: ${esc(msg)})</span>` : '');
       }
 
       done++;
