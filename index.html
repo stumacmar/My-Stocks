@@ -232,12 +232,15 @@ let keyMasked     = true;
 // ── Init ─────────────────────────────────────────────────────────────────────
 (function init() {
   const el    = document.getElementById('apiKey');
-  const saved = localStorage.getItem('fmp_key');
+  // support both old and new storage key names
+  const saved = localStorage.getItem('fmp_api_key') || localStorage.getItem('fmp_key');
   if (saved) el.value = saved;
-  el.style.webkitTextSecurity = 'disc'; // masked by default on mobile
+  el.style.webkitTextSecurity = 'disc';
   el.style['-webkit-text-security'] = 'disc';
   el.addEventListener('input', () => {
-    localStorage.setItem('fmp_key', el.value.trim());
+    const v = el.value.trim();
+    localStorage.setItem('fmp_api_key', v);
+    localStorage.setItem('fmp_key', v);
   });
   renderTable();
 })();
@@ -259,7 +262,7 @@ function toggleKeyMask() {
 // ── Fetch helpers ────────────────────────────────────────────────────────────
 function fetchJSON(url) {
   let timerId;
-  const req = fetch(url).then(async res => {
+  const req = fetch(url, { cache: 'no-store' }).then(async res => {
     clearTimeout(timerId);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
@@ -274,20 +277,20 @@ function fetchJSON(url) {
 }
 
 function errMsg(e) {
-  const m = (e?.message || '').toLowerCase();
+  const raw = e?.message || 'Unknown error';
+  const m   = raw.toLowerCase();
   if (/http 401|invalid api/i.test(m))
-    return 'HTTP 401 — API key is invalid. Copy your exact key from site.financialmodelingprep.com/developer/docs and paste it above.';
+    return `HTTP 401 — API key invalid. Get yours from site.financialmodelingprep.com/developer/docs`;
   if (/http 403/i.test(m))
-    return 'HTTP 403 — API key rejected. Your key may be copied incorrectly. Click the 👁 button to see what you pasted and compare it with your key at site.financialmodelingprep.com/developer/docs';
+    return `HTTP 403 — Key rejected. Click 👁 to see what you pasted, then compare with your key at site.financialmodelingprep.com/developer/docs`;
   if (/http 429/i.test(m))
-    return 'HTTP 429 — Too many requests. Wait a few minutes and try again.';
+    return `HTTP 429 — Too many requests. Wait a few minutes.`;
   if (/limit|quota|exceed/i.test(m))
-    return 'Daily quota exhausted (250 calls/day free tier). Try again tomorrow.';
-  if (/load failed|failed to fetch|networkerror/i.test(m))
-    return 'Network error — check your internet connection.';
+    return `Quota exhausted (250 calls/day). Try again tomorrow.`;
   if (/timed out/i.test(m))
-    return 'Request timed out — check your internet connection.';
-  return e?.message || 'Unknown error';
+    return `Request timed out — check your connection.`;
+  // Show raw error so we can diagnose unknown failures
+  return `Network error: "${raw}" — check your connection, or try a different browser.`;
 }
 
 // ── Test connection ──────────────────────────────────────────────────────────
