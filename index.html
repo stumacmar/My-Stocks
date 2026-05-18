@@ -962,7 +962,7 @@ async function runScreener() {
     }
   } catch (err) {
     console.error('Screener failed unexpectedly:', err);
-    showMessage(`Screener failed: ${err?.message || 'Unexpected error'}`, 'error');
+    showMessage(`Screener failed: ${err?.message ?? 'Unexpected error'}`, 'error');
     progETA.textContent = '';
     progLabel.textContent = `Failed — ${results.length} stocks loaded`;
   } finally {
