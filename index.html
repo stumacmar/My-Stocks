@@ -66,6 +66,31 @@
       margin-top: 5px;
     }
 
+    /* ── Universe Toggle ── */
+    .universe-control {
+      display: flex;
+      padding: 16px 16px 0;
+      gap: 0;
+    }
+    .univ-btn {
+      flex: 1;
+      padding: 10px 16px;
+      border: 1px solid var(--line);
+      background: transparent;
+      color: var(--text-1);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.15s, color 0.15s, border-color 0.15s;
+      white-space: nowrap;
+      -webkit-tap-highlight-color: transparent;
+      text-align: center;
+    }
+    .univ-btn:first-child { border-radius: 7px 0 0 7px; }
+    .univ-btn:last-child  { border-radius: 0 7px 7px 0; border-left: none; }
+    .univ-btn.active { background: var(--accent); color: var(--bg-0); border-color: var(--accent); }
+
     /* ── API Card ── */
     .section { padding: 16px; }
     .api-card {
@@ -132,7 +157,30 @@
     .btn-filter { background: transparent; border-color: var(--line); color: var(--text-1); }
     .btn-filter.active { border-color: var(--accent); color: var(--accent); }
     .btn-csv { background: transparent; border-color: var(--line); color: var(--text-1); margin-left: auto; }
-    .btn-stop { background: transparent; border-color: var(--red); color: var(--red); }
+    .btn-stop  { background: transparent; border-color: var(--red);   color: var(--red); }
+    .btn-pause { background: transparent; border-color: var(--amber); color: var(--amber); }
+
+    /* ── Sector Select ── */
+    .sector-select {
+      background: var(--bg-1);
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      color: var(--text-1);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      font-weight: 500;
+      padding: 9px 28px 9px 12px;
+      cursor: pointer;
+      appearance: none;
+      -webkit-appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%235a6175' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 10px center;
+      transition: border-color 0.15s;
+      max-width: 160px;
+    }
+    .sector-select:focus { outline: none; border-color: var(--accent); }
+    .sector-select option { background: var(--bg-2); color: var(--text-0); }
 
     /* ── Progress ── */
     .progress-wrap { padding: 0 16px 14px; display: none; }
@@ -151,6 +199,7 @@
       transition: width 0.3s ease;
     }
     .progress-label { font-size: 11px; color: var(--text-2); margin-top: 7px; }
+    .progress-eta   { font-size: 10px; color: var(--text-2); margin-top: 3px; letter-spacing: 0.3px; }
 
     /* ── Message Banner ── */
     .message-banner {
@@ -213,7 +262,7 @@
       overflow-x: auto;
       -webkit-overflow-scrolling: touch;
     }
-    table { width: 100%; border-collapse: collapse; min-width: 980px; }
+    table { width: 100%; border-collapse: collapse; min-width: 1020px; }
     thead { position: sticky; top: 0; z-index: 10; }
     th {
       background: var(--bg-1);
@@ -233,7 +282,7 @@
       transition: color 0.1s;
     }
     th:hover { color: var(--text-0); }
-    th:first-child, th:nth-child(2), th:nth-child(3) { text-align: left; }
+    th:nth-child(2), th:nth-child(3), th:nth-child(4) { text-align: left; }
     th.sorted-asc::after  { content: ' ↑'; color: var(--accent); }
     th.sorted-desc::after { content: ' ↓'; color: var(--accent); }
 
@@ -245,8 +294,31 @@
       color: var(--text-1);
       white-space: nowrap;
     }
-    td:first-child, td:nth-child(2), td:nth-child(3) { text-align: left; }
+    td:nth-child(2), td:nth-child(3), td:nth-child(4) { text-align: left; }
     tr:hover td { background: rgba(31,37,53,0.5); }
+
+    /* ── Star / Favourites ── */
+    th.th-fav {
+      width: 32px;
+      text-align: center !important;
+      padding: 10px 6px;
+      font-size: 14px;
+      color: var(--amber);
+      cursor: pointer;
+    }
+    th.th-fav:hover { color: var(--text-0); }
+    .cell-fav {
+      text-align: center !important;
+      cursor: pointer;
+      color: var(--text-2);
+      font-size: 15px;
+      padding: 10px 6px !important;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+      width: 32px;
+    }
+    .cell-fav:hover { color: var(--amber); }
+    .cell-fav.starred { color: var(--amber); }
 
     .cell-ticker  { color: var(--accent); font-weight: 600; font-size: 13px; }
     .cell-company { color: var(--text-0); max-width: 160px; overflow: hidden; text-overflow: ellipsis; }
@@ -349,6 +421,7 @@
       .stats-grid { grid-template-columns: repeat(2, 1fr); }
       .stat-num { font-size: 24px; }
       .btn-csv { margin-left: 0; }
+      .sector-select { max-width: 120px; font-size: 11px; }
     }
   </style>
 </head>
@@ -357,7 +430,13 @@
 <!-- Header -->
 <div class="header">
   <div class="header-title">Stuart's Stock Screener</div>
-  <div class="header-sub">S&amp;P 500 · Quality · Value · Momentum</div>
+  <div class="header-sub">Quality · Value · Momentum</div>
+</div>
+
+<!-- Universe Toggle -->
+<div class="universe-control">
+  <button id="btnUnivSP500" class="univ-btn" onclick="setUniverse('sp500')">S&amp;P 500 (—)</button>
+  <button id="btnUnivR1K"   class="univ-btn" onclick="setUniverse('russell1000')">Russell 1000 (—)</button>
 </div>
 
 <!-- API Key -->
@@ -371,20 +450,25 @@
     </div>
     <div class="api-note">
       Free key at <a href="https://financialmodelingprep.com" target="_blank" rel="noopener">financialmodelingprep.com</a>
-      — 250 calls/day free tier. A default key is pre-filled to get you started.
+      — 250 calls/day free tier. Starter plan ($25/mo) needed for full 1000-stock runs.
     </div>
   </div>
 </div>
 
 <!-- Controls -->
 <div class="controls">
-  <button class="btn btn-primary" id="btnRun"  onclick="runScreener()">&#9654; Run Screener</button>
-  <button class="btn btn-stop"   id="btnStop" onclick="stopScreener()" style="display:none">&#9632; Stop</button>
-  <button class="btn btn-filter active" onclick="setFilter('all',this)">All</button>
-  <button class="btn btn-filter"        onclick="setFilter('strong',this)">Strong</button>
-  <button class="btn btn-filter"        onclick="setFilter('watch',this)">Watch</button>
-  <button class="btn btn-filter"        onclick="setFilter('avoid',this)">Avoid</button>
-  <button class="btn btn-csv"           onclick="exportCSV()">&#8595; CSV</button>
+  <button class="btn btn-primary" id="btnRun"   onclick="runScreener()">&#9654; Run Screener</button>
+  <button class="btn btn-pause"   id="btnPause" onclick="togglePause()"    style="display:none">&#9646;&#9646; Pause</button>
+  <button class="btn btn-stop"    id="btnStop"  onclick="stopScreener()"   style="display:none">&#9632; Stop</button>
+  <select class="sector-select" id="sectorSelect" onchange="setSector(this.value)">
+    <option value="all">All Industries</option>
+  </select>
+  <button class="btn btn-filter active" data-filter="all"       onclick="setFilter('all',this)">All</button>
+  <button class="btn btn-filter"        data-filter="strong"    onclick="setFilter('strong',this)">Strong</button>
+  <button class="btn btn-filter"        data-filter="watch"     onclick="setFilter('watch',this)">Watch</button>
+  <button class="btn btn-filter"        data-filter="avoid"     onclick="setFilter('avoid',this)">Avoid</button>
+  <button class="btn btn-filter"        data-filter="favorites" onclick="setFilter('favorites',this)">&#9733; Starred</button>
+  <button class="btn btn-csv"                                   onclick="exportCSV()">&#8595; CSV</button>
 </div>
 
 <!-- Progress -->
@@ -393,6 +477,7 @@
     <div class="progress-bar-fill" id="progressFill"></div>
   </div>
   <div class="progress-label" id="progressLabel"></div>
+  <div class="progress-eta"   id="progressETA"></div>
 </div>
 
 <!-- Message Banner -->
@@ -414,20 +499,21 @@
   <table id="resultsTable">
     <thead>
       <tr>
-        <th onclick="sortBy('ticker')">Ticker</th>
-        <th onclick="sortBy('company')">Company</th>
-        <th onclick="sortBy('industry')">Industry</th>
-        <th onclick="sortBy('price')">Price</th>
-        <th onclick="sortBy('score')">Score</th>
-        <th onclick="sortBy('rag')">RAG</th>
-        <th onclick="sortBy('croci')">CROCI %</th>
-        <th onclick="sortBy('peg')">PEG</th>
-        <th onclick="sortBy('sortino')">Sortino</th>
-        <th onclick="sortBy('alpha')">Alpha %</th>
-        <th onclick="sortBy('beta')">Beta</th>
-        <th onclick="sortBy('vol')">Vol %</th>
-        <th onclick="sortBy('chg6m')">6M %</th>
-        <th onclick="sortBy('chg1m')">1M %</th>
+        <th class="th-fav" onclick="setFilter('favorites',document.querySelector('[data-filter=favorites]'))">&#9733;</th>
+        <th data-col="ticker"   onclick="sortBy('ticker')">Ticker</th>
+        <th data-col="company"  onclick="sortBy('company')">Company</th>
+        <th data-col="industry" onclick="sortBy('industry')">Industry</th>
+        <th data-col="price"    onclick="sortBy('price')">Price</th>
+        <th data-col="score"    onclick="sortBy('score')">Score</th>
+        <th data-col="rag"      onclick="sortBy('rag')">RAG</th>
+        <th data-col="croci"    onclick="sortBy('croci')">CROCI %</th>
+        <th data-col="peg"      onclick="sortBy('peg')">PEG</th>
+        <th data-col="sortino"  onclick="sortBy('sortino')">Sortino</th>
+        <th data-col="alpha"    onclick="sortBy('alpha')">Alpha %</th>
+        <th data-col="beta"     onclick="sortBy('beta')">Beta</th>
+        <th data-col="vol"      onclick="sortBy('vol')">Vol %</th>
+        <th data-col="chg6m"    onclick="sortBy('chg6m')">6M %</th>
+        <th data-col="chg1m"    onclick="sortBy('chg1m')">1M %</th>
       </tr>
     </thead>
     <tbody id="tableBody"></tbody>
@@ -437,89 +523,162 @@
 <script>
 'use strict';
 
-// ── Universe ──────────────────────────────────────────────────────────────────
-const UNIVERSE = [
-  'AAPL','MSFT','NVDA','AMZN','GOOGL','META','TSLA','JPM','V','UNH',
-  'LLY','JNJ','MA','PG','HD','MRK','AVGO','COST','ABBV','WMT',
-  'PEP','KO','NFLX','CSCO','MCD','CRM','ADBE','TXN','AMGN','QCOM'
+// ── S&P 500 universe ──────────────────────────────────────────────────────────
+const UNIVERSE_SP500 = [
+  'A','AAPL','ABBV','ABT','ACGL','ACN','ADBE','ADI','ADM','ADP','ADSK','AEE',
+  'AEP','AES','AFL','AIG','AIZ','AJG','AKAM','ALB','ALGN','ALL','ALLE','AMCR',
+  'AMD','AME','AMGN','AMP','AMT','AMZN','ANSS','AON','AOS','APA','APD','APH',
+  'APTV','ARE','ARM','AMAT','ANET','ATO','AVB','AVY','AWK','AXP','AXON','AZO',
+  'BA','BAC','BALL','BAX','BBWI','BBY','BDX','BEN','BG','BIIB','BIO','BK',
+  'BKR','BLK','BMY','BR','BRK.B','BRO','BSX','BX','BXP',
+  'C','CAG','CAH','CARR','CAT','CB','CBOE','CBRE','CDW','CE','CEG','CF','CFG',
+  'CHD','CHTR','CI','CINF','CL','CLX','CME','CMG','CMI','CMS','CMCSA','CNC',
+  'CNP','COF','COIN','COO','COP','COR','COST','CPAY','CPB','CPT','CPRT','CCI',
+  'CRM','CRL','CSGP','CSX','CTAS','CTSH','CTVA','CTRA','CVS','CVX','CZR',
+  'D','DAL','DAY','DECK','DE','DELL','DFS','DG','DHI','DHR','DIS','DLTR','DLR',
+  'DOC','DOV','DOW','DPZ','DRI','DTE','DUK','DVA','DVN','DXCM','DD',
+  'EA','EBAY','ECL','ED','EG','EIX','EL','ELV','EMN','EMR','ENPH','EOG','EPAM',
+  'EQR','EQT','ESS','ETSY','ETN','ETR','EW','EXC','EXPE','EXPD','EXR','XOM',
+  'F','FANG','FAST','FDX','FDS','FE','FFIV','FICO','FI','FIS','FITB','FMC',
+  'FNF','FOX','FOXA','FRT','FSLR','FTV','FCX',
+  'GD','GE','GEHC','GEN','GEV','GILD','GIS','GL','GDDY','GM','GNRC','GOOGL',
+  'GOOG','GPC','GPN','GRMN','GS','GWW',
+  'HAL','HAS','HCA','HD','HES','HIG','HII','HLT','HOLX','HON','HPE','HPQ',
+  'HRL','HSIC','HST','HSY','HUBB','HUM','HBAN','HWM',
+  'IBM','ICE','IDXX','IEX','IFF','INCY','INTC','INTU','INVH','IP','IPG','IR',
+  'IQV','IRM','ISRG','IT','ITW','IVZ',
+  'J','JBL','JKHY','JPM',
+  'K','KDP','KEY','KEYS','KHC','KIM','KKR','KLAC','KMB','KMI','KO','KR','KVUE',
+  'L','LEN','LH','LII','LIN','LKQ','LLY','LMT','LOW','LRCX','LULU','LUV',
+  'LVS','LDOS','LW','LYB',
+  'MA','MAA','MAR','MAS','MCD','MCK','MCO','MCHP','MDLZ','MDT','META','MET',
+  'MGM','MHK','MKC','MKTX','MLM','MMC','MMM','MO','MOH','MOS','MPWR','MPC',
+  'MRK','MRNA','MS','MSCI','MSFT','MSI','MTB','MTD','MU',
+  'NDAQ','NEE','NEM','NFLX','NI','NCLH','NDSN','NKE','NOC','NRG','NSC','NTAP',
+  'NTRS','NU','NUE','NVDA','NVR','NVT','NWSA','NWS','NXPI',
+  'O','ODFL','OKE','OMC','ON','ORCL','ORLY','OTIS','OVV','OXY',
+  'PANW','PCAR','PAYC','PAYX','PCG','PEG','PEP','PFE','PFG','PG','PGR',
+  'PH','PHM','PINS','PKG','PLD','PLTR','PM','PNC','PNW','POOL','PPG',
+  'PPL','PRU','PSA','PSX','PTC','PYPL','PWR',
+  'QCOM',
+  'RCL','REG','REGN','RF','RJF','RMD','ROK','ROL','ROP','ROST','RSG','RTX',
+  'RVTY',
+  'SBAC','SBUX','SCHW','SHW','SJM','SLB','SNA','SNPS','SO','SOLV','SPG',
+  'SPGI','SRE','STT','STLD','STE','STX','SW','SWK','SWKS','SYF','SYK','SYY',
+  'T','TECH','TEL','TER','TFC','TDG','TDY','TFX','TGT','TJX','TMO','TMUS',
+  'TPR','TRGP','TRV','TRMB','TROW','TSCO','TSLA','TSN','TT','TTWO','TXN',
+  'TXT','TYL',
+  'UAL','UDR','UHS','ULTA','UNH','UNP','UPS','URI','USB','UBER',
+  'V','VLO','VMC','VRSK','VRSN','VRTX','VTRS','VTR','VICI','VST','VLTO','VZ',
+  'WAB','WAT','WBA','WBD','WEC','WELL','WFC','WM','WMB','WMT','WRB','WST',
+  'WDC','WTW','WY','WYNN',
+  'XEL','XYL',
+  'YUM',
+  'ZBH','ZBRA','ZTS',
+  /* New additions confirmed in S&P 500 */
+  'APP','CRWD','DASH','ENTG','RL',
 ];
 
-/* Full S&P 500 — swap UNIVERSE for UNIVERSE_FULL on a paid plan (unlimited calls)
-const UNIVERSE_FULL = [
-  'MMM','AOS','ABT','ABBV','ACN','ADBE','AMD','AES','AFL','A','APD','ABNB',
-  'AKAM','ALB','ARE','ALGN','ALLE','LNT','ALL','GOOGL','GOOG','MO','AMZN',
-  'AMCR','AEE','AAL','AEP','AXP','AIG','AMT','AWK','AMP','AME','AMGN',
-  'APH','ADI','ANSS','AON','APA','AAPL','AMAT','APTV','ACGL','ADM','ANET',
-  'AJG','AIZ','T','ATO','ADSK','ADP','AZO','AVB','AVY','AXON','BKR','BALL',
-  'BAC','BK','BBWI','BAX','BDX','BRK.B','BBY','BIO','TECH','BIIB','BLK',
-  'BX','BA','BSX','BMY','AVGO','BR','BRO','BG','CDNS','CZR','CPT','CPB',
-  'COF','CAH','KMX','CCL','CARR','CAT','CBOE','CBRE','CDW','CE','COR',
-  'CNC','CNP','CF','CRL','SCHW','CHTR','CVX','CMG','CB','CHD','CI','CINF',
-  'CTAS','CSCO','C','CFG','CLX','CME','CMS','KO','CTSH','CL','CMCSA','CAG',
-  'COP','ED','STZ','CEG','COO','CPRT','GLW','CPAY','CTVA','CSGP','COST',
-  'CTRA','CCI','CSX','CMI','CVS','DHR','DRI','DVA','DAY','DECK','DE','DELL',
-  'DAL','DVN','DXCM','FANG','DLR','DFS','DG','DLTR','D','DPZ','DOV','DOW',
-  'DHI','DTE','DUK','DD','EMN','ETN','EBAY','ECL','EIX','EW','EA','ELV',
-  'EMR','ENPH','ETR','EOG','EPAM','EQT','EFX','EQIX','EQR','ESS','EL',
-  'ETSY','EG','ES','EXC','EXPE','EXPD','EXR','XOM','FFIV','FDS','FICO',
-  'FAST','FRT','FDX','FIS','FITB','FSLR','FE','FI','FMC','F','FTNT','FTV',
-  'FOXA','FOX','BEN','FCX','GRMN','IT','GE','GEHC','GEV','GEN','GNRC',
-  'GD','GIS','GM','GPC','GILD','GPN','GL','GDDY','GS','HAL','HIG','HAS',
-  'HCA','DOC','HSIC','HSY','HES','HPE','HLT','HOLX','HD','HON','HRL',
-  'HST','HWM','HPQ','HUBB','HUM','HBAN','HII','IBM','IEX','IDXX','ITW',
-  'INCY','IR','PODD','INTC','ICE','IFF','IP','IPG','INTU','ISRG','IVZ',
-  'INVH','IQV','IRM','JKHY','J','JBL','JPM','K','KVUE','KDP','KEY','KEYS',
-  'KMB','KIM','KMI','KKR','KLAC','KHC','KR','LH','LRCX','LW','LVS','LDOS',
-  'LEN','LII','LLY','LIN','LKQ','LMT','L','LOW','LULU','LYB','MTB','MPC',
-  'MKTX','MAR','MMC','MLM','MAS','MA','MTCH','MKC','MCD','MCK','MDT','MRK',
-  'META','MET','MTD','MGM','MCHP','MU','MSFT','MAA','MRNA','MHK','MOH',
-  'TAP','MDLZ','MPWR','MNST','MCO','MS','MOS','MSI','MSCI','NDAQ','NTAP',
-  'NFLX','NEM','NWSA','NWS','NEE','NKE','NI','NDSN','NSC','NTRS','NOC',
-  'NCLH','NRG','NUE','NVDA','NVR','NXPI','ORLY','OXY','ODFL','OMC','ON',
-  'OKE','ORCL','OTIS','PCAR','PKG','PLTR','PH','PAYX','PAYC','PYPL','PNR',
-  'PEP','PFE','PCG','PM','PSX','PNW','PNC','POOL','PPG','PPL','PFG','PG',
-  'PGR','PLD','PRU','PEG','PTC','PSA','PHM','QCOM','PWR','RJF','RTX','O',
-  'REG','REGN','RF','RSG','RMD','RVTY','ROK','ROL','ROP','ROST','RCL',
-  'SPGI','CRM','SBAC','SLB','STX','SRE','NOW','SHW','SPG','SWKS','SJM',
-  'SW','SNA','SOLV','SO','LUV','SWK','SBUX','STT','STLD','STE','SYK',
-  'SYF','SNPS','SYY','TMUS','TROW','TTWO','TPR','TRGP','TGT','TEL','TDY',
-  'TFX','TER','TSLA','TXN','TXT','TMO','TJX','TSCO','TT','TDG','TRV',
-  'TRMB','TFC','TYL','TSN','USB','UBER','UDR','ULTA','UNP','UAL','UPS',
-  'URI','UNH','UHS','VLO','VTR','VLTO','VRSN','VRSK','VZ','VRTX','VTRS',
-  'VICI','V','VST','VMC','WRB','GWW','WAB','WBA','WMT','DIS','WBD','WM',
-  'WAT','WEC','WFC','WELL','WST','WDC','WY','WMB','WTW','WYNN','XEL',
-  'XYL','YUM','ZBRA','ZBH','ZTS'
+// ── Russell 1000 additional tickers (beyond S&P 500) ─────────────────────────
+const RUSSELL_EXTRA = [
+  /* Technology & Software */
+  'AEIS','AMBA','APPN','ASAN','BILL','BOX','BRZE','CFLT','COIN',
+  'DDOG','DBX','DOCN','DOCU','ESTC','FOUR','GTLB','HOOD','HUBS',
+  'IOT','JAMF','LSCC','LYFT','MDB','MKSI','MNDY','MTSI','NET',
+  'NCNO','OKTA','ONTO','PATH','PCTY','PSTG','RBLX','S','SLAB',
+  'SNAP','SNOW','TTD','TWLO','UI','UPST','W','WEX','ZI','ZM','ZS',
+  /* Finance */
+  'AFRM','FAF','FHN','HWC','JHG','LPLA','OWL','PFSI','SF',
+  'SOFI','WAL','WBS',
+  /* Consumer */
+  'CHWY','CPRI','DKNG','ELF','HBI','LEVI','PENN','PVH','RL','VFC',
+  /* Healthcare & Biotech */
+  'ACAD','ACHC','ALKS','ALNY','ARWR','AXSM','BMRN','DNLI','EXAS',
+  'FOLD','HALO','INSM','IONS','IRTC','JAZZ','KRYS','LEGN','NTRA',
+  'NVAX','PRGO','RGEN','RXRX','TDOC',
+  /* Energy */
+  'AR','CHRD','CIVI','CNX','CRK','GPOR','MTDR','NOG','PR','RRC','SM',
+  /* REITs */
+  'COLD','CUBE','DEI','EPRT','HIW','IIPR','JBGS','LXP','MPW',
+  'NNN','REXR','ROIC','SAFE','STAG','UE','WPC',
+  /* Industrials & Other */
+  'ATI','ESAB','GXO','GTLS','MTZ','RIVN','SITE','SNDR','STRL','TREX','WCC',
 ];
-*/
 
-// ── Constants (must be before the init IIFE) ──────────────────────────────────
-const BASE            = 'https://financialmodelingprep.com/stable';
-const DEFAULT_KEY     = 'Uq0TKcRxFVhqq4CvmOk2EStbeyTsONCi';
-const FETCH_TIMEOUT   = 12000;
-const COL_KEYS        = [
-  'ticker','company','industry','price','score','rag',
-  'croci','peg','sortino','alpha','beta','vol','chg6m','chg1m'
-];
+// ── Remove any ticker accidentally duplicated between SP500 and extras ────────
+const _sp500Set = new Set(UNIVERSE_SP500);
+const _cleanExtra = RUSSELL_EXTRA.filter(t => !_sp500Set.has(t));
+const UNIVERSE_RUSSELL1000 = [...UNIVERSE_SP500, ..._cleanExtra];
+
+// ── Constants (must be before init IIFE) ──────────────────────────────────────
+const BASE          = 'https://financialmodelingprep.com/stable';
+const DEFAULT_KEY   = 'Uq0TKcRxFVhqq4CvmOk2EStbeyTsONCi';
+const FETCH_TIMEOUT = 12000;
+const STOCK_DELAY   = 1300;  // ms between stocks — safe at 300 calls/min FMP Starter
 
 // ── State ─────────────────────────────────────────────────────────────────────
-let results       = [];
-let failures      = [];
-let currentFilter = 'all';
-let sortCol       = 'score';
-let sortDir       = 'desc';
-let running       = false;
-let stopRequested = false;
+let results         = [];
+let failures        = [];
+let currentFilter   = 'all';
+let currentSector   = 'all';
+let sortCol         = 'score';
+let sortDir         = 'desc';
+let running         = false;
+let stopRequested   = false;
+let pauseRequested  = false;
+let paused          = false;
+let resumeResolver  = null;
+let runStartTime    = null;
+let favorites       = new Set();
+let currentUniverse = 'sp500';
 
 // ── Init ──────────────────────────────────────────────────────────────────────
 (function init() {
-  const el    = document.getElementById('apiKey');
-  const saved = localStorage.getItem('fmp_api_key');
-  el.value    = saved || DEFAULT_KEY;
-  el.addEventListener('input', () => {
-    localStorage.setItem('fmp_api_key', el.value.trim());
-  });
+  const keyEl = document.getElementById('apiKey');
+  keyEl.value = localStorage.getItem('fmp_api_key') || DEFAULT_KEY;
+  keyEl.addEventListener('input', () => localStorage.setItem('fmp_api_key', keyEl.value.trim()));
+
+  try { favorites = new Set(JSON.parse(localStorage.getItem('fmp_favorites') || '[]')); } catch (_) {}
+
+  currentUniverse = localStorage.getItem('fmp_universe') || 'sp500';
+  updateUniverseUI();
+  updateRunButton();
   renderTable();
 })();
+
+// ── Universe ──────────────────────────────────────────────────────────────────
+function getUniverse() {
+  return currentUniverse === 'russell1000' ? UNIVERSE_RUSSELL1000 : UNIVERSE_SP500;
+}
+
+function setUniverse(u) {
+  if (running) return;
+  currentUniverse = u;
+  localStorage.setItem('fmp_universe', u);
+  updateUniverseUI();
+  updateRunButton();
+}
+
+function updateUniverseUI() {
+  const spBtn  = document.getElementById('btnUnivSP500');
+  const r1Btn  = document.getElementById('btnUnivR1K');
+  spBtn.textContent = `S&P 500 (${UNIVERSE_SP500.length})`;
+  r1Btn.textContent = `Russell 1000 (${UNIVERSE_RUSSELL1000.length})`;
+  if (currentUniverse === 'russell1000') {
+    r1Btn.classList.add('active'); spBtn.classList.remove('active');
+  } else {
+    spBtn.classList.add('active'); r1Btn.classList.remove('active');
+  }
+}
+
+function updateRunButton() {
+  const btn = document.getElementById('btnRun');
+  if (!btn || running) return;
+  const n    = getUniverse().length;
+  const mins = Math.round(n * STOCK_DELAY / 60000);
+  const act  = results.length ? 'Refresh' : 'Run Screener';
+  btn.textContent = `► ${act} — ~${mins} min`;
+}
 
 // ── Fetch helpers ─────────────────────────────────────────────────────────────
 function fetchJSON(url) {
@@ -558,8 +717,8 @@ async function fetchStock(symbol, key) {
     { name: 'ratios',                  url: `${BASE}/ratios?symbol=${q}&limit=1&apikey=${key}` },
   ];
 
-  const settled = await Promise.allSettled(STAGES.map(ep => fetchJSON(ep.url)));
-  const firstFail = settled.findIndex(r => r.status === 'rejected');
+  const settled    = await Promise.allSettled(STAGES.map(ep => fetchJSON(ep.url)));
+  const firstFail  = settled.findIndex(r => r.status === 'rejected');
   if (firstFail !== -1) {
     const reason = settled[firstFail].reason;
     const err    = new Error(reason.message || String(reason));
@@ -576,75 +735,57 @@ async function fetchStock(symbol, key) {
   const cf  = (Array.isArray(cashflows) ? cashflows[0] : cashflows) || {};
   const rat = (Array.isArray(ratiosArr) ? ratiosArr[0] : ratiosArr) || {};
 
-  // historical-price-eod/full returns a flat array sorted newest-first
-  const prices = Array.isArray(priceData) ? priceData.map(d => d.close) : [];
-
+  const prices       = Array.isArray(priceData) ? priceData.map(d => d.close) : [];
   const currentPrice = p.price ?? (prices[0] ?? null);
 
-  // ── Daily returns (last 252 days, newest-first) ───────────────────────────
   const nRet   = Math.min(252, prices.length - 1);
-  const returns = [];
-  for (let i = 0; i < nRet; i++) {
-    returns.push((prices[i] - prices[i + 1]) / prices[i + 1]);
-  }
+  const rets   = [];
+  for (let i = 0; i < nRet; i++) rets.push((prices[i] - prices[i+1]) / prices[i+1]);
 
-  // ── CROCI % ───────────────────────────────────────────────────────────────
+  // CROCI
   let croci = null;
   {
-    const opIncome    = inc.operatingIncome;
-    const da          = cf.depreciationAndAmortization;
-    const totalAssets = bal.totalAssets;
-    const currLiab    = bal.totalCurrentLiabilities;
-    if (opIncome != null && da != null && totalAssets != null && currLiab != null) {
-      const NOPAT = opIncome * 0.79;
-      const GCF   = NOPAT + Math.abs(da);
-      const GIC   = totalAssets + Math.abs(da) * 5 - currLiab;
+    const opInc = inc.operatingIncome, da = cf.depreciationAndAmortization;
+    const ta    = bal.totalAssets,    cl = bal.totalCurrentLiabilities;
+    if (opInc != null && da != null && ta != null && cl != null) {
+      const GCF = opInc * 0.79 + Math.abs(da);
+      const GIC = ta + Math.abs(da) * 5 - cl;
       if (GIC > 0) croci = (GCF / GIC) * 100;
     }
   }
 
-  // ── PEG ───────────────────────────────────────────────────────────────────
+  // PEG
   let peg = null;
-  {
-    const raw = rat.priceEarningsToGrowthRatio;
-    if (raw != null && raw > 0) peg = raw;
-  }
+  { const raw = rat.priceEarningsToGrowthRatio; if (raw != null && raw > 0) peg = raw; }
 
-  // ── Sortino ───────────────────────────────────────────────────────────────
+  // Sortino
   let sortino = null;
-  if (returns.length > 0) {
-    const avg     = returns.reduce((a, b) => a + b, 0) / returns.length;
-    const downside = returns.filter(r => r < 0);
-    if (downside.length === 0) {
-      sortino = 3.0;
-    } else {
-      const dd = Math.sqrt(downside.reduce((s, r) => s + r * r, 0) / downside.length);
+  if (rets.length > 0) {
+    const avg  = rets.reduce((a,b) => a+b, 0) / rets.length;
+    const down = rets.filter(r => r < 0);
+    if (down.length === 0) { sortino = 3.0; }
+    else {
+      const dd = Math.sqrt(down.reduce((s,r) => s+r*r, 0) / down.length);
       sortino  = dd > 0 ? (avg / dd) * Math.sqrt(252) : 3.0;
     }
   }
 
-  // ── Beta ──────────────────────────────────────────────────────────────────
   const beta = p.beta ?? null;
 
-  // ── Volatility % ──────────────────────────────────────────────────────────
+  // Volatility
   let vol = null;
-  if (returns.length > 0) {
-    const avg      = returns.reduce((a, b) => a + b, 0) / returns.length;
-    const variance = returns.reduce((s, r) => s + (r - avg) ** 2, 0) / returns.length;
-    vol = Math.sqrt(variance) * Math.sqrt(252) * 100;
+  if (rets.length > 0) {
+    const avg = rets.reduce((a,b) => a+b, 0) / rets.length;
+    const vr  = rets.reduce((s,r) => s+(r-avg)**2, 0) / rets.length;
+    vol = Math.sqrt(vr) * Math.sqrt(252) * 100;
   }
 
-  // ── Momentum ──────────────────────────────────────────────────────────────
   let chg6m = null, chg1m = null;
-  if (currentPrice != null && prices[125] != null)
-    chg6m = (currentPrice - prices[125]) / prices[125] * 100;
-  if (currentPrice != null && prices[21] != null)
-    chg1m = (currentPrice - prices[21])  / prices[21]  * 100;
+  if (currentPrice != null && prices[125] != null) chg6m = (currentPrice - prices[125]) / prices[125] * 100;
+  if (currentPrice != null && prices[21]  != null) chg1m = (currentPrice - prices[21])  / prices[21]  * 100;
 
-  // ── Alpha % ───────────────────────────────────────────────────────────────
   const alpha = chg6m != null ? chg6m * 2 - 10 : null;
 
-  // ── Score 0–6 ─────────────────────────────────────────────────────────────
   let score = 0;
   if (croci   != null && croci > 10)           score++;
   if (peg     != null && peg > 0 && peg < 1.5) score++;
@@ -656,55 +797,108 @@ async function fetchStock(symbol, key) {
   const rag = score >= 5 ? 'strong' : score >= 3 ? 'watch' : 'avoid';
 
   return {
-    ticker:   symbol,
-    company:  p.companyName || '',
-    industry: p.industry    || '',
-    price:    currentPrice,
-    score, rag, croci, peg, sortino, alpha, beta, vol, chg6m, chg1m,
+    ticker: symbol, company: p.companyName || '', industry: p.industry || '',
+    price: currentPrice, score, rag, croci, peg, sortino, alpha, beta, vol, chg6m, chg1m,
   };
 }
 
-// ── Run screener ──────────────────────────────────────────────────────────────
+async function fetchStockWithRetry(symbol, key) {
+  try {
+    return await fetchStock(symbol, key);
+  } catch (err) {
+    if (err.status === 429) {
+      await delay(5000);
+      return await fetchStock(symbol, key);  // one retry after 5s
+    }
+    throw err;
+  }
+}
+
+// ── Pause / Resume ────────────────────────────────────────────────────────────
+function togglePause() {
+  if (!running) return;
+  const btn = document.getElementById('btnPause');
+  if (paused) {
+    paused = false;
+    pauseRequested = false;
+    btn.textContent = '⏸ Pause';  // ⏸
+    if (resumeResolver) { resumeResolver(); resumeResolver = null; }
+  } else {
+    pauseRequested = true;
+    btn.disabled   = true;
+    btn.textContent = '⧖ Pausing…';  // ⧖ Pausing…
+  }
+}
+
+// ── Run Screener ──────────────────────────────────────────────────────────────
 async function runScreener() {
   if (running) return;
   const key = document.getElementById('apiKey').value.trim();
-  if (!key) {
-    showMessage('Enter your FMP API key first.', 'error');
-    return;
-  }
+  if (!key) { showMessage('Enter your FMP API key first.', 'error'); return; }
   localStorage.setItem('fmp_api_key', key);
 
-  running = true; stopRequested = false; results = []; failures = [];
+  running = true; stopRequested = false; pauseRequested = false; paused = false;
+  results = []; failures = []; runStartTime = Date.now();
 
-  const btnRun       = document.getElementById('btnRun');
-  const btnStop      = document.getElementById('btnStop');
-  const progressWrap = document.getElementById('progressWrap');
-  const progressFill = document.getElementById('progressFill');
-  const progressLabel= document.getElementById('progressLabel');
+  const universe = getUniverse();
+  const total    = universe.length;
+
+  const btnRun    = document.getElementById('btnRun');
+  const btnPause  = document.getElementById('btnPause');
+  const btnStop   = document.getElementById('btnStop');
+  const progWrap  = document.getElementById('progressWrap');
+  const progFill  = document.getElementById('progressFill');
+  const progLabel = document.getElementById('progressLabel');
+  const progETA   = document.getElementById('progressETA');
 
   btnRun.disabled       = true;
-  btnRun.textContent    = '⟳ Running…';
-  btnStop.style.display = 'inline-flex';
-  progressWrap.classList.add('visible');
-  progressFill.style.width  = '0%';
-  progressLabel.textContent = 'Starting…';
-  hideMessage(); renderTable(); updateStats(); renderFailurePanel();
-  await delay(100);
+  btnRun.textContent    = '⧖ Running…';
+  btnPause.style.display = 'inline-flex';
+  btnPause.disabled      = false;
+  btnPause.textContent   = '⏸ Pause';
+  btnStop.style.display  = 'inline-flex';
+  btnStop.disabled       = false;
+  btnStop.textContent    = '◼ Stop';
+  progWrap.classList.add('visible');
+  progFill.style.width   = '0%';
+  progLabel.textContent  = 'Starting…';
+  progETA.textContent    = '';
+  hideMessage(); _renderTable(); updateStats(); renderFailurePanel();
+  await delay(80);
 
-  const total = UNIVERSE.length;
   let done = 0, failCount = 0, firstErr = null;
 
-  for (const symbol of UNIVERSE) {
+  for (let i = 0; i < universe.length; i++) {
     if (stopRequested) break;
 
-    progressLabel.textContent = `Fetching ${symbol}… (${done + 1} / ${total})`;
-    progressFill.style.width  = `${(done / total) * 100}%`;
+    // Pause checkpoint
+    if (pauseRequested) {
+      paused = true;
+      const pauseBtn = document.getElementById('btnPause');
+      pauseBtn.textContent = '► Resume';
+      pauseBtn.disabled    = false;
+      progLabel.textContent = `Paused — ${results.length} loaded, ${i} / ${total} processed`;
+      progETA.textContent   = '';
+      await new Promise(resolve => { resumeResolver = resolve; });
+    }
+
+    const symbol = universe[i];
+    progLabel.textContent = `Fetching ${symbol} (${done + 1} / ${total})`;
+    progFill.style.width  = `${(done / total) * 100}%`;
+
+    if (done > 2) {
+      const elapsed = (Date.now() - runStartTime) / 1000;
+      const rate    = done / elapsed;
+      const etaDate = new Date(Date.now() + ((total - done) / rate) * 1000);
+      progETA.textContent = `Est. complete: ${etaDate.toLocaleTimeString('en-GB', { hour12: false })}`;
+    }
 
     try {
-      const stock = await fetchStock(symbol, key);
+      const stock = await fetchStockWithRetry(symbol, key);
       results.push(stock);
-      renderTable();
+      debouncedRender();
       updateStats();
+      debouncedSectorUpdate();
     } catch (err) {
       console.warn(`[${symbol}]`, err.message);
       if (!firstErr) firstErr = err;
@@ -712,20 +906,21 @@ async function runScreener() {
       const msg = err.message || '';
       failures.push({
         symbol,
-        stage:      err.stage  || 'unknown',
-        error:      msg,
-        status:     err.status || null,
-        isPaidTier: err.status === 402 || /premium|upgrade|subscription/i.test(msg),
-        isRateLimit:err.status === 429 || /rate.?limit|too.?many/i.test(msg),
+        stage:       err.stage  || 'unknown',
+        error:       msg,
+        status:      err.status || null,
+        isPaidTier:  err.status === 402 || /premium|upgrade|subscription/i.test(msg),
+        isRateLimit: err.status === 429 || /rate.?limit|too.?many/i.test(msg),
       });
     }
 
     done++;
-    if (done < total && !stopRequested) await delay(200);
+    if (done < total && !stopRequested && !pauseRequested) await delay(STOCK_DELAY);
   }
 
-  progressFill.style.width  = '100%';
-  progressLabel.textContent = stopRequested
+  progFill.style.width  = '100%';
+  progETA.textContent   = '';
+  progLabel.textContent = stopRequested
     ? `Stopped — ${results.length} stocks loaded`
     : `Complete — ${results.length} / ${total} stocks loaded`;
 
@@ -740,27 +935,61 @@ async function runScreener() {
   }
 
   renderFailurePanel();
-  running               = false;
-  stopRequested         = false;
-  btnRun.disabled       = false;
-  btnRun.textContent    = results.length ? '⟳ Refresh' : '▶ Run Screener';
-  btnStop.style.display = 'none';
+  _renderTable(); updateStats();
+  running = false; stopRequested = false; pauseRequested = false; paused = false;
+  btnRun.disabled        = false;
+  btnPause.style.display = 'none';
+  btnStop.style.display  = 'none';
+  updateRunButton();
 }
 
 function stopScreener() {
   stopRequested = true;
+  if (paused && resumeResolver) { resumeResolver(); resumeResolver = null; }
   const b = document.getElementById('btnStop');
-  b.disabled = true; b.textContent = '⟳ Stopping…';
+  b.disabled = true; b.textContent = '⧖ Stopping…';
 }
 
 const delay = ms => new Promise(r => setTimeout(r, ms));
+
+// ── Favourites ────────────────────────────────────────────────────────────────
+function toggleFavorite(ticker, evt) {
+  evt.stopPropagation();
+  if (favorites.has(ticker)) favorites.delete(ticker);
+  else favorites.add(ticker);
+  localStorage.setItem('fmp_favorites', JSON.stringify([...favorites]));
+  debouncedRender();
+}
+
+// ── Sector Filter ─────────────────────────────────────────────────────────────
+function setSector(sector) {
+  currentSector = sector;
+  debouncedRender(); updateStats();
+}
+
+let _sectorTimer = null;
+function debouncedSectorUpdate() {
+  clearTimeout(_sectorTimer);
+  _sectorTimer = setTimeout(updateSectorDropdown, 600);
+}
+
+function updateSectorDropdown() {
+  const sel = document.getElementById('sectorSelect');
+  if (!sel) return;
+  const prev    = sel.value;
+  const sectors = [...new Set(results.map(r => r.industry).filter(Boolean))].sort();
+  const opts    = ['<option value="all">All Industries</option>',
+    ...sectors.map(s => `<option value="${esc(s)}"${s === prev ? ' selected' : ''}>${esc(s)}</option>`)
+  ].join('');
+  sel.innerHTML = opts;
+}
 
 // ── Sort ──────────────────────────────────────────────────────────────────────
 function sortBy(col) {
   sortDir = (sortCol === col) ? (sortDir === 'asc' ? 'desc' : 'asc')
                               : (['ticker','company','industry'].includes(col) ? 'asc' : 'desc');
   sortCol = col;
-  renderTable();
+  debouncedRender();
 }
 
 function getSorted(data) {
@@ -779,36 +1008,34 @@ function getSorted(data) {
 function setFilter(f, btn) {
   currentFilter = f;
   document.querySelectorAll('.btn-filter').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  renderTable(); updateStats();
+  if (btn) btn.classList.add('active');
+  debouncedRender(); updateStats();
 }
 
 function getFiltered() {
-  return currentFilter === 'all' ? results : results.filter(r => r.rag === currentFilter);
+  let data = results;
+  if (currentFilter === 'favorites')    data = data.filter(r => favorites.has(r.ticker));
+  else if (currentFilter !== 'all')     data = data.filter(r => r.rag === currentFilter);
+  if (currentSector !== 'all')          data = data.filter(r => r.industry === currentSector);
+  return data;
 }
 
-// ── Render ────────────────────────────────────────────────────────────────────
-function fmtPrice(v) {
-  if (v == null || !isFinite(v)) return '—';
-  return '$' + Number(v).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+// ── Render (debounced, DocumentFragment) ─────────────────────────────────────
+let _renderTimer = null;
+function debouncedRender() {
+  clearTimeout(_renderTimer);
+  _renderTimer = setTimeout(_renderTable, 40);
 }
 
-function metricTD(val, passes, dp, suffix) {
-  if (val == null || !isFinite(val)) return '<td class="muted">—</td>';
-  return `<td class="${passes(val) ? 'pass' : 'fail'}">${val.toFixed(dp)}${suffix}</td>`;
-}
+function renderTable() { debouncedRender(); }  // public alias
 
-function esc(s) {
-  return (s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-
-function renderTable() {
+function _renderTable() {
   const tbody  = document.getElementById('tableBody');
   const sorted = getSorted(getFiltered());
 
-  document.querySelectorAll('th').forEach((th, i) => {
+  document.querySelectorAll('th[data-col]').forEach(th => {
     th.classList.remove('sorted-asc', 'sorted-desc');
-    if (COL_KEYS[i] === sortCol)
+    if (th.dataset.col === sortCol)
       th.classList.add(sortDir === 'asc' ? 'sorted-asc' : 'sorted-desc');
   });
 
@@ -816,30 +1043,37 @@ function renderTable() {
     const title = results.length ? 'No results' : 'Ready to screen';
     const sub   = results.length
       ? 'No stocks match the current filter'
-      : 'Press ▶ Run Screener to start';
-    tbody.innerHTML = `<tr><td colspan="14">
-      <div class="empty-state">
-        <div class="empty-state-title">${title}</div>${sub}
-      </div></td></tr>`;
+      : 'Press ► Run Screener to start';
+    tbody.innerHTML = `<tr><td colspan="15"><div class="empty-state">
+      <div class="empty-state-title">${title}</div>${sub}
+    </div></td></tr>`;
     return;
   }
 
-  tbody.innerHTML = sorted.map(s => `<tr>
-    <td class="cell-ticker">${esc(s.ticker)}</td>
-    <td class="cell-company"  title="${esc(s.company)}">${esc(s.company)   || '—'}</td>
-    <td class="cell-industry" title="${esc(s.industry)}">${esc(s.industry) || '—'}</td>
-    <td class="muted">${fmtPrice(s.price)}</td>
-    <td class="cell-score ${s.rag}">${s.score}/6</td>
-    <td><span class="rag-badge ${s.rag}">${s.rag}</span></td>
-    ${metricTD(s.croci,   v => v > 10,              1, '%')}
-    ${metricTD(s.peg,     v => v > 0 && v < 1.5,    2, '')}
-    ${metricTD(s.sortino, v => v > 0.5,             2, '')}
-    ${metricTD(s.alpha,   v => v > 0,               1, '%')}
-    ${metricTD(s.beta,    v => v < 1.5,             2, '')}
-    ${metricTD(s.vol,     () => true,               1, '%')}
-    ${metricTD(s.chg6m,   v => v > 0,              1, '%')}
-    ${metricTD(s.chg1m,   v => v > 0,              1, '%')}
-  </tr>`).join('');
+  const frag = document.createDocumentFragment();
+  for (const s of sorted) {
+    const isFav = favorites.has(s.ticker);
+    const tr    = document.createElement('tr');
+    tr.innerHTML = `
+      <td class="cell-fav${isFav ? ' starred' : ''}" onclick="toggleFavorite('${esc(s.ticker)}',event)">${isFav ? '★' : '☆'}</td>
+      <td class="cell-ticker">${esc(s.ticker)}</td>
+      <td class="cell-company"  title="${esc(s.company)}">${esc(s.company)   || '&mdash;'}</td>
+      <td class="cell-industry" title="${esc(s.industry)}">${esc(s.industry) || '&mdash;'}</td>
+      <td class="muted">${fmtPrice(s.price)}</td>
+      <td class="cell-score ${s.rag}">${s.score}/6</td>
+      <td><span class="rag-badge ${s.rag}">${s.rag}</span></td>
+      ${metricTD(s.croci,   v => v > 10,           1, '%')}
+      ${metricTD(s.peg,     v => v > 0 && v < 1.5, 2, '')}
+      ${metricTD(s.sortino, v => v > 0.5,          2, '')}
+      ${metricTD(s.alpha,   v => v > 0,            1, '%')}
+      ${metricTD(s.beta,    v => v < 1.5,          2, '')}
+      ${metricTD(s.vol,     () => true,            1, '%')}
+      ${metricTD(s.chg6m,   v => v > 0,            1, '%')}
+      ${metricTD(s.chg1m,   v => v > 0,            1, '%')}`;
+    frag.appendChild(tr);
+  }
+  tbody.innerHTML = '';
+  tbody.appendChild(frag);
 }
 
 // ── Stats ─────────────────────────────────────────────────────────────────────
@@ -854,7 +1088,22 @@ function updateStats() {
   document.getElementById('statShowing').textContent = results.length ? showing : '—';
 }
 
-// ── CSV export ────────────────────────────────────────────────────────────────
+// ── Helpers ───────────────────────────────────────────────────────────────────
+function fmtPrice(v) {
+  if (v == null || !isFinite(v)) return '&mdash;';
+  return '$' + Number(v).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function metricTD(val, passes, dp, suffix) {
+  if (val == null || !isFinite(val)) return '<td class="muted">&mdash;</td>';
+  return `<td class="${passes(val) ? 'pass' : 'fail'}">${val.toFixed(dp)}${suffix}</td>`;
+}
+
+function esc(s) {
+  return (s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── CSV Export ────────────────────────────────────────────────────────────────
 function exportCSV() {
   const data = getFiltered();
   if (!data.length) {
@@ -862,17 +1111,14 @@ function exportCSV() {
     setTimeout(hideMessage, 4000);
     return;
   }
-  const headers = [
-    'Ticker','Company','Industry','Price','Score','RAG',
-    'CROCI %','PEG','Sortino','Alpha %','Beta','Vol %','6M %','1M %'
-  ];
+  const headers = ['Ticker','Company','Industry','Price','Score','RAG',
+    'CROCI %','PEG','Sortino','Alpha %','Beta','Vol %','6M %','1M %'];
   const rows = data.map(s => [
     s.ticker,
     `"${(s.company  || '').replace(/"/g,'""')}"`,
     `"${(s.industry || '').replace(/"/g,'""')}"`,
     s.price   != null ? s.price.toFixed(2)   : '',
-    s.score,
-    s.rag,
+    s.score, s.rag,
     s.croci   != null ? s.croci.toFixed(2)   : '',
     s.peg     != null ? s.peg.toFixed(2)     : '',
     s.sortino != null ? s.sortino.toFixed(2) : '',
@@ -886,11 +1132,8 @@ function exportCSV() {
   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
   const url  = URL.createObjectURL(blob);
   const a    = document.createElement('a');
-  a.href     = url;
-  a.download = `stuarts-screener-${new Date().toISOString().slice(0,10)}.csv`;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
+  a.href = url; a.download = `stuarts-screener-${new Date().toISOString().slice(0,10)}.csv`;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
   setTimeout(() => URL.revokeObjectURL(url), 10000);
 }
 
@@ -901,10 +1144,9 @@ function renderFailurePanel() {
 
   const allPaid = failures.every(f => f.isPaidTier);
   const allRate = failures.every(f => f.isRateLimit);
-  let summary;
-  if (allPaid)      summary = 'These endpoints require FMP Starter ($25/month). Upgrade at financialmodelingprep.com to unlock.';
-  else if (allRate) summary = 'Daily 250 call limit hit. Try again tomorrow or upgrade to Starter.';
-  else              summary = 'Mixed issues — see details above. Try Refresh in a few minutes.';
+  const summary = allPaid ? 'These endpoints require FMP Starter ($25/month). Upgrade at financialmodelingprep.com to unlock.'
+                : allRate ? 'Daily call limit hit. Try again tomorrow or upgrade to Starter.'
+                          : 'Mixed issues — see details above. Try Refresh in a few minutes.';
 
   const rows = failures.map(f => {
     const badge = f.isPaidTier ? '<span class="failure-badge-paid">PAID TIER</span>' : '';
