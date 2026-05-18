@@ -619,6 +619,7 @@ const UNIVERSE_RUSSELL1000 = [...UNIVERSE_SP500, ..._cleanExtra];
 const BASE          = 'https://financialmodelingprep.com/stable';
 const DEFAULT_KEY   = 'Uq0TKcRxFVhqq4CvmOk2EStbeyTsONCi';
 const FETCH_TIMEOUT = 12000;
+const STOCK_TIMEOUT = 45000;
 const STOCK_DELAY   = 1300;  // ms between stocks — safe at 300 calls/min FMP Starter
 
 // ── State ─────────────────────────────────────────────────────────────────────
@@ -709,6 +710,18 @@ function fetchJSON(url) {
     timerId = setTimeout(() => rej(new Error('Request timed out')), FETCH_TIMEOUT);
   });
   return Promise.race([req, timeout]);
+}
+
+function withTimeout(promise, ms, message, extras = {}) {
+  let timerId;
+  const timeout = new Promise((_, reject) => {
+    timerId = setTimeout(() => {
+      const err = new Error(message);
+      Object.assign(err, extras);
+      reject(err);
+    }, ms);
+  });
+  return Promise.race([promise, timeout]).finally(() => clearTimeout(timerId));
 }
 
 async function fetchStock(symbol, key) {
@@ -819,6 +832,15 @@ async function fetchStockWithRetry(symbol, key) {
   }
 }
 
+async function fetchStockSafe(symbol, key) {
+  return withTimeout(
+    fetchStockWithRetry(symbol, key),
+    STOCK_TIMEOUT,
+    `Stock fetch timed out for ${symbol}`,
+    { stage: 'aggregate-fetch' }
+  );
+}
+
 // ── Pause / Resume ────────────────────────────────────────────────────────────
 function togglePause() {
   if (!running) return;
@@ -872,86 +894,93 @@ async function runScreener() {
   await delay(80);
 
   let done = 0, failCount = 0, firstErr = null;
+  try {
+    for (let i = 0; i < universe.length; i++) {
+      if (stopRequested) break;
 
-  for (let i = 0; i < universe.length; i++) {
-    if (stopRequested) break;
+      // Pause checkpoint
+      if (pauseRequested) {
+        paused = true;
+        const pauseBtn = document.getElementById('btnPause');
+        pauseBtn.textContent = '► Resume';
+        pauseBtn.disabled    = false;
+        progLabel.textContent = `Paused — ${results.length} loaded, ${i} / ${total} processed`;
+        progETA.textContent   = '';
+        await new Promise(resolve => { resumeResolver = resolve; });
+      }
 
-    // Pause checkpoint
-    if (pauseRequested) {
-      paused = true;
-      const pauseBtn = document.getElementById('btnPause');
-      pauseBtn.textContent = '► Resume';
-      pauseBtn.disabled    = false;
-      progLabel.textContent = `Paused — ${results.length} loaded, ${i} / ${total} processed`;
-      progETA.textContent   = '';
-      await new Promise(resolve => { resumeResolver = resolve; });
+      const symbol = universe[i];
+      progLabel.textContent = `Fetching ${symbol} (${done + 1} / ${total})`;
+      progFill.style.width  = `${(done / total) * 100}%`;
+
+      if (done > 2) {
+        const elapsed = (Date.now() - runStartTime) / 1000;
+        const rate    = done / elapsed;
+        const etaDate = new Date(Date.now() + ((total - done) / rate) * 1000);
+        progETA.textContent = `Est. complete: ${etaDate.toLocaleTimeString('en-GB', { hour12: false })}`;
+      }
+
+      try {
+        const stock = await fetchStockSafe(symbol, key);
+        results.push(stock);
+        debouncedRender();
+        updateStats();
+        debouncedSectorUpdate();
+      } catch (err) {
+        console.warn(`[${symbol}]`, err.message);
+        if (!firstErr) firstErr = err;
+        failCount++;
+        const msg = err.message || '';
+        failures.push({
+          symbol,
+          stage:       err.stage  || 'unknown',
+          error:       msg,
+          status:      err.status || null,
+          isPaidTier:  err.status === 402 || /premium|upgrade|subscription/i.test(msg),
+          isRateLimit: err.status === 429 || /rate.?limit|too.?many/i.test(msg),
+        });
+      }
+
+      done++;
+      if (done < total && !stopRequested && !pauseRequested) await delay(STOCK_DELAY);
     }
 
-    const symbol = universe[i];
-    progLabel.textContent = `Fetching ${symbol} (${done + 1} / ${total})`;
-    progFill.style.width  = `${(done / total) * 100}%`;
+    progFill.style.width  = '100%';
+    progETA.textContent   = '';
+    progLabel.textContent = stopRequested
+      ? `Stopped — ${results.length} stocks loaded`
+      : `Complete — ${results.length} / ${total} stocks loaded`;
 
-    if (done > 2) {
-      const elapsed = (Date.now() - runStartTime) / 1000;
-      const rate    = done / elapsed;
-      const etaDate = new Date(Date.now() + ((total - done) / rate) * 1000);
-      progETA.textContent = `Est. complete: ${etaDate.toLocaleTimeString('en-GB', { hour12: false })}`;
+    if (results.length === 0 && firstErr) {
+      showMessage(`All stocks failed: ${firstErr.message}`, 'error');
+    } else if (!stopRequested && failCount > 0) {
+      showMessage(`${failCount} stock(s) skipped. ${results.length} results shown.`, 'error');
+      setTimeout(hideMessage, 8000);
+    } else if (!stopRequested) {
+      showMessage(`Screener complete — ${results.length} stocks loaded.`, 'success');
+      setTimeout(hideMessage, 5000);
     }
-
-    try {
-      const stock = await fetchStockWithRetry(symbol, key);
-      results.push(stock);
-      debouncedRender();
-      updateStats();
-      debouncedSectorUpdate();
-    } catch (err) {
-      console.warn(`[${symbol}]`, err.message);
-      if (!firstErr) firstErr = err;
-      failCount++;
-      const msg = err.message || '';
-      failures.push({
-        symbol,
-        stage:       err.stage  || 'unknown',
-        error:       msg,
-        status:      err.status || null,
-        isPaidTier:  err.status === 402 || /premium|upgrade|subscription/i.test(msg),
-        isRateLimit: err.status === 429 || /rate.?limit|too.?many/i.test(msg),
-      });
-    }
-
-    done++;
-    if (done < total && !stopRequested && !pauseRequested) await delay(STOCK_DELAY);
+  } catch (err) {
+    console.error('Screener failed unexpectedly:', err);
+    showMessage(`Screener failed: ${err?.message || 'Unexpected error'}`, 'error');
+    progETA.textContent = '';
+    progLabel.textContent = `Failed — ${results.length} stocks loaded`;
+  } finally {
+    renderFailurePanel();
+    _renderTable(); updateStats();
+    running = false; stopRequested = false; pauseRequested = false; paused = false;
+    btnRun.disabled        = false;
+    btnPause.style.display = 'none';
+    btnStop.style.display  = 'none';
+    updateRunButton();
   }
-
-  progFill.style.width  = '100%';
-  progETA.textContent   = '';
-  progLabel.textContent = stopRequested
-    ? `Stopped — ${results.length} stocks loaded`
-    : `Complete — ${results.length} / ${total} stocks loaded`;
-
-  if (results.length === 0 && firstErr) {
-    showMessage(`All stocks failed: ${firstErr.message}`, 'error');
-  } else if (!stopRequested && failCount > 0) {
-    showMessage(`${failCount} stock(s) skipped. ${results.length} results shown.`, 'error');
-    setTimeout(hideMessage, 8000);
-  } else if (!stopRequested) {
-    showMessage(`Screener complete — ${results.length} stocks loaded.`, 'success');
-    setTimeout(hideMessage, 5000);
-  }
-
-  renderFailurePanel();
-  _renderTable(); updateStats();
-  running = false; stopRequested = false; pauseRequested = false; paused = false;
-  btnRun.disabled        = false;
-  btnPause.style.display = 'none';
-  btnStop.style.display  = 'none';
-  updateRunButton();
 }
 
 function stopScreener() {
   stopRequested = true;
   if (paused && resumeResolver) { resumeResolver(); resumeResolver = null; }
   const b = document.getElementById('btnStop');
+  if (!b) return;
   b.disabled = true; b.textContent = '⧖ Stopping…';
 }
 
@@ -1145,6 +1174,7 @@ function exportCSV() {
 // ── Failure Panel ─────────────────────────────────────────────────────────────
 function renderFailurePanel() {
   const panel = document.getElementById('failurePanel');
+  if (!panel) return;
   if (!failures.length) { panel.style.display = 'none'; return; }
 
   const allPaid = failures.every(f => f.isPaidTier);
