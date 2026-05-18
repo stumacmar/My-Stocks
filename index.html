@@ -637,6 +637,9 @@ let resumeResolver  = null;
 let runStartTime    = null;
 let favorites       = new Set();
 let currentUniverse = 'sp500';
+let _renderTimer    = null;
+let _sectorTimer    = null;
+const delay         = ms => new Promise(r => setTimeout(r, ms));
 
 // ── Init ──────────────────────────────────────────────────────────────────────
 (function init() {
@@ -688,9 +691,9 @@ function updateRunButton() {
 
 // ── Fetch helpers ─────────────────────────────────────────────────────────────
 function fetchJSON(url) {
+  const controller = new AbortController();
   let timerId;
-  const req = fetch(url, { cache: 'no-store' }).then(async res => {
-    clearTimeout(timerId);
+  const req = fetch(url, { cache: 'no-store', signal: controller.signal }).then(async res => {
     if (!res.ok) {
       const err = new Error(`HTTP ${res.status}`);
       err.status = res.status;
@@ -707,9 +710,12 @@ function fetchJSON(url) {
     return data;
   });
   const timeout = new Promise((_, rej) => {
-    timerId = setTimeout(() => rej(new Error('Request timed out')), FETCH_TIMEOUT);
+    timerId = setTimeout(() => {
+      controller.abort();
+      rej(new Error('Request timed out'));
+    }, FETCH_TIMEOUT);
   });
-  return Promise.race([req, timeout]);
+  return Promise.race([req, timeout]).finally(() => clearTimeout(timerId));
 }
 
 function withTimeout(promise, ms, message, extras = {}) {
@@ -878,23 +884,23 @@ async function runScreener() {
   const progLabel = document.getElementById('progressLabel');
   const progETA   = document.getElementById('progressETA');
 
-  btnRun.disabled       = true;
-  btnRun.textContent    = '⧖ Running…';
-  btnPause.style.display = 'inline-flex';
-  btnPause.disabled      = false;
-  btnPause.textContent   = '⏸ Pause';
-  btnStop.style.display  = 'inline-flex';
-  btnStop.disabled       = false;
-  btnStop.textContent    = '◼ Stop';
-  progWrap.classList.add('visible');
-  progFill.style.width   = '0%';
-  progLabel.textContent  = 'Starting…';
-  progETA.textContent    = '';
-  hideMessage(); _renderTable(); updateStats(); renderFailurePanel();
-  await delay(80);
-
-  let done = 0, failCount = 0, firstErr = null;
   try {
+    btnRun.disabled       = true;
+    btnRun.textContent    = '⧖ Running…';
+    btnPause.style.display = 'inline-flex';
+    btnPause.disabled      = false;
+    btnPause.textContent   = '⏸ Pause';
+    btnStop.style.display  = 'inline-flex';
+    btnStop.disabled       = false;
+    btnStop.textContent    = '◼ Stop';
+    progWrap.classList.add('visible');
+    progFill.style.width   = '0%';
+    progLabel.textContent  = 'Starting…';
+    progETA.textContent    = '';
+    hideMessage(); _renderTable(); updateStats(); renderFailurePanel();
+    await delay(80);
+
+    let done = 0, failCount = 0, firstErr = null;
     for (let i = 0; i < universe.length; i++) {
       if (stopRequested) break;
 
@@ -984,8 +990,6 @@ function stopScreener() {
   b.disabled = true; b.textContent = '⧖ Stopping…';
 }
 
-const delay = ms => new Promise(r => setTimeout(r, ms));
-
 // ── Favourites ────────────────────────────────────────────────────────────────
 function toggleFavorite(ticker, evt) {
   evt.stopPropagation();
@@ -1001,7 +1005,6 @@ function setSector(sector) {
   debouncedRender(); updateStats();
 }
 
-let _sectorTimer = null;
 function debouncedSectorUpdate() {
   clearTimeout(_sectorTimer);
   _sectorTimer = setTimeout(updateSectorDropdown, 600);
@@ -1055,7 +1058,6 @@ function getFiltered() {
 }
 
 // ── Render (debounced, DocumentFragment) ─────────────────────────────────────
-let _renderTimer = null;
 function debouncedRender() {
   clearTimeout(_renderTimer);
   _renderTimer = setTimeout(_renderTable, 40);
@@ -1065,6 +1067,7 @@ function renderTable() { debouncedRender(); }  // public alias
 
 function _renderTable() {
   const tbody  = document.getElementById('tableBody');
+  if (!tbody) return;
   const sorted = getSorted(getFiltered());
 
   document.querySelectorAll('th[data-col]').forEach(th => {
