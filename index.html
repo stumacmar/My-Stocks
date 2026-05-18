@@ -898,7 +898,8 @@ async function fetchStock(symbol, apiKey) {
 
   const alpha = chg6m != null ? +((chg6m * 2) - 10).toFixed(1) : null;
   const beta  = p.beta ? +parseFloat(p.beta).toFixed(2) : null;
-  const peg   = r.priceEarningsToGrowthRatio ? +parseFloat(r.priceEarningsToGrowthRatio).toFixed(2) : null;
+  const rawPeg = r.priceEarningsToGrowthRatio ?? r.pegRatio ?? null;
+  const peg   = rawPeg != null && rawPeg !== 0 ? +parseFloat(rawPeg).toFixed(2) : null;
 
   // Pearson correlation with SPY
   const corr = spyPrices.length ? pearsonCorr(prices, spyPrices) : null;
