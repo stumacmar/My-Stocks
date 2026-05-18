@@ -198,8 +198,9 @@
       width: 0%;
       transition: width 0.3s ease;
     }
-    .progress-label { font-size: 11px; color: var(--text-2); margin-top: 7px; }
-    .progress-eta   { font-size: 10px; color: var(--text-2); margin-top: 3px; letter-spacing: 0.3px; }
+    .progress-label  { font-size: 11px; color: var(--text-2); margin-top: 7px; }
+    .progress-eta    { font-size: 10px; color: var(--text-2); margin-top: 3px; letter-spacing: 0.3px; }
+    .progress-errors { font-size: 10px; color: var(--red); margin-top: 4px; font-family: 'JetBrains Mono', monospace; }
 
     /* ── Message Banner ── */
     .message-banner {
@@ -476,8 +477,9 @@
   <div class="progress-bar-bg">
     <div class="progress-bar-fill" id="progressFill"></div>
   </div>
-  <div class="progress-label" id="progressLabel"></div>
-  <div class="progress-eta"   id="progressETA"></div>
+  <div class="progress-label"  id="progressLabel"></div>
+  <div class="progress-eta"    id="progressETA"></div>
+  <div class="progress-errors" id="liveErrors" style="display:none"></div>
 </div>
 
 <!-- Message Banner -->
@@ -879,10 +881,11 @@ async function runScreener() {
   const btnRun    = document.getElementById('btnRun');
   const btnPause  = document.getElementById('btnPause');
   const btnStop   = document.getElementById('btnStop');
-  const progWrap  = document.getElementById('progressWrap');
-  const progFill  = document.getElementById('progressFill');
-  const progLabel = document.getElementById('progressLabel');
-  const progETA   = document.getElementById('progressETA');
+  const progWrap   = document.getElementById('progressWrap');
+  const progFill   = document.getElementById('progressFill');
+  const progLabel  = document.getElementById('progressLabel');
+  const progETA    = document.getElementById('progressETA');
+  const liveErrors = document.getElementById('liveErrors');
 
   try {
     btnRun.disabled       = true;
@@ -894,10 +897,13 @@ async function runScreener() {
     btnStop.disabled       = false;
     btnStop.textContent    = '◼ Stop';
     progWrap.classList.add('visible');
-    progFill.style.width   = '0%';
-    progLabel.textContent  = 'Starting…';
-    progETA.textContent    = '';
+    progFill.style.width    = '0%';
+    progLabel.textContent   = 'Starting…';
+    progETA.textContent     = '';
+    liveErrors.style.display = 'none';
+    liveErrors.textContent  = '';
     hideMessage(); _renderTable(); updateStats(); renderFailurePanel();
+    console.log('[Screener] Starting run —', total, 'tickers, universe:', currentUniverse);
     await delay(80);
 
     let done = 0, failCount = 0, firstErr = null;
@@ -916,6 +922,7 @@ async function runScreener() {
       }
 
       const symbol = universe[i];
+      console.log('[Screener] Starting fetch for:', symbol, `(${done + 1}/${total})`);
       progLabel.textContent = `Fetching ${symbol} (${done + 1} / ${total})`;
       progFill.style.width  = `${(done / total) * 100}%`;
 
@@ -933,26 +940,30 @@ async function runScreener() {
         updateStats();
         debouncedSectorUpdate();
       } catch (err) {
-        console.warn(`[${symbol}]`, err.message);
+        const stage = err.stage || 'unknown';
+        const msg   = err.message || 'unknown error';
+        console.error('[Screener] FAIL', symbol, `stage:${stage}`, `status:${err.status || '—'}`, msg);
         if (!firstErr) firstErr = err;
         failCount++;
-        const msg = err.message || '';
         failures.push({
           symbol,
-          stage:       err.stage  || 'unknown',
+          stage,
           error:       msg,
           status:      err.status || null,
           isPaidTier:  err.status === 402 || /premium|upgrade|subscription/i.test(msg),
           isRateLimit: err.status === 429 || /rate.?limit|too.?many/i.test(msg),
         });
+        liveErrors.style.display = 'block';
+        liveErrors.textContent   = `${failures.length} failed — last: ${symbol} (${stage}: ${msg})`;
       }
 
       done++;
       if (done < total && !stopRequested && !pauseRequested) await delay(STOCK_DELAY);
     }
 
-    progFill.style.width  = '100%';
-    progETA.textContent   = '';
+    progFill.style.width     = '100%';
+    progETA.textContent      = '';
+    liveErrors.style.display = 'none';
     progLabel.textContent = stopRequested
       ? `Stopped — ${results.length} stocks loaded`
       : `Complete — ${results.length} / ${total} stocks loaded`;
