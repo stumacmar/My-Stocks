@@ -281,6 +281,69 @@
       margin-bottom: 8px;
     }
 
+    /* ── Failure Panel ── */
+    .failure-panel {
+      background: rgba(248,113,113,0.06);
+      border: 1px solid rgba(248,113,113,0.3);
+      border-radius: 8px;
+      padding: 14px;
+      margin-bottom: 14px;
+    }
+    .failure-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .failure-title { color: var(--red); font-size: 13px; font-weight: 600; }
+    .failure-header-right { display: flex; align-items: center; gap: 12px; }
+    .failure-diag {
+      background: transparent;
+      border: 1px solid var(--line);
+      border-radius: 5px;
+      color: var(--text-2);
+      cursor: pointer;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 0.5px;
+      padding: 3px 8px;
+      -webkit-tap-highlight-color: transparent;
+      transition: color 0.1s, border-color 0.1s;
+    }
+    .failure-diag:hover { color: var(--text-0); border-color: var(--text-2); }
+    .failure-arrow { color: var(--red); font-size: 11px; }
+    .failure-list { margin-top: 12px; border-top: 1px solid var(--line); }
+    .failure-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      gap: 8px;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--line);
+    }
+    .failure-ticker { color: var(--accent); font-weight: 600; font-size: 13px; min-width: 56px; }
+    .failure-stage  { color: var(--text-2); font-size: 11px; }
+    .failure-error  { color: var(--red); font-size: 11px; flex: 1; min-width: 120px; line-height: 1.5; word-break: break-word; }
+    .failure-badge-paid {
+      background: rgba(251,191,36,0.15);
+      border-radius: 4px;
+      color: var(--amber);
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      padding: 2px 6px;
+      white-space: nowrap;
+    }
+    .failure-summary {
+      border-top: 1px solid var(--line);
+      color: var(--text-2);
+      font-size: 11px;
+      line-height: 1.6;
+      margin-top: 12px;
+      padding-top: 10px;
+    }
+
     @media (max-width: 600px) {
       .header-title { font-size: 24px; }
       .stats-grid { grid-template-columns: repeat(2, 1fr); }
@@ -342,6 +405,9 @@
   <div class="stat-card"><div class="stat-num avoid"  id="statAvoid">—</div><div class="stat-label">Avoid</div></div>
   <div class="stat-card"><div class="stat-num total"  id="statShowing">—</div><div class="stat-label">Showing</div></div>
 </div>
+
+<!-- Failure Panel -->
+<div id="failurePanel" style="display:none; padding: 0 16px;"></div>
 
 <!-- Table -->
 <div class="table-wrap">
@@ -437,6 +503,7 @@ const COL_KEYS        = [
 
 // ── State ─────────────────────────────────────────────────────────────────────
 let results       = [];
+let failures      = [];
 let currentFilter = 'all';
 let sortCol       = 'score';
 let sortDir       = 'desc';
@@ -459,7 +526,16 @@ function fetchJSON(url) {
   let timerId;
   const req = fetch(url, { cache: 'no-store' }).then(async res => {
     clearTimeout(timerId);
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    if (!res.ok) {
+      const err = new Error(`HTTP ${res.status}`);
+      err.status = res.status;
+      try {
+        const body = await res.json();
+        if (body && body['Error Message']) err.message = body['Error Message'];
+        else if (body && body.message)     err.message = body.message;
+      } catch (_) {}
+      throw err;
+    }
     const data = await res.json();
     if (data && data['Error Message']) throw new Error(data['Error Message']);
     if (!Array.isArray(data) && data && data.message) throw new Error(data.message);
@@ -473,14 +549,26 @@ function fetchJSON(url) {
 
 async function fetchStock(symbol, key) {
   const q = encodeURIComponent(symbol);
-  const [profiles, incomes, balances, cashflows, priceData, ratiosArr] = await Promise.all([
-    fetchJSON(`${BASE}/profile?symbol=${q}&apikey=${key}`),
-    fetchJSON(`${BASE}/income-statement?symbol=${q}&limit=1&apikey=${key}`),
-    fetchJSON(`${BASE}/balance-sheet-statement?symbol=${q}&limit=1&apikey=${key}`),
-    fetchJSON(`${BASE}/cash-flow-statement?symbol=${q}&limit=1&apikey=${key}`),
-    fetchJSON(`${BASE}/historical-price-eod/full?symbol=${q}&apikey=${key}`),
-    fetchJSON(`${BASE}/ratios?symbol=${q}&limit=1&apikey=${key}`),
-  ]);
+  const STAGES = [
+    { name: 'profile',                 url: `${BASE}/profile?symbol=${q}&apikey=${key}` },
+    { name: 'income-statement',        url: `${BASE}/income-statement?symbol=${q}&limit=1&apikey=${key}` },
+    { name: 'balance-sheet-statement', url: `${BASE}/balance-sheet-statement?symbol=${q}&limit=1&apikey=${key}` },
+    { name: 'cash-flow-statement',     url: `${BASE}/cash-flow-statement?symbol=${q}&limit=1&apikey=${key}` },
+    { name: 'historical-price',        url: `${BASE}/historical-price-eod/full?symbol=${q}&apikey=${key}` },
+    { name: 'ratios',                  url: `${BASE}/ratios?symbol=${q}&limit=1&apikey=${key}` },
+  ];
+
+  const settled = await Promise.allSettled(STAGES.map(ep => fetchJSON(ep.url)));
+  const firstFail = settled.findIndex(r => r.status === 'rejected');
+  if (firstFail !== -1) {
+    const reason = settled[firstFail].reason;
+    const err    = new Error(reason.message || String(reason));
+    err.stage    = STAGES[firstFail].name;
+    err.status   = reason.status || null;
+    throw err;
+  }
+
+  const [profiles, incomes, balances, cashflows, priceData, ratiosArr] = settled.map(r => r.value);
 
   const p   = (Array.isArray(profiles)  ? profiles[0]  : profiles)  || {};
   const inc = (Array.isArray(incomes)   ? incomes[0]   : incomes)   || {};
@@ -586,7 +674,7 @@ async function runScreener() {
   }
   localStorage.setItem('fmp_api_key', key);
 
-  running = true; stopRequested = false; results = [];
+  running = true; stopRequested = false; results = []; failures = [];
 
   const btnRun       = document.getElementById('btnRun');
   const btnStop      = document.getElementById('btnStop');
@@ -600,7 +688,7 @@ async function runScreener() {
   progressWrap.classList.add('visible');
   progressFill.style.width  = '0%';
   progressLabel.textContent = 'Starting…';
-  hideMessage(); renderTable(); updateStats();
+  hideMessage(); renderTable(); updateStats(); renderFailurePanel();
   await delay(100);
 
   const total = UNIVERSE.length;
@@ -621,6 +709,15 @@ async function runScreener() {
       console.warn(`[${symbol}]`, err.message);
       if (!firstErr) firstErr = err;
       failCount++;
+      const msg = err.message || '';
+      failures.push({
+        symbol,
+        stage:      err.stage  || 'unknown',
+        error:      msg,
+        status:     err.status || null,
+        isPaidTier: err.status === 402 || /premium|upgrade|subscription/i.test(msg),
+        isRateLimit:err.status === 429 || /rate.?limit|too.?many/i.test(msg),
+      });
     }
 
     done++;
@@ -642,6 +739,7 @@ async function runScreener() {
     setTimeout(hideMessage, 5000);
   }
 
+  renderFailurePanel();
   running               = false;
   stopRequested         = false;
   btnRun.disabled       = false;
@@ -794,6 +892,66 @@ function exportCSV() {
   a.click();
   document.body.removeChild(a);
   setTimeout(() => URL.revokeObjectURL(url), 10000);
+}
+
+// ── Failure Panel ─────────────────────────────────────────────────────────────
+function renderFailurePanel() {
+  const panel = document.getElementById('failurePanel');
+  if (!failures.length) { panel.style.display = 'none'; return; }
+
+  const allPaid = failures.every(f => f.isPaidTier);
+  const allRate = failures.every(f => f.isRateLimit);
+  let summary;
+  if (allPaid)      summary = 'These endpoints require FMP Starter ($25/month). Upgrade at financialmodelingprep.com to unlock.';
+  else if (allRate) summary = 'Daily 250 call limit hit. Try again tomorrow or upgrade to Starter.';
+  else              summary = 'Mixed issues — see details above. Try Refresh in a few minutes.';
+
+  const rows = failures.map(f => {
+    const badge = f.isPaidTier ? '<span class="failure-badge-paid">PAID TIER</span>' : '';
+    return `<div class="failure-row">
+      <span class="failure-ticker">${esc(f.symbol)}</span>
+      <span class="failure-stage">${esc(f.stage)}</span>
+      <span class="failure-error">${esc(f.error)}</span>
+      ${badge}
+    </div>`;
+  }).join('');
+
+  panel.style.display = 'block';
+  panel.innerHTML = `<div class="failure-panel">
+    <div class="failure-header" onclick="toggleFailurePanel()">
+      <span class="failure-title">${failures.length} stock${failures.length !== 1 ? 's' : ''} failed to load</span>
+      <div class="failure-header-right">
+        <button class="failure-diag" onclick="event.stopPropagation();copyDiagnostics()">Diagnostics</button>
+        <span class="failure-arrow" id="failureArrow">▼</span>
+      </div>
+    </div>
+    <div id="failureBody" style="display:none">
+      <div class="failure-list">${rows}</div>
+      <div class="failure-summary">${esc(summary)}</div>
+    </div>
+  </div>`;
+}
+
+function toggleFailurePanel() {
+  const body  = document.getElementById('failureBody');
+  const arrow = document.getElementById('failureArrow');
+  if (!body) return;
+  const open = body.style.display !== 'none';
+  body.style.display  = open ? 'none' : 'block';
+  if (arrow) arrow.textContent = open ? '▼' : '▲';
+}
+
+function copyDiagnostics() {
+  const text = JSON.stringify(failures, null, 2);
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text)
+      .then(() => { showMessage('Diagnostics copied to clipboard.', 'success'); setTimeout(hideMessage, 3000); })
+      .catch(() => { console.log('Diagnostics:', text); showMessage('Copy failed — logged to DevTools console.', 'error'); setTimeout(hideMessage, 5000); });
+  } else {
+    console.log('Diagnostics:', text);
+    showMessage('Diagnostics logged to DevTools console.', 'success');
+    setTimeout(hideMessage, 4000);
+  }
 }
 
 // ── Messages ──────────────────────────────────────────────────────────────────
