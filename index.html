@@ -1067,7 +1067,7 @@ function renderTable() { debouncedRender(); }  // public alias
 
 function _renderTable() {
   const tbody  = document.getElementById('tableBody');
-  if (!tbody) return;
+  if (!tbody) { console.warn('_renderTable: tableBody element not found'); return; }
   const sorted = getSorted(getFiltered());
 
   document.querySelectorAll('th[data-col]').forEach(th => {
