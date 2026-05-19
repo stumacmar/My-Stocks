@@ -793,10 +793,10 @@ function pearsonCorr(a, b) {
 
 // ── EMA array ─────────────────────────────────────────────────────────────────
 function emaArray(prices, period) {
-  const k = 2/(period+1);
+  const k = 2 / (period + 1);
   const result = new Array(prices.length);
-  result[prices.length-1] = prices[prices.length-1];
-  for (let i=prices.length-2; i>=0; i--) result[i] = prices[i]*k + result[i+1]*(1-k);
+  result[0] = prices[0];
+  for (let i = 1; i < prices.length; i++) result[i] = prices[i] * k + result[i-1] * (1-k);
   return result;
 }
 
@@ -1479,33 +1479,37 @@ function openStockSheet(ticker) {
       </svg>`;
   }
 
-  // MACD section (oldest→newest = reversed history)
+  // MACD section — prices252 = last 252 days, oldest-first for EMA
   const allPricesChron = (s.history || []).slice().reverse().map(d => d.close).filter(Boolean);
+  const prices252 = allPricesChron.slice(-252);
   let macdHTML = '';
-  if (allPricesChron.length < 30) {
+  if (prices252.length < 30) {
     macdHTML = `<div class="sheet-section-title">MACD</div><div style="color:var(--text-2);font-size:12px">Insufficient data</div>`;
   } else {
-    const ema12 = emaArray(allPricesChron, 12);
-    const ema26 = emaArray(allPricesChron, 26);
-    const macdLine = allPricesChron.map((_, i) => ema12[i] - ema26[i]);
+    const ema12 = emaArray(prices252, 12);
+    const ema26 = emaArray(prices252, 26);
+    const macdLine   = ema12.map((v, i) => v - ema26[i]);
     const signalLine = emaArray(macdLine, 9);
-    const last40macd   = macdLine.slice(-40);
-    const last40signal = signalLine.slice(-40);
-    const lastM  = last40macd[last40macd.length-1];
-    const lastSig = last40signal[last40signal.length-1];
-    const lastH  = lastM - lastSig;
+    const histogram  = macdLine.map((v, i) => v - signalLine[i]);
 
-    const allVals = [...last40macd, ...last40signal];
+    const currentMacd   = macdLine[macdLine.length - 1];
+    const currentSignal = signalLine[signalLine.length - 1];
+    const currentHist   = histogram[histogram.length - 1];
+
+    const last60macd   = macdLine.slice(-60);
+    const last60signal = signalLine.slice(-60);
+
+    const allVals = [...last60macd, ...last60signal];
     const minV = Math.min(...allVals), maxV = Math.max(...allVals);
     const rangeV = maxV - minV || 1;
     const MW = 400, MH = 40, mPad = 2;
-    const mPts = last40macd.map((v,i) => {
-      const x = mPad + (i/(last40macd.length-1))*(MW-mPad*2);
+    const mPts = last60macd.map((v,i) => {
+      const x = mPad + (i/(last60macd.length-1))*(MW-mPad*2);
       const y = mPad + (1-(v-minV)/rangeV)*(MH-mPad*2);
       return `${x.toFixed(1)},${y.toFixed(1)}`;
     }).join(' ');
-    const sPts = last40signal.map((v,i) => {
-      const x = mPad + (i/(last40signal.length-1))*(MW-mPad*2);
+    const sPts = last60signal.map((v,i) => {
+      const x = mPad + (i/(last60signal.length-1))*(MW-mPad*2);
       const y = mPad + (1-(v-minV)/rangeV)*(MH-mPad*2);
       return `${x.toFixed(1)},${y.toFixed(1)}`;
     }).join(' ');
@@ -1516,7 +1520,7 @@ function openStockSheet(ticker) {
         <polyline points="${mPts}" fill="none" stroke="#5eead4" stroke-width="1.5"/>
         <polyline points="${sPts}" fill="none" stroke="#f87171" stroke-width="1.5"/>
       </svg>
-      <div class="macd-text">MACD: ${lastM.toFixed(2)} | Signal: ${lastSig.toFixed(2)} | Hist: ${lastH>=0?'+':''}${lastH.toFixed(2)}</div>`;
+      <div class="macd-text">MACD: ${currentMacd.toFixed(2)} | Signal: ${currentSignal.toFixed(2)} | Hist: ${currentHist>=0?'+':''}${currentHist.toFixed(2)}</div>`;
   }
 
   // Metrics grid
