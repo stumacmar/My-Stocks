@@ -268,6 +268,19 @@
     .unstar-remove { background: var(--red); color: #fff; border-color: var(--red); }
     /* MACD chart */
     .macd-text { font-size: 11px; color: var(--text-1); margin-top: 6px; }
+    /* Metric info button */
+    .mi { display: inline-flex; align-items: center; justify-content: center; width: 14px; height: 14px; border-radius: 50%; border: 1px solid var(--text-2); color: var(--text-2); font-size: 9px; font-weight: 700; cursor: pointer; vertical-align: middle; margin-left: 4px; -webkit-tap-highlight-color: transparent; line-height: 1; transition: border-color 0.15s, color 0.15s; flex-shrink: 0; font-style: normal; }
+    .mi:hover { border-color: var(--accent); color: var(--accent); }
+    th .mi { opacity: 0.5; }
+    th:hover .mi { opacity: 1; }
+    /* Metric info modal */
+    .minfo-box { background: var(--bg-1); border: 1px solid var(--line); border-radius: 14px; padding: 22px 24px; max-width: 360px; width: 100%; }
+    .minfo-title { font-family: 'Fraunces', serif; font-size: 18px; font-weight: 700; color: var(--accent); margin-bottom: 10px; }
+    .minfo-body { font-size: 12px; color: var(--text-1); line-height: 1.75; }
+    .minfo-body strong { color: var(--text-0); }
+    .minfo-threshold { margin-top: 12px; padding: 8px 12px; background: var(--bg-2); border-radius: 7px; font-size: 11px; color: var(--text-2); }
+    .minfo-threshold strong { color: var(--green); }
+    .minfo-close { margin-top: 16px; width: 100%; padding: 10px; background: var(--accent); color: var(--bg-0); border: none; border-radius: 7px; font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 600; cursor: pointer; }
     @media (max-width: 600px) {
       .header-title { font-size: 24px; }
       .stats-grid { grid-template-columns: repeat(2, 1fr); }
@@ -377,19 +390,19 @@
         <th data-col="company"  onclick="sortBy('company')">Company</th>
         <th data-col="industry" onclick="sortBy('industry')">Industry</th>
         <th data-col="price"    onclick="sortBy('price')">Price</th>
-        <th data-col="score"    onclick="sortBy('score')">Score</th>
+        <th data-col="score"    onclick="sortBy('score')">Score <i class="mi" onclick="showMetricInfo('score',event)">i</i></th>
         <th data-col="rag"      onclick="sortBy('rag')">Rating</th>
-        <th data-col="croci"    onclick="sortBy('croci')">CROCI</th>
-        <th data-col="peg"      onclick="sortBy('peg')">PEG</th>
-        <th data-col="sortino"  onclick="sortBy('sortino')">Sortino</th>
-        <th data-col="alpha"    onclick="sortBy('alpha')">Alpha</th>
-        <th data-col="beta"     onclick="sortBy('beta')">Beta</th>
-        <th data-col="vol"      onclick="sortBy('vol')">Vol</th>
-        <th data-col="corr"     onclick="sortBy('corr')">Corr</th>
-        <th data-col="chg6m"    onclick="sortBy('chg6m')">6M</th>
-        <th data-col="chg1m"    onclick="sortBy('chg1m')">1M</th>
-        <th data-col="analyst"  onclick="sortBy('analyst')">Analyst</th>
-        <th data-col="season"   onclick="sortBy('season')" id="thSeason">Season</th>
+        <th data-col="croci"    onclick="sortBy('croci')">CROCI <i class="mi" onclick="showMetricInfo('croci',event)">i</i></th>
+        <th data-col="peg"      onclick="sortBy('peg')">PEG <i class="mi" onclick="showMetricInfo('peg',event)">i</i></th>
+        <th data-col="sortino"  onclick="sortBy('sortino')">Sortino <i class="mi" onclick="showMetricInfo('sortino',event)">i</i></th>
+        <th data-col="alpha"    onclick="sortBy('alpha')">Alpha <i class="mi" onclick="showMetricInfo('alpha',event)">i</i></th>
+        <th data-col="beta"     onclick="sortBy('beta')">Beta <i class="mi" onclick="showMetricInfo('beta',event)">i</i></th>
+        <th data-col="vol"      onclick="sortBy('vol')">Vol <i class="mi" onclick="showMetricInfo('vol',event)">i</i></th>
+        <th data-col="corr"     onclick="sortBy('corr')">Corr <i class="mi" onclick="showMetricInfo('corr',event)">i</i></th>
+        <th data-col="chg6m"    onclick="sortBy('chg6m')">6M <i class="mi" onclick="showMetricInfo('chg6m',event)">i</i></th>
+        <th data-col="chg1m"    onclick="sortBy('chg1m')">1M <i class="mi" onclick="showMetricInfo('chg1m',event)">i</i></th>
+        <th data-col="analyst"  onclick="sortBy('analyst')">Analyst <i class="mi" onclick="showMetricInfo('analyst',event)">i</i></th>
+        <th data-col="season"   onclick="sortBy('season')" id="thSeason">Season <i class="mi" onclick="showMetricInfo('season',event)">i</i></th>
         <th class="entry-col"   data-col="entryPrice" onclick="sortBy('entryPrice')">Entry $</th>
         <th class="entry-col"   data-col="entrySince" onclick="sortBy('entrySince')">Since</th>
       </tr>
@@ -441,8 +454,94 @@
   </div>
 </div>
 
+<!-- Metric Info Modal -->
+<div class="modal-overlay" id="metricInfoModal" onclick="if(event.target===this)closeMetricInfo()">
+  <div class="minfo-box">
+    <div class="minfo-title" id="metricInfoTitle"></div>
+    <div class="minfo-body"  id="metricInfoBody"></div>
+    <button class="minfo-close" onclick="closeMetricInfo()">Got it</button>
+  </div>
+</div>
+
 <script>
 'use strict';
+
+// ── Metric explanations ───────────────────────────────────────────────────────
+const METRIC_INFO = {
+  score: {
+    title: 'Quality Score',
+    body: 'Composite score from 0–7. Each of the seven metrics below adds 1 point when it passes its threshold. <strong>6–7 = Strong</strong>, 4–5 = Watch, 0–3 = Avoid. A perfect 7/7 earns the gold ★ PERFECT badge.',
+    threshold: null,
+  },
+  croci: {
+    title: 'CROCI %',
+    body: '<strong>Cash Return on Capital Invested</strong> — Deutsche Bank\'s economic profitability metric. Measures cash generated relative to the capital tied up in the business.<br><br>Formula: (Operating Income × 0.79 + D&A) ÷ (Total Assets + D&A×5 − Current Liabilities) × 100.<br><br>Higher CROCI means the business is compounding capital efficiently.',
+    threshold: '✓ Score point if CROCI > 10%',
+  },
+  peg: {
+    title: 'PEG Ratio',
+    body: '<strong>Price / Earnings to Growth</strong> — balances valuation against earnings growth. A P/E of 20 on a company growing at 20% gives a PEG of 1.0, which is considered fairly valued.<br><br>PEG below 1 can signal undervaluation; above 2 suggests you\'re paying a premium for growth.',
+    threshold: '✓ Score point if 0 < PEG < 1.5',
+  },
+  sortino: {
+    title: 'Sortino Ratio',
+    body: '<strong>Risk-adjusted return</strong> — like the Sharpe ratio but only penalises <em>downside</em> volatility, not upside swings. Calculated from daily returns over the past 252 trading days (1 year).<br><br>A ratio above 1.0 is considered good; above 2.0 is excellent.',
+    threshold: '✓ Score point if Sortino > 0.5',
+  },
+  alpha: {
+    title: 'Alpha',
+    body: '<strong>Excess return vs. market expectation.</strong> Approximated as the annualised 6-month return minus a 10% market benchmark (the long-run S&P 500 average).<br><br>Positive alpha means the stock is generating returns beyond what the market alone would explain.',
+    threshold: '✓ Score point if Alpha > 0',
+  },
+  beta: {
+    title: 'Beta',
+    body: '<strong>Market sensitivity.</strong> Measures how much the stock moves relative to the S&P 500. Beta of 1.0 = moves in lockstep with the market. Beta of 0.5 = half the market moves. Beta of 2.0 = twice as volatile.<br><br>Lower beta stocks tend to hold up better in downturns.',
+    threshold: '✓ Score point if Beta < 1.5',
+  },
+  vol: {
+    title: 'Volatility',
+    body: '<strong>Annualised price volatility.</strong> Standard deviation of daily returns scaled to a full year (×√252). Shows how widely the stock price swings.<br><br>A stock with 20% vol moves ±20% per year on average. Higher vol = higher risk and higher potential reward.',
+    threshold: 'No score point — shown for context',
+  },
+  corr: {
+    title: 'SPY Correlation',
+    body: '<strong>Pearson correlation with SPY</strong> (S&P 500 ETF) over the past year. Ranges from −1 to +1.<br><br>High correlation (red, >0.75) means the stock moves closely with the market — less diversification benefit. Low correlation (green, <0.5) means it moves more independently.',
+    threshold: 'No score point — shown for diversification insight',
+  },
+  chg6m: {
+    title: '6-Month Return',
+    body: '<strong>Price change over the past 6 months</strong> (~126 trading days). Used as a medium-term momentum signal. Stocks with positive 6-month momentum tend to continue outperforming in the near term.',
+    threshold: '✓ Score point if 6M > 0%',
+  },
+  chg1m: {
+    title: '1-Month Return',
+    body: '<strong>Price change over the past month</strong> (~21 trading days). Short-term momentum indicator. Useful for spotting recent acceleration or reversal relative to the 6-month trend.',
+    threshold: 'No score point — shown for context',
+  },
+  analyst: {
+    title: 'Analyst Consensus',
+    body: '<strong>Wall Street analyst ratings</strong> aggregated from grades-consensus data. Combines Strong Buy, Buy, Hold, Sell, and Strong Sell counts into a single consensus label.<br><br>The count shown is the total number of analysts covering the stock.',
+    threshold: '✓ Score point if consensus = Buy or Strong Buy',
+  },
+  season: {
+    title: 'Seasonality',
+    body: '<strong>Historical win rate for the current month.</strong> Based on monthly closing price history — what percentage of years did this stock close higher in this calendar month?<br><br>Green >60% means historically strong for this month. Red <40% is a seasonally weak period.',
+    threshold: 'No score point — shown for timing context',
+  },
+};
+
+function showMetricInfo(key, event) {
+  if (event) event.stopPropagation();
+  const info = METRIC_INFO[key];
+  if (!info) return;
+  document.getElementById('metricInfoTitle').textContent = info.title;
+  document.getElementById('metricInfoBody').innerHTML = info.body +
+    (info.threshold ? `<div class="minfo-threshold"><strong>${info.threshold}</strong></div>` : '');
+  document.getElementById('metricInfoModal').classList.add('visible');
+}
+function closeMetricInfo() {
+  document.getElementById('metricInfoModal').classList.remove('visible');
+}
 
 // ── Universes ─────────────────────────────────────────────────────────────────
 const UNIVERSE_SP500 = [
@@ -1577,25 +1676,26 @@ function openStockSheet(ticker) {
   const seasonV = s.season != null ? s.season + '%' : '—';
   const seasonC = s.season == null ? 'muted' : s.season > 60 ? 'pass' : s.season >= 40 ? 'muted' : 'fail';
 
-  function mcell(label, val, cls) {
-    return `<div class="metric-cell"><div class="metric-label">${label}</div><div class="metric-value ${cls}">${val}</div></div>`;
+  function mcell(label, val, cls, key) {
+    const btn = key ? ` <i class="mi" onclick="showMetricInfo('${key}',event)">i</i>` : '';
+    return `<div class="metric-cell"><div class="metric-label">${label}${btn}</div><div class="metric-value ${cls}">${val}</div></div>`;
   }
 
   const metricsHTML = `
     <div class="sheet-section-title">Metrics</div>
     <div class="metrics-grid">
-      ${mcell('CROCI%',   crociM.val,  crociM.cls)}
-      ${mcell('PEG',      pegM.val,    pegM.cls)}
-      ${mcell('SORTINO',  sortinoM.val,sortinoM.cls)}
-      ${mcell('BETA',     betaM.val,   betaM.cls)}
-      ${mcell('VOL%',     volM.val,    volM.cls)}
-      ${mcell('ALPHA%',   alphaM.val,  alphaM.cls)}
-      ${mcell('CORR',     s.corr != null ? s.corr.toFixed(2) : '—', corrCls)}
-      ${mcell('6M%',      chg6mM.val,  chg6mM.cls)}
-      ${mcell('1M%',      chg1mM.val,  chg1mM.cls)}
+      ${mcell('CROCI%',   crociM.val,  crociM.cls,  'croci')}
+      ${mcell('PEG',      pegM.val,    pegM.cls,    'peg')}
+      ${mcell('SORTINO',  sortinoM.val,sortinoM.cls,'sortino')}
+      ${mcell('BETA',     betaM.val,   betaM.cls,   'beta')}
+      ${mcell('VOL%',     volM.val,    volM.cls,    'vol')}
+      ${mcell('ALPHA%',   alphaM.val,  alphaM.cls,  'alpha')}
+      ${mcell('CORR',     s.corr != null ? s.corr.toFixed(2) : '—', corrCls, 'corr')}
+      ${mcell('6M%',      chg6mM.val,  chg6mM.cls,  'chg6m')}
+      ${mcell('1M%',      chg1mM.val,  chg1mM.cls,  'chg1m')}
       ${mcell('ENTRY$',   favEntry,    'muted')}
       ${mcell('SINCE%',   favSince,    favSincePct != null ? (favSincePct >= 0 ? 'pass' : 'fail') : 'muted')}
-      ${mcell('ANALYST',  analystLabel,'muted')}
+      ${mcell('ANALYST',  analystLabel,'muted',      'analyst')}
     </div>`;
 
   // Seasonality bars
