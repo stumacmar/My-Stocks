@@ -162,11 +162,12 @@
     th.sorted-asc::after  { content: ' ↑'; color: var(--accent); }
     th.sorted-desc::after { content: ' ↓'; color: var(--accent); }
     td {
-      padding: 10px 12px; border-bottom: 1px solid var(--line); text-align: right;
+      padding: 8px 10px; border-bottom: 1px solid var(--line); text-align: right;
       font-size: 12px; color: var(--text-1); white-space: nowrap;
     }
     td:nth-child(2), td:nth-child(3), td:nth-child(4) { text-align: left; }
-    tr:hover td { background: rgba(31,37,53,0.5); }
+    tbody tr:nth-child(even) td { background: rgba(255,255,255,0.014); }
+    tr:hover td { background: rgba(31,37,53,0.6) !important; }
     tr { cursor: pointer; }
     /* Favorites mode columns */
     .entry-col { display: none; }
@@ -180,7 +181,7 @@
     .cell-ticker  { color: var(--accent); font-weight: 600; font-size: 13px; }
     .cell-company { color: var(--text-0); max-width: 160px; overflow: hidden; text-overflow: ellipsis; }
     .cell-industry { color: var(--text-2); max-width: 140px; overflow: hidden; text-overflow: ellipsis; font-size: 11px; }
-    .cell-score   { font-family: 'Fraunces', serif; font-size: 18px; font-weight: 700; }
+    .cell-score   { font-family: 'Fraunces', serif; font-size: 15px; font-weight: 700; }
     .cell-score.strong { color: var(--green); }
     .cell-score.watch  { color: var(--amber); }
     .cell-score.avoid  { color: var(--red); }
@@ -190,10 +191,18 @@
     .rag-badge.watch  { background: rgba(251,191,36,0.15);  color: var(--amber); }
     .rag-badge.avoid  { background: rgba(248,113,113,0.15); color: var(--red); }
     .rag-badge.elite  { background: rgba(246,201,14,0.15);  color: #f6c90e; border: 1px solid rgba(246,201,14,0.4); }
-    .analyst-badge { display: inline-block; padding: 2px 8px; border-radius: 99px; font-size: 10px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; }
+    .analyst-badge { display: inline-block; padding: 2px 7px; border-radius: 99px; font-size: 10px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; }
     .analyst-badge.buy  { background: rgba(52,211,153,0.15);  color: var(--green); }
     .analyst-badge.hold { background: rgba(251,191,36,0.15);  color: var(--amber); }
     .analyst-badge.sell { background: rgba(248,113,113,0.15); color: var(--red); }
+    .analyst-count { font-size: 9px; color: var(--text-2); margin-left: 5px; }
+    /* Controls separator */
+    .controls-sep { width: 1px; height: 22px; background: var(--line); flex-shrink: 0; }
+    /* MACD */
+    .macd-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; margin-top: 20px; }
+    .macd-key { display: flex; gap: 12px; font-size: 10px; color: var(--text-2); }
+    .macd-key-item { display: flex; align-items: center; gap: 4px; }
+    .macd-key-line { width: 16px; height: 2px; border-radius: 1px; display: inline-block; flex-shrink: 0; }
     .pass  { color: var(--green); }
     .fail  { color: var(--red); }
     .warn  { color: var(--amber); }
@@ -318,18 +327,20 @@
 
 <!-- Controls -->
 <div class="controls">
-  <button class="btn btn-primary" id="btnRun"   onclick="runScreener()">&#9654; Run Screener</button>
+  <button class="btn btn-primary" id="btnRun"   onclick="runScreener()">&#9654; Run</button>
   <button class="btn btn-pause"   id="btnPause" onclick="togglePause()"  style="display:none">&#9646;&#9646; Pause</button>
   <button class="btn btn-stop"    id="btnStop"  onclick="stopScreener()" style="display:none">&#9632; Stop</button>
-  <select class="sector-select" id="sectorSelect" onchange="setSector(this.value)">
-    <option value="all">All Industries</option>
-  </select>
+  <div class="controls-sep"></div>
   <button class="btn btn-filter active" data-filter="all"       onclick="setFilter('all',this)">All</button>
   <button class="btn btn-filter"        data-filter="strong"    onclick="setFilter('strong',this)">Strong</button>
   <button class="btn btn-filter"        data-filter="watch"     onclick="setFilter('watch',this)">Watch</button>
   <button class="btn btn-filter"        data-filter="avoid"     onclick="setFilter('avoid',this)">Avoid</button>
   <button class="btn btn-filter"        data-filter="favorites" onclick="setFilter('favorites',this)">&#9733; Starred</button>
-  <button class="btn btn-csv"                                   onclick="exportCSV()">&#8595; CSV</button>
+  <div class="controls-sep"></div>
+  <select class="sector-select" id="sectorSelect" onchange="setSector(this.value)">
+    <option value="all">All Industries</option>
+  </select>
+  <button class="btn btn-csv" onclick="exportCSV()">&#8595; CSV</button>
 </div>
 
 <!-- Progress -->
@@ -367,18 +378,18 @@
         <th data-col="industry" onclick="sortBy('industry')">Industry</th>
         <th data-col="price"    onclick="sortBy('price')">Price</th>
         <th data-col="score"    onclick="sortBy('score')">Score</th>
-        <th data-col="rag"      onclick="sortBy('rag')">RAG</th>
-        <th data-col="croci"    onclick="sortBy('croci')">CROCI %</th>
+        <th data-col="rag"      onclick="sortBy('rag')">Rating</th>
+        <th data-col="croci"    onclick="sortBy('croci')">CROCI</th>
         <th data-col="peg"      onclick="sortBy('peg')">PEG</th>
         <th data-col="sortino"  onclick="sortBy('sortino')">Sortino</th>
-        <th data-col="alpha"    onclick="sortBy('alpha')">Alpha %</th>
+        <th data-col="alpha"    onclick="sortBy('alpha')">Alpha</th>
         <th data-col="beta"     onclick="sortBy('beta')">Beta</th>
-        <th data-col="vol"      onclick="sortBy('vol')">Vol %</th>
-        <th data-col="corr"     onclick="sortBy('corr')">CORR</th>
-        <th data-col="chg6m"    onclick="sortBy('chg6m')">6M %</th>
-        <th data-col="chg1m"    onclick="sortBy('chg1m')">1M %</th>
+        <th data-col="vol"      onclick="sortBy('vol')">Vol</th>
+        <th data-col="corr"     onclick="sortBy('corr')">Corr</th>
+        <th data-col="chg6m"    onclick="sortBy('chg6m')">6M</th>
+        <th data-col="chg1m"    onclick="sortBy('chg1m')">1M</th>
         <th data-col="analyst"  onclick="sortBy('analyst')">Analyst</th>
-        <th data-col="season"   onclick="sortBy('season')">This Month</th>
+        <th data-col="season"   onclick="sortBy('season')" id="thSeason">Season</th>
         <th class="entry-col"   data-col="entryPrice" onclick="sortBy('entryPrice')">Entry $</th>
         <th class="entry-col"   data-col="entrySince" onclick="sortBy('entrySince')">Since</th>
       </tr>
@@ -614,6 +625,11 @@ const BUILTIN_TABS = [
   if (lastRefresh) {
     document.getElementById('headerRefresh').textContent = 'Last run: ' + lastRefresh;
   }
+
+  // Set season column header to current month name
+  const _monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const _thSeason = document.getElementById('thSeason');
+  if (_thSeason) _thSeason.textContent = _monthNames[new Date().getMonth()];
 
   updateUniverseUI();
   updateRunButton();
@@ -1280,10 +1296,10 @@ function _renderVirtual() {
     let analystCell = '<td class="muted">&mdash;</td>';
     if (s.analyst) {
       const cons = s.analyst.consensus || '';
-      let badgeClass = 'hold';
-      if (/strong.?buy|^buy$/i.test(cons)) badgeClass = 'buy';
-      else if (/sell|strong.?sell/i.test(cons)) badgeClass = 'sell';
-      analystCell = `<td><span class="analyst-badge ${badgeClass}">${esc(cons||'HOLD')}</span><br><span style="font-size:9px;color:var(--text-2)">${s.analyst.total} analysts</span></td>`;
+      let badgeClass = 'hold', consShort = 'HOLD';
+      if (/strong.?buy|^buy$/i.test(cons)) { badgeClass = 'buy';  consShort = 'BUY'; }
+      else if (/sell|strong.?sell/i.test(cons)) { badgeClass = 'sell'; consShort = 'SELL'; }
+      analystCell = `<td><span class="analyst-badge ${badgeClass}">${consShort}</span><span class="analyst-count">${s.analyst.total}</span></td>`;
     }
     // Season cell
     let seasonCell = '<td class="muted">&mdash;</td>';
@@ -1514,13 +1530,24 @@ function openStockSheet(ticker) {
       return `${x.toFixed(1)},${y.toFixed(1)}`;
     }).join(' ');
 
+    const histCol = currentHist >= 0 ? 'var(--green)' : 'var(--red)';
     macdHTML = `
-      <div class="sheet-section-title">MACD</div>
+      <div class="macd-header">
+        <div class="sheet-section-title" style="margin:0">MACD (12 / 26 / 9)</div>
+        <div class="macd-key">
+          <div class="macd-key-item"><span class="macd-key-line" style="background:#5eead4"></span>MACD line</div>
+          <div class="macd-key-item"><span class="macd-key-line" style="background:#f87171"></span>Signal line</div>
+        </div>
+      </div>
       <svg viewBox="0 0 ${MW} ${MH}" width="100%" height="40" style="display:block;background:var(--bg-2);border-radius:6px">
         <polyline points="${mPts}" fill="none" stroke="#5eead4" stroke-width="1.5"/>
         <polyline points="${sPts}" fill="none" stroke="#f87171" stroke-width="1.5"/>
       </svg>
-      <div class="macd-text">MACD: ${currentMacd.toFixed(2)} | Signal: ${currentSignal.toFixed(2)} | Hist: ${currentHist>=0?'+':''}${currentHist.toFixed(2)}</div>`;
+      <div class="macd-text" style="display:flex;gap:16px;margin-top:6px">
+        <span>MACD <strong style="color:#5eead4">${currentMacd.toFixed(2)}</strong></span>
+        <span>Signal <strong style="color:#f87171">${currentSignal.toFixed(2)}</strong></span>
+        <span>Hist <strong style="color:${histCol}">${currentHist>=0?'+':''}${currentHist.toFixed(2)}</strong></span>
+      </div>`;
   }
 
   // Metrics grid
