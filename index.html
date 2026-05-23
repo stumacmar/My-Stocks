@@ -66,17 +66,21 @@
     }
     .tab-new-input:focus { border-color: var(--accent); }
     /* Universe Toggle */
-    .universe-control { display: flex; padding: 12px 16px 0; gap: 0; }
+    .universe-control { display: flex; padding: 12px 16px 0; gap: 8px; align-items: center; flex-wrap: wrap; }
+    .univ-group { display: flex; flex: 1; min-width: 0; }
     .univ-btn {
       flex: 1; padding: 10px 8px; border: 1px solid var(--line); background: transparent;
       color: var(--text-1); font-family: 'JetBrains Mono', monospace; font-size: 11px;
       font-weight: 500; cursor: pointer; transition: background 0.15s, color 0.15s, border-color 0.15s;
       white-space: nowrap; -webkit-tap-highlight-color: transparent; text-align: center;
     }
-    .univ-btn:first-child { border-radius: 7px 0 0 7px; }
-    .univ-btn:last-child  { border-radius: 0 7px 7px 0; border-left: none; }
-    .univ-btn:not(:first-child):not(:last-child) { border-left: none; border-radius: 0; }
+    .univ-group .univ-btn:first-child { border-radius: 7px 0 0 7px; }
+    .univ-group .univ-btn:last-child  { border-radius: 0 7px 7px 0; border-left: none; }
+    .univ-group .univ-btn:not(:first-child):not(:last-child) { border-left: none; border-radius: 0; }
     .univ-btn.active { background: var(--accent); color: var(--bg-0); border-color: var(--accent); }
+    .univ-holdings { border-radius: 7px !important; border-color: var(--amber) !important; color: var(--amber) !important; padding: 10px 14px !important; flex: none !important; }
+    .univ-holdings:hover { background: rgba(251,191,36,0.1) !important; }
+    .univ-holdings.active { background: var(--amber) !important; color: var(--bg-0) !important; }
     /* API Card */
     .section { padding: 16px; }
     .api-card { background: var(--bg-2); border: 1px solid var(--line); border-radius: 10px; padding: 16px; }
@@ -268,6 +272,57 @@
     .unstar-remove { background: var(--red); color: #fff; border-color: var(--red); }
     /* MACD chart */
     .macd-text { font-size: 11px; color: var(--text-1); margin-top: 6px; }
+    /* ── Holdings view ── */
+    .h-header { display: flex; justify-content: space-between; align-items: flex-start; padding: 20px 16px 14px; border-bottom: 1px solid var(--line); }
+    .h-title  { font-family: 'Fraunces', serif; font-size: 24px; font-weight: 700; color: var(--accent); }
+    .h-tagline { font-size: 10px; font-weight: 600; letter-spacing: 2px; text-transform: uppercase; color: var(--text-2); margin-top: 4px; }
+    .h-actions { display: flex; gap: 8px; flex-shrink: 0; align-items: center; }
+    .h-refresh-bar { padding: 8px 16px; font-size: 11px; color: var(--text-2); border-bottom: 1px solid var(--line); background: var(--bg-1); line-height: 1.6; }
+    .h-refresh-bar strong { color: var(--text-1); }
+    .h-progress { padding: 10px 16px; font-size: 11px; color: var(--amber); display: none; }
+    .h-errors   { padding: 4px 16px 10px; font-size: 11px; color: var(--red); display: none; }
+    .h-summary-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 16px; }
+    .h-summary-card { background: var(--bg-2); border: 1px solid var(--line); border-radius: 10px; padding: 14px 12px; }
+    .h-summary-label { font-size: 9px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-2); margin-bottom: 6px; }
+    .h-summary-val { font-family: 'Fraunces', serif; font-size: 20px; font-weight: 700; line-height: 1.1; }
+    .h-summary-sub { font-size: 10px; color: var(--text-2); margin-top: 4px; }
+    .h-bench { margin: 0 16px 16px; background: var(--bg-2); border: 1px solid var(--line); border-radius: 10px; padding: 16px; }
+    .h-bench-title { font-size: 10px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-2); margin-bottom: 12px; }
+    .h-bench-nums { display: flex; gap: 24px; margin-bottom: 14px; flex-wrap: wrap; }
+    .h-bench-label { font-size: 9px; color: var(--text-2); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 3px; }
+    .h-bench-val { font-family: 'Fraunces', serif; font-size: 22px; font-weight: 700; }
+    .h-bench-note { font-size: 10px; color: var(--text-2); margin-top: 10px; line-height: 1.65; }
+    .h-noise-warn { background: rgba(251,191,36,0.1); border: 1px solid rgba(251,191,36,0.3); border-radius: 7px; padding: 8px 12px; font-size: 11px; color: var(--amber); margin-top: 10px; line-height: 1.65; }
+    .h-table-wrap { padding: 0 16px 48px; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    .h-section-title { font-size: 10px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-2); padding: 4px 0 10px; }
+    .h-table { width: 100%; border-collapse: collapse; min-width: 680px; }
+    .h-table th { background: var(--bg-1); border-bottom: 2px solid var(--line); border-top: 1px solid var(--line); color: var(--text-2); font-size: 10px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; padding: 8px 10px; white-space: nowrap; text-align: right; }
+    .h-table th:nth-child(1), .h-table th:nth-child(2) { text-align: left; }
+    .h-table td { padding: 9px 10px; border-bottom: 1px solid var(--line); font-size: 12px; color: var(--text-1); white-space: nowrap; text-align: right; cursor: pointer; }
+    .h-table td:nth-child(1), .h-table td:nth-child(2) { text-align: left; }
+    .h-table tbody tr:nth-child(even) td { background: rgba(255,255,255,0.014); }
+    .h-table tbody tr:hover td { background: rgba(31,37,53,0.6) !important; }
+    .h-alert { display: inline-block; padding: 2px 8px; border-radius: 5px; font-size: 10px; font-weight: 600; line-height: 1.4; }
+    .h-alert-avoid { background: rgba(248,113,113,0.15); color: var(--red); }
+    .h-alert-watch { background: rgba(251,191,36,0.15);  color: var(--amber); }
+    .h-alert-ok    { background: rgba(52,211,153,0.08);  color: var(--green); font-weight: 400; }
+    .h-empty { padding: 60px 20px; text-align: center; color: var(--text-2); }
+    .h-empty-title { font-family: 'Fraunces', serif; font-size: 22px; color: var(--text-1); margin-bottom: 8px; }
+    .hf-group { margin-bottom: 14px; }
+    .hf-label { font-size: 10px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: var(--text-2); margin-bottom: 6px; }
+    .hf-input { width: 100%; background: var(--bg-2); border: 1px solid var(--line); border-radius: 7px; color: var(--text-0); font-family: 'JetBrains Mono', monospace; font-size: 13px; padding: 10px 12px; outline: none; transition: border-color 0.15s; box-sizing: border-box; }
+    .hf-input:focus { border-color: var(--accent); }
+    .hf-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .hf-toggle { display: flex; margin-bottom: 14px; }
+    .hf-toggle-btn { flex: 1; padding: 8px; border: 1px solid var(--line); background: transparent; color: var(--text-1); font-family: 'JetBrains Mono', monospace; font-size: 11px; font-weight: 600; cursor: pointer; transition: all 0.15s; text-align: center; -webkit-tap-highlight-color: transparent; }
+    .hf-toggle-btn:first-child { border-radius: 6px 0 0 6px; }
+    .hf-toggle-btn:last-child  { border-radius: 0 6px 6px 0; border-left: none; }
+    .hf-toggle-btn.active { background: var(--accent); color: var(--bg-0); border-color: var(--accent); }
+    .hf-buttons { display: flex; gap: 8px; margin-top: 18px; }
+    .hf-buttons button { flex: 1; padding: 10px; border-radius: 7px; font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 600; cursor: pointer; border: 1px solid var(--line); -webkit-tap-highlight-color: transparent; }
+    .hf-cancel { background: transparent; color: var(--text-1); }
+    .hf-save   { background: var(--accent); color: var(--bg-0); border-color: var(--accent); }
+    .hf-remove { background: transparent; color: var(--red); border-color: var(--red); }
     /* Metric info button */
     .mi { display: inline-flex; align-items: center; justify-content: center; width: 14px; height: 14px; border-radius: 50%; border: 1px solid var(--text-2); color: var(--text-2); font-size: 9px; font-weight: 700; cursor: pointer; vertical-align: middle; margin-left: 4px; -webkit-tap-highlight-color: transparent; line-height: 1; transition: border-color 0.15s, color 0.15s; flex-shrink: 0; font-style: normal; }
     .mi:hover { border-color: var(--accent); color: var(--accent); }
@@ -316,10 +371,13 @@
 
 <!-- Universe Toggle -->
 <div class="universe-control">
-  <button id="btnUnivSP500"    class="univ-btn" onclick="setUniverse('sp500')">S&amp;P 500</button>
-  <button id="btnUnivR1K"      class="univ-btn" onclick="setUniverse('russell1000')">Russell 1000</button>
-  <button id="btnUnivNasdaq"   class="univ-btn" onclick="setUniverse('nasdaq100')">Nasdaq 100</button>
-  <button id="btnUnivDow"      class="univ-btn" onclick="setUniverse('dow30')">Dow 30</button>
+  <div class="univ-group">
+    <button id="btnUnivSP500"  class="univ-btn" onclick="setUniverse('sp500')">S&amp;P 500</button>
+    <button id="btnUnivR1K"    class="univ-btn" onclick="setUniverse('russell1000')">Russell 1000</button>
+    <button id="btnUnivNasdaq" class="univ-btn" onclick="setUniverse('nasdaq100')">Nasdaq 100</button>
+    <button id="btnUnivDow"    class="univ-btn" onclick="setUniverse('dow30')">Dow 30</button>
+  </div>
+  <button id="btnUnivHoldings" class="univ-btn univ-holdings" onclick="setView('holdings')">★ My Holdings</button>
 </div>
 
 <!-- API Key -->
@@ -409,6 +467,17 @@
     </thead>
     <tbody id="tableBody"></tbody>
   </table>
+</div>
+
+<!-- Holdings View -->
+<div id="holdingsView" style="display:none"></div>
+
+<!-- Holding Add/Edit Modal -->
+<div class="modal-overlay" id="holdingModal" onclick="if(event.target===this)closeHoldingModal()">
+  <div class="modal-box" style="max-width:460px">
+    <div class="modal-title" id="holdingModalTitle">Add Holding</div>
+    <div id="holdingModalBody"></div>
+  </div>
 </div>
 
 <!-- Bottom Sheet Overlay -->
@@ -673,6 +742,11 @@ let activeTabIndustryRx = null;
 let customTabs      = [];
 let spyPrices       = [];
 let _renderTimer    = null;
+let currentView     = 'screener'; // 'screener' | 'holdings'
+let holdings        = [];
+let holdingsCache   = { lastRefresh: null, stocks: {}, spyHistory: [] };
+let _hEditTicker    = null;
+let _hTrackBy       = 'amount';
 let _sectorTimer    = null;
 let _sortedRows     = [];
 let _scrollTimer    = null;
@@ -716,6 +790,8 @@ const BUILTIN_TABS = [
 
   // Load custom tabs
   try { customTabs = JSON.parse(localStorage.getItem('fmp_custom_tabs') || '[]'); } catch(_) {}
+  loadHoldings();
+  loadHoldingsCache();
 
   currentUniverse = localStorage.getItem('fmp_universe') || 'sp500';
 
@@ -831,7 +907,11 @@ function setUniverse(u) {
   if (running) return;
   currentUniverse = u;
   localStorage.setItem('fmp_universe', u);
-  updateUniverseUI();
+  if (currentView === 'holdings') {
+    setView('screener');
+  } else {
+    updateUniverseUI();
+  }
   updateRunButton();
 }
 
@@ -1858,6 +1938,458 @@ function copyDiagnostics() {
     showMessage('Diagnostics logged to DevTools console.', 'success');
     setTimeout(hideMessage, 4000);
   }
+}
+
+// ── Holdings storage ──────────────────────────────────────────────────────────
+const HOLDINGS_KEY       = 'fmp_holdings_v1';
+const HOLDINGS_CACHE_KEY = 'fmp_holdings_cache_v1';
+
+function loadHoldings() {
+  try { holdings = JSON.parse(localStorage.getItem(HOLDINGS_KEY) || '[]'); } catch(_) { holdings = []; }
+}
+function saveHoldings() {
+  localStorage.setItem(HOLDINGS_KEY, JSON.stringify(holdings));
+}
+function loadHoldingsCache() {
+  try {
+    const raw = JSON.parse(localStorage.getItem(HOLDINGS_CACHE_KEY) || '{}');
+    holdingsCache = { lastRefresh: raw.lastRefresh||null, stocks: raw.stocks||{}, spyHistory: raw.spyHistory||[] };
+  } catch(_) { holdingsCache = { lastRefresh:null, stocks:{}, spyHistory:[] }; }
+}
+function saveHoldingsCache() {
+  localStorage.setItem(HOLDINGS_CACHE_KEY, JSON.stringify(holdingsCache));
+}
+
+// ── View switching ────────────────────────────────────────────────────────────
+function setView(v) {
+  if (running && v === 'holdings') return;
+  currentView = v;
+  const isH = v === 'holdings';
+  // Elements to hide while holdings view is active
+  [
+    document.querySelector('.tab-bar-wrap'),
+    document.querySelector('.tab-new-form'),
+    document.querySelector('.controls'),
+    document.getElementById('progressWrap'),
+    document.getElementById('msgBanner'),
+    document.querySelector('.stats-grid'),
+    document.getElementById('failurePanel'),
+    document.getElementById('tableWrap'),
+  ].forEach(el => { if (el) el.style.display = isH ? 'none' : ''; });
+  const hv = document.getElementById('holdingsView');
+  if (hv) hv.style.display = isH ? 'block' : 'none';
+  const hBtn = document.getElementById('btnUnivHoldings');
+  if (hBtn) hBtn.classList.toggle('active', isH);
+  if (!isH) updateUniverseUI();
+  else ['btnUnivSP500','btnUnivR1K','btnUnivNasdaq','btnUnivDow'].forEach(id => {
+    const b = document.getElementById(id); if (b) b.classList.remove('active');
+  });
+  if (isH) renderHoldingsView();
+}
+
+// ── Render holdings view ──────────────────────────────────────────────────────
+function renderHoldingsView() {
+  const el = document.getElementById('holdingsView');
+  if (!el) return;
+
+  const daysSince = holdingsCache.lastRefresh
+    ? Math.floor((Date.now() - new Date(holdingsCache.lastRefresh).getTime()) / 86400000) : null;
+  const lastStr = holdingsCache.lastRefresh
+    ? new Date(holdingsCache.lastRefresh).toLocaleDateString('en-GB', {day:'numeric',month:'short',year:'numeric'}) : null;
+
+  let refreshBar;
+  if (lastStr) {
+    const recentNote = daysSince < 25
+      ? ` · <span style="color:var(--accent)">Reviewed recently — nothing here needs daily attention.</span>` : '';
+    refreshBar = `<div class="h-refresh-bar">Last refreshed: <strong>${lastStr}</strong> · <strong>${daysSince} day${daysSince===1?'':'s'} ago</strong>${recentNote}</div>`;
+  } else {
+    refreshBar = `<div class="h-refresh-bar">Not yet refreshed — press Refresh to load live prices &amp; scores.</div>`;
+  }
+
+  const stats = calcPortfolioStats();
+
+  el.innerHTML = `
+    <div class="h-header">
+      <div>
+        <div class="h-title">My Holdings</div>
+        <div class="h-tagline">Review monthly · Not daily</div>
+      </div>
+      <div class="h-actions">
+        <button class="btn btn-sm btn-filter" onclick="openHoldingModal(null)">+ Add</button>
+        <button class="btn btn-sm btn-primary" id="btnHoldingsRefresh" onclick="refreshHoldings()">⟳ Refresh</button>
+      </div>
+    </div>
+    ${refreshBar}
+    <div class="h-progress" id="holdingsProgress"></div>
+    <div class="h-errors"   id="holdingsErrors"></div>
+    ${!holdings.length ? renderHoldingsEmpty() : `
+      ${stats ? renderPortfolioSummary(stats) : ''}
+      ${stats && stats.portfolioReturn != null && holdingsCache.lastRefresh ? renderBenchmark(stats) : ''}
+      ${renderHoldingsTable()}
+    `}`;
+}
+
+function renderHoldingsEmpty() {
+  return `<div class="h-empty">
+    <div class="h-empty-title">No holdings yet</div>
+    <div style="margin-bottom:20px;font-size:12px;line-height:1.7;color:var(--text-2)">Add the stocks you own to track P&amp;L,<br>monitor quality scores, and compare to the market.</div>
+    <button class="btn btn-primary" onclick="openHoldingModal(null)">+ Add Your First Holding</button>
+  </div>`;
+}
+
+function renderPortfolioSummary(stats) {
+  const pnlCls  = (stats.totalPnl||0) >= 0 ? 'pass' : 'fail';
+  const pnlSign = (stats.totalPnl||0) >= 0 ? '+' : '';
+  const pnlPctStr = stats.totalPnlPct != null ? `${pnlSign}${stats.totalPnlPct.toFixed(1)}%` : '—';
+  const pnlStr    = stats.totalPnl    != null ? `${pnlSign}$${Math.abs(stats.totalPnl).toLocaleString('en',{maximumFractionDigits:0})}` : '—';
+  const invStr    = `$${(stats.totalInvested||0).toLocaleString('en',{maximumFractionDigits:0})}`;
+  const curStr    = stats.totalCurrent != null ? `$${stats.totalCurrent.toLocaleString('en',{maximumFractionDigits:0})}` : '—';
+  const avgScore  = stats.avgScore != null ? stats.avgScore.toFixed(1) : '—';
+  return `<div class="h-summary-grid">
+    <div class="h-summary-card">
+      <div class="h-summary-label">Invested</div>
+      <div class="h-summary-val muted">${invStr}</div>
+      <div class="h-summary-sub">${holdings.length} holding${holdings.length!==1?'s':''}</div>
+    </div>
+    <div class="h-summary-card">
+      <div class="h-summary-label">Current Value</div>
+      <div class="h-summary-val ${pnlCls}">${curStr}</div>
+      <div class="h-summary-sub ${pnlCls}">${pnlStr} &nbsp;(${pnlPctStr})</div>
+    </div>
+    <div class="h-summary-card">
+      <div class="h-summary-label">Avg Score</div>
+      <div class="h-summary-val muted">${avgScore}<span style="font-size:12px;color:var(--text-2)">/7</span></div>
+      <div class="h-summary-sub">${stats.countStrong} <span class="pass">Strong</span> · ${stats.countWatch} <span class="warn">Watch</span> · ${stats.countAvoid} <span class="fail">Avoid</span></div>
+    </div>
+  </div>`;
+}
+
+function renderBenchmark(stats) {
+  const pr  = stats.portfolioReturn;
+  const spy = stats.spyReturn;
+  const vs  = (pr != null && spy != null) ? pr - spy : null;
+  const days = stats.spyPeriodDays;
+  const isNoise = days != null && days < 90;
+
+  function fmt(v) { return v != null ? `${v>=0?'+':''}${v.toFixed(1)}%` : '—'; }
+  const prCls  = (pr ||0)>=0?'pass':'fail';
+  const spyCls = (spy||0)>=0?'pass':'fail';
+  const vsCls  = (vs ||0)>=0?'pass':'fail';
+
+  const periodStr = stats.earliestEntry
+    ? `${new Date(stats.earliestEntry).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})} to today`
+    : 'since earliest entry';
+  const daysStr = days!=null?` (${days} days)`:'';
+
+  const chartSVG = (pr!=null && spy!=null) ? renderBenchmarkBars(pr, spy) : '';
+  const noiseWarn = isNoise
+    ? `<div class="h-noise-warn">⚠ Less than 90 days of data — this is noise, not signal. Judge over 12 months+.</div>` : '';
+
+  return `<div class="h-bench">
+    <div class="h-bench-title">vs S&amp;P 500 (SPY) — Portfolio Benchmark</div>
+    <div class="h-bench-nums">
+      <div><div class="h-bench-label">Your Picks</div><div class="h-bench-val ${prCls}">${fmt(pr)}</div></div>
+      <div><div class="h-bench-label">S&amp;P 500</div><div class="h-bench-val ${spyCls}">${fmt(spy)}</div></div>
+      <div><div class="h-bench-label">You vs Market</div><div class="h-bench-val ${vsCls}">${fmt(vs)}</div></div>
+    </div>
+    ${chartSVG}
+    <div class="h-bench-note">Period: ${periodStr}${daysStr} · Prices in USD · FX movements affect £ returns but are not adjusted here.</div>
+    ${noiseWarn}
+  </div>`;
+}
+
+function renderBenchmarkBars(portfolioReturn, spyReturn) {
+  const W = 360, H = 70, labelW = 80;
+  const barAreaW = W - labelW;
+  const maxAbs = Math.max(Math.abs(portfolioReturn), Math.abs(spyReturn), 2);
+  const scale  = (barAreaW * 0.42) / maxAbs;
+  const zeroX  = labelW + barAreaW / 2;
+
+  function bar(y, val, label, color) {
+    const bw = Math.max(Math.abs(val) * scale, 2);
+    const bx = val >= 0 ? zeroX : zeroX - bw;
+    const sign = val >= 0 ? '+' : '';
+    const ta = val >= 0 ? 'start' : 'end';
+    const tx = val >= 0 ? zeroX + bw + 5 : zeroX - bw - 5;
+    return `<text x="${labelW-6}" y="${y+12}" font-size="9" fill="var(--text-2)" text-anchor="end" font-family="JetBrains Mono,monospace">${label}</text>
+      <rect x="${bx}" y="${y}" width="${bw}" height="16" rx="3" fill="${color}" opacity="0.85"/>
+      <text x="${tx}" y="${y+12}" font-size="11" fill="${color}" text-anchor="${ta}" font-family="JetBrains Mono,monospace">${sign}${val.toFixed(1)}%</text>`;
+  }
+  return `<svg viewBox="0 0 ${W} ${H}" width="100%" style="display:block;margin:4px 0">
+    <line x1="${zeroX}" y1="0" x2="${zeroX}" y2="${H-8}" stroke="var(--line)" stroke-width="1"/>
+    ${bar(8,  portfolioReturn, 'YOUR PICKS', portfolioReturn>=0?'var(--green)':'var(--red)')}
+    ${bar(44, spyReturn,       'S&P 500',    '#64748b')}
+    <text x="${zeroX}" y="${H-1}" font-size="9" fill="var(--text-2)" text-anchor="middle" font-family="JetBrains Mono,monospace">0%</text>
+  </svg>`;
+}
+
+function renderHoldingsTable() {
+  const ragOrder = { strong:2, watch:1, avoid:0 };
+  const rows = holdings.map(h => {
+    const cached = holdingsCache.stocks[h.ticker];
+    const invested = h.amountInvested || (h.shares&&h.entryPrice ? h.shares*h.entryPrice : null);
+    let currentVal = null;
+    if (h.amountInvested&&h.entryPrice&&cached?.price)  currentVal = h.amountInvested*(cached.price/h.entryPrice);
+    else if (h.shares&&cached?.price)                   currentVal = h.shares*cached.price;
+
+    const pnlPct = (invested&&currentVal!=null) ? (currentVal-invested)/invested*100 : null;
+    const pnl    = (invested&&currentVal!=null) ? currentVal-invested : null;
+    const pCls   = pnlPct==null?'muted':pnlPct>=0?'pass':'fail';
+    const pPctStr = pnlPct!=null ? `${pnlPct>=0?'+':''}${pnlPct.toFixed(1)}%` : '—';
+    const pStr    = pnl!=null    ? `${pnl>=0?'+$':'-$'}${Math.abs(pnl).toFixed(0)}` : '—';
+
+    const cp = cached?.price;
+    const cpStr = cp!=null ? `$${cp.toFixed(2)}` : '—';
+    const epStr = h.entryPrice!=null ? `$${(+h.entryPrice).toFixed(2)}` : '—';
+
+    let scoreCell = '<td class="muted">—</td>';
+    let alertCell = '<td class="muted">—</td>';
+    if (cached) {
+      const elite = cached.score===7&&cached.maxScore===7;
+      scoreCell = `<td><span class="cell-score ${elite?'elite':cached.rag}" style="font-size:14px">${cached.score}/${cached.maxScore}</span></td>`;
+      if (h.entryRag&&cached.rag) {
+        const el = ragOrder[h.entryRag]??1, cl = ragOrder[cached.rag]??1;
+        if (cached.rag==='avoid'&&el>0)       alertCell = `<td><span class="h-alert h-alert-avoid">Was ${h.entryRag.toUpperCase()} → now AVOID. Review.</span></td>`;
+        else if (cached.rag==='watch'&&el===2) alertCell = `<td><span class="h-alert h-alert-watch">Was STRONG → now WATCH. Review.</span></td>`;
+        else if (cl>=el)                       alertCell = `<td><span class="h-alert h-alert-ok">Quality maintained</span></td>`;
+        else                                   alertCell = `<td class="muted">—</td>`;
+      } else if (!h.entryRag) {
+        alertCell = `<td style="font-size:10px;color:var(--text-2)">No baseline yet</td>`;
+      }
+    }
+
+    return `<tr onclick="openHoldingModal('${esc(h.ticker)}')">
+      <td class="cell-ticker">${esc(h.ticker)}</td>
+      <td class="cell-company">${esc(cached?.company||h.ticker)}</td>
+      <td class="muted">${epStr}</td>
+      <td class="muted">${cpStr}</td>
+      <td class="${pCls}">${pPctStr}</td>
+      <td class="${pCls}" style="font-size:11px">${pStr}</td>
+      ${scoreCell}
+      ${alertCell}
+    </tr>`;
+  }).join('');
+
+  return `<div class="h-table-wrap">
+    <div class="h-section-title" style="padding-top:16px">Holdings <span style="font-weight:400;color:var(--text-2)">(tap to edit)</span></div>
+    <table class="h-table">
+      <thead><tr>
+        <th style="text-align:left">Ticker</th>
+        <th style="text-align:left">Company</th>
+        <th>Entry</th><th>Price</th><th>P&amp;L %</th><th>P&amp;L $</th>
+        <th>Score</th><th>Status</th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+  </div>`;
+}
+
+// ── Portfolio stats ───────────────────────────────────────────────────────────
+function calcPortfolioStats() {
+  if (!holdings.length) return null;
+  let totalInvested=0, totalCurrent=0, hasLive=false;
+  let scoreSum=0, scoreWt=0, countStrong=0, countWatch=0, countAvoid=0;
+
+  for (const h of holdings) {
+    const cached = holdingsCache.stocks[h.ticker];
+    const cp     = cached?.price;
+    const invested = h.amountInvested || (h.shares&&h.entryPrice ? h.shares*h.entryPrice : 0);
+    let cur = null;
+    if (h.amountInvested&&h.entryPrice&&cp) cur = h.amountInvested*(cp/h.entryPrice);
+    else if (h.shares&&cp)                  cur = h.shares*cp;
+
+    if (invested)    totalInvested += invested;
+    if (cur!=null) { totalCurrent  += cur; hasLive = true; }
+
+    if (cached) {
+      const w = cur||invested||1;
+      scoreSum += (cached.score||0)*w; scoreWt += w;
+      if (cached.rag==='strong') countStrong++;
+      else if (cached.rag==='watch') countWatch++;
+      else countAvoid++;
+    }
+  }
+
+  const totalPnl    = hasLive ? totalCurrent-totalInvested : null;
+  const totalPnlPct = (totalInvested>0&&totalPnl!=null) ? totalPnl/totalInvested*100 : null;
+  const avgScore    = scoreWt>0 ? scoreSum/scoreWt : null;
+
+  const earliestEntry = holdings.reduce((m,h) => (!h.entryDate?m:(!m||h.entryDate<m?h.entryDate:m)), null);
+  let spyReturn=null, spyPeriodDays=null;
+  if (earliestEntry&&holdingsCache.spyHistory.length) {
+    const chron = [...holdingsCache.spyHistory].sort((a,b)=>a.date.localeCompare(b.date));
+    const entry = chron.find(d=>d.date>=earliestEntry);
+    const latest = holdingsCache.spyHistory[0];
+    if (entry&&latest&&entry.close) {
+      spyReturn = (latest.close-entry.close)/entry.close*100;
+      spyPeriodDays = Math.floor((new Date(latest.date)-new Date(entry.date))/86400000);
+    }
+  }
+
+  return { totalInvested, totalCurrent: hasLive?totalCurrent:null, totalPnl, totalPnlPct,
+    avgScore, countStrong, countWatch, countAvoid,
+    portfolioReturn: totalPnlPct, spyReturn, spyPeriodDays, earliestEntry };
+}
+
+// ── Refresh holdings ──────────────────────────────────────────────────────────
+async function refreshHoldings() {
+  if (!holdings.length) return;
+  const apiKey = document.getElementById('apiKey').value.trim();
+  const progress = document.getElementById('holdingsProgress');
+  const errEl    = document.getElementById('holdingsErrors');
+  if (!apiKey) {
+    if (progress) { progress.textContent='Enter your FMP API key first.'; progress.style.display='block'; }
+    return;
+  }
+  const btn = document.getElementById('btnHoldingsRefresh');
+  if (btn) btn.disabled = true;
+  if (progress) { progress.textContent='Fetching SPY benchmark…'; progress.style.display='block'; }
+  if (errEl)    errEl.style.display = 'none';
+
+  try {
+    const raw = await fwt(`${BASE}/historical-price-eod/full?symbol=SPY&apikey=${apiKey}`);
+    holdingsCache.spyHistory = Array.isArray(raw)
+      ? raw.filter(d=>d.date&&d.close).map(d=>({date:d.date, close:+d.close})) : [];
+  } catch(_) { holdingsCache.spyHistory=[]; }
+
+  const errors=[];
+  for (let i=0; i<holdings.length; i++) {
+    const h = holdings[i];
+    if (progress) progress.textContent=`Fetching ${h.ticker} (${i+1} / ${holdings.length})…`;
+    try {
+      const s = await fetchStock(h.ticker, apiKey);
+      holdingsCache.stocks[h.ticker] = {
+        price:s.price, score:s.score, maxScore:s.maxScore, rag:s.rag, company:s.company,
+        croci:s.croci, peg:s.peg, sortino:s.sortino, alpha:s.alpha, beta:s.beta,
+        vol:s.vol, corr:s.corr, chg6m:s.chg6m, chg1m:s.chg1m,
+        analyst: s.analyst?.consensus||null,
+      };
+      // Set entryRag/entryScore on first refresh only (becomes the baseline for alerts)
+      const idx = holdings.findIndex(x=>x.ticker===h.ticker);
+      if (idx>=0 && holdings[idx].entryRag==null) {
+        holdings[idx].entryScore = s.score;
+        holdings[idx].entryRag   = s.rag;
+      }
+    } catch(e) { errors.push(`${h.ticker}: ${e.message}`); }
+    if (i<holdings.length-1) await delay(STOCK_DELAY);
+  }
+
+  holdingsCache.lastRefresh = new Date().toISOString();
+  saveHoldings();
+  saveHoldingsCache();
+  if (progress) progress.style.display='none';
+  if (btn) btn.disabled=false;
+  if (errors.length&&errEl) { errEl.textContent=`${errors.length} error(s): ${errors.join(' · ')}`; errEl.style.display='block'; }
+  renderHoldingsView();
+}
+
+// ── Add / Edit holding modal ──────────────────────────────────────────────────
+function openHoldingModal(ticker) {
+  _hEditTicker = ticker;
+  const existing = ticker ? holdings.find(h=>h.ticker===ticker) : null;
+  _hTrackBy = existing ? (existing.shares!=null?'shares':'amount') : 'amount';
+  document.getElementById('holdingModalTitle').textContent = existing ? `Edit — ${ticker}` : 'Add Holding';
+  renderHoldingForm(existing);
+  document.getElementById('holdingModal').classList.add('visible');
+}
+function closeHoldingModal() {
+  document.getElementById('holdingModal').classList.remove('visible');
+}
+function renderHoldingForm(existing) {
+  const ep      = existing?.entryPrice!=null  ? (+existing.entryPrice).toFixed(2)  : '';
+  const ed      = existing?.entryDate         || new Date().toISOString().slice(0,10);
+  const note    = existing?.note              || '';
+  const shares  = existing?.shares!=null      ? existing.shares  : '';
+  const amount  = existing?.amountInvested!=null ? (+existing.amountInvested).toFixed(2) : '';
+  const isEdit  = !!existing;
+
+  const amtActive = _hTrackBy==='amount'?' active':'';
+  const shrActive = _hTrackBy==='shares'?' active':'';
+  const inputField = _hTrackBy==='amount'
+    ? `<div class="hf-group"><div class="hf-label">Amount Invested (USD $)</div><input class="hf-input" id="hf-amount" type="number" min="0" step="0.01" placeholder="e.g. 1500.00" value="${esc(String(amount))}"></div>`
+    : `<div class="hf-group"><div class="hf-label">Number of Shares</div><input class="hf-input" id="hf-shares" type="number" min="0" step="0.01" placeholder="e.g. 10" value="${esc(String(shares))}"></div>`;
+  const removeBtn = isEdit ? `<button class="hf-remove" onclick="removeHolding('${esc(existing.ticker)}')">Remove</button>` : '';
+
+  document.getElementById('holdingModalBody').innerHTML = `
+    ${!isEdit
+      ? `<div class="hf-group"><div class="hf-label">Ticker Symbol</div><input class="hf-input" id="hf-ticker" type="text" placeholder="e.g. AAPL" autocapitalize="characters" autocomplete="off"></div>`
+      : `<div style="font-size:12px;color:var(--text-2);margin-bottom:16px">Editing <strong style="color:var(--accent)">${esc(existing.ticker)}</strong></div>`}
+    <div class="hf-toggle">
+      <button class="hf-toggle-btn${amtActive}" onclick="hfSetTrackBy('amount')">By Amount ($)</button>
+      <button class="hf-toggle-btn${shrActive}"  onclick="hfSetTrackBy('shares')">By Shares</button>
+    </div>
+    ${inputField}
+    <div class="hf-row">
+      <div class="hf-group"><div class="hf-label">Entry Price (USD $)</div><input class="hf-input" id="hf-entryPrice" type="number" min="0" step="0.01" placeholder="e.g. 150.00" value="${esc(String(ep))}"></div>
+      <div class="hf-group"><div class="hf-label">Entry Date</div><input class="hf-input" id="hf-entryDate" type="date" value="${esc(ed)}"></div>
+    </div>
+    <div class="hf-group"><div class="hf-label">Note (optional)</div><input class="hf-input" id="hf-note" type="text" placeholder="e.g. Long-term hold" maxlength="100" value="${esc(note)}"></div>
+    <div class="hf-buttons">
+      <button class="hf-cancel" onclick="closeHoldingModal()">Cancel</button>
+      ${removeBtn}
+      <button class="hf-save" onclick="saveHolding()">Save</button>
+    </div>`;
+}
+function hfSetTrackBy(v) {
+  _hTrackBy = v;
+  renderHoldingForm(_hEditTicker ? holdings.find(h=>h.ticker===_hEditTicker) : null);
+}
+function saveHolding() {
+  const isEdit = !!_hEditTicker;
+  const ticker = isEdit ? _hEditTicker : (document.getElementById('hf-ticker')?.value||'').trim().toUpperCase();
+  if (!ticker) { alert('Enter a ticker symbol.'); return; }
+
+  const entryPrice = parseFloat(document.getElementById('hf-entryPrice')?.value||'');
+  const entryDate  = (document.getElementById('hf-entryDate')?.value||'').trim();
+  const note       = (document.getElementById('hf-note')?.value||'').trim();
+  const amountEl   = document.getElementById('hf-amount');
+  const sharesEl   = document.getElementById('hf-shares');
+  const amountInvested = amountEl ? parseFloat(amountEl.value) : NaN;
+  const shares         = sharesEl ? parseFloat(sharesEl.value) : NaN;
+
+  if (_hTrackBy==='amount'&&(isNaN(amountInvested)||amountInvested<=0)) { alert('Enter the amount invested.'); return; }
+  if (_hTrackBy==='shares'&&(isNaN(shares)||shares<=0))                 { alert('Enter the number of shares.'); return; }
+  if (isNaN(entryPrice)||entryPrice<=0) { alert('Enter the entry price (USD).'); return; }
+  if (!entryDate) { alert('Select the entry date.'); return; }
+
+  const idx = holdings.findIndex(h=>h.ticker===ticker);
+  if (!isEdit && idx>=0) { alert(`${ticker} is already in your holdings.`); return; }
+
+  const holdingData = {
+    ticker, entryPrice, entryDate, note,
+    amountInvested: _hTrackBy==='amount' ? amountInvested : null,
+    shares:         _hTrackBy==='shares' ? shares : null,
+    entryScore: idx>=0 ? holdings[idx].entryScore : null,
+    entryRag:   idx>=0 ? holdings[idx].entryRag   : null,
+  };
+  // Seed entry score from cache if available (and not yet set)
+  if (!holdingData.entryRag && holdingsCache.stocks[ticker]) {
+    holdingData.entryScore = holdingsCache.stocks[ticker].score;
+    holdingData.entryRag   = holdingsCache.stocks[ticker].rag;
+  }
+
+  if (idx>=0) holdings[idx] = holdingData; else holdings.push(holdingData);
+  saveHoldings();
+  closeHoldingModal();
+  renderHoldingsView();
+}
+function removeHolding(ticker) {
+  if (!confirm(`Remove ${ticker} from your holdings?`)) return;
+  holdings = holdings.filter(h=>h.ticker!==ticker);
+  delete holdingsCache.stocks[ticker];
+  saveHoldings();
+  saveHoldingsCache();
+  closeHoldingModal();
+  renderHoldingsView();
+}
+function exportHoldings() {
+  const data = JSON.stringify({holdings, cache:holdingsCache}, null, 2);
+  const blob = new Blob([data], {type:'application/json'});
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href=url; a.download=`holdings-${new Date().toISOString().slice(0,10)}.json`;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(url), 10000);
 }
 
 // ── Messages ──────────────────────────────────────────────────────────────────
