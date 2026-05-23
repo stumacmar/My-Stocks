@@ -66,21 +66,22 @@
     }
     .tab-new-input:focus { border-color: var(--accent); }
     /* Universe Toggle */
-    .universe-control { display: flex; padding: 12px 16px 0; gap: 8px; align-items: center; flex-wrap: wrap; }
-    .univ-group { display: flex; flex: 1; min-width: 0; }
+    .universe-control { display: flex; padding: 12px 16px 8px; gap: 8px; align-items: center; overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; background: var(--bg-1); border-bottom: 1px solid var(--line); }
+    .universe-control::-webkit-scrollbar { display: none; }
+    .univ-group { display: flex; flex-shrink: 0; }
     .univ-btn {
-      flex: 1; padding: 10px 8px; border: 1px solid var(--line); background: transparent;
+      flex: none; padding: 9px 14px; border: 1px solid var(--line); background: transparent;
       color: var(--text-1); font-family: 'JetBrains Mono', monospace; font-size: 11px;
       font-weight: 500; cursor: pointer; transition: background 0.15s, color 0.15s, border-color 0.15s;
-      white-space: nowrap; -webkit-tap-highlight-color: transparent; text-align: center;
+      white-space: nowrap; -webkit-tap-highlight-color: transparent; text-align: center; flex-shrink: 0;
     }
     .univ-group .univ-btn:first-child { border-radius: 7px 0 0 7px; }
     .univ-group .univ-btn:last-child  { border-radius: 0 7px 7px 0; border-left: none; }
     .univ-group .univ-btn:not(:first-child):not(:last-child) { border-left: none; border-radius: 0; }
     .univ-btn.active { background: var(--accent); color: var(--bg-0); border-color: var(--accent); }
-    .univ-holdings { border-radius: 7px !important; border-color: var(--amber) !important; color: var(--amber) !important; padding: 10px 14px !important; flex: none !important; }
-    .univ-holdings:hover { background: rgba(251,191,36,0.1) !important; }
-    .univ-holdings.active { background: var(--amber) !important; color: var(--bg-0) !important; }
+    .univ-holdings { border-radius: 7px; border-color: var(--amber); color: var(--amber); flex-shrink: 0; }
+    .univ-holdings:hover { background: rgba(251,191,36,0.1); }
+    .univ-holdings.active { background: var(--amber); color: var(--bg-0); border-color: var(--amber); }
     /* API Card */
     .section { padding: 16px; }
     .api-card { background: var(--bg-2); border: 1px solid var(--line); border-radius: 10px; padding: 16px; }
