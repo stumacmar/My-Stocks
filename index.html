@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>Stuart's Stock Screener V5.1</title>
+  <title>Stuart's Stock Screener V5.2</title>
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Stock Screener">
@@ -138,14 +138,6 @@
     .message-banner.error   { display: block; background: rgba(248,113,113,0.12); border: 1px solid rgba(248,113,113,0.3); color: var(--red); }
     .message-banner.success { display: block; background: rgba(52,211,153,0.12);  border: 1px solid rgba(52,211,153,0.3);  color: var(--green); }
     /* Stats Grid */
-    .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; padding: 0 16px 16px; }
-    .stat-card { background: var(--bg-2); border: 1px solid var(--line); border-radius: 10px; padding: 14px 12px; text-align: center; }
-    .stat-num { font-family: 'Fraunces', serif; font-size: 30px; font-weight: 700; line-height: 1; }
-    .stat-num.strong { color: var(--green); }
-    .stat-num.watch  { color: var(--amber); }
-    .stat-num.avoid  { color: var(--red);   }
-    .stat-num.total  { color: var(--text-0); }
-    .stat-label { font-size: 9px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-2); margin-top: 5px; }
     /* Table */
     .table-wrap {
       padding: 0 16px 40px;
@@ -339,17 +331,19 @@
     .minfo-close { margin-top: 16px; width: 100%; padding: 10px; background: var(--accent); color: var(--bg-0); border: none; border-radius: 7px; font-family: 'JetBrains Mono', monospace; font-size: 13px; font-weight: 600; cursor: pointer; }
     @media (max-width: 600px) {
       .header-title { font-size: 24px; }
-      .stats-grid { grid-template-columns: repeat(2, 1fr); }
-      .stat-num { font-size: 24px; }
       .btn-csv { margin-left: 0; }
       .sector-select { max-width: 120px; font-size: 11px; }
     }
     /* V5: Hero / distribution bar */
-    .hero-section { padding: 14px 16px 10px; background: var(--bg-1); border-bottom: 1px solid var(--line); }
-    .hero-summary { font-size: 12px; color: var(--text-1); margin-bottom: 10px; line-height: 1.5; }
-    .hero-summary strong { color: var(--text-0); }
-    .dist-bar { display: flex; gap: 2px; height: 40px; align-items: stretch; border-radius: 7px; overflow: hidden; }
-    .dist-seg { display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; transition: filter 0.15s; gap: 1px; min-width: 20px; -webkit-tap-highlight-color: transparent; }
+    .hero-section { padding: 12px 16px 10px; background: var(--bg-1); border-bottom: 1px solid var(--line); }
+    .hero-title-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 9px; gap: 8px; }
+    .hero-count { font-size: 12px; color: var(--text-1); font-weight: 500; }
+    .hero-count strong { color: var(--text-0); }
+    .hero-status { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--text-2); white-space: nowrap; }
+    .pulse-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); flex-shrink: 0; animation: pulse 1.2s ease-in-out infinite; }
+    @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.4;transform:scale(0.7)} }
+    .dist-bar { display: flex; gap: 2px; height: 44px; align-items: stretch; border-radius: 7px; overflow: hidden; }
+    .dist-seg { display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; transition: flex 0.35s ease, filter 0.15s; gap: 1px; min-width: 8px; -webkit-tap-highlight-color: transparent; overflow: hidden; }
     .dist-seg:hover { filter: brightness(1.2); }
     .dist-seg-7   { background: #f6c90e; color: #1a1500; }
     .dist-seg-6   { background: var(--green); color: #001a0d; }
@@ -359,7 +353,7 @@
     .dist-seg-low { background: rgba(248,113,113,0.12); color: #f87171; }
     .dist-seg-count { font-family: 'Fraunces', serif; font-size: 13px; font-weight: 700; }
     .dist-seg-label { font-size: 8px; font-weight: 600; letter-spacing: 0.3px; opacity: 0.9; }
-    .dist-rag-row { display: flex; gap: 14px; margin-top: 8px; font-size: 11px; color: var(--text-2); }
+    .dist-rag-row { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 7px; font-size: 11px; color: var(--text-2); }
     /* V5: Settings gear */
     .settings-gear { background: none; border: none; color: var(--text-2); cursor: pointer; font-size: 18px; padding: 2px 4px; -webkit-tap-highlight-color: transparent; transition: color 0.15s; line-height: 1; }
     .settings-gear:hover { color: var(--text-0); }
@@ -426,7 +420,7 @@
 
 <!-- Header -->
 <div class="header">
-  <div class="header-title">Stuart's Stock Screener V5.1</div>
+  <div class="header-title">Stuart's Stock Screener V5.2</div>
   <div class="header-sub">
     Quality · Value · Momentum
     <span class="info-icon" onclick="openInfoModal()" title="Methodology">ⓘ</span>
@@ -457,9 +451,12 @@
   <button id="btnUnivHoldings" class="univ-btn univ-holdings" onclick="setView('holdings')">★ My Holdings</button>
 </div>
 
-<!-- Hero: score distribution -->
+<!-- Hero: score distribution (single source of truth for all counts) -->
 <div class="hero-section">
-  <div id="heroSummary" class="hero-summary"></div>
+  <div class="hero-title-row">
+    <span id="heroCount" class="hero-count">—</span>
+    <span id="heroStatus" class="hero-status"></span>
+  </div>
   <div id="distBar" class="dist-bar"></div>
   <div id="distRag" class="dist-rag-row"></div>
 </div>
@@ -498,14 +495,6 @@
 
 <!-- Message Banner -->
 <div class="message-banner" id="msgBanner"></div>
-
-<!-- Stats -->
-<div class="stats-grid">
-  <div class="stat-card"><div class="stat-num strong" id="statStrong">—</div><div class="stat-label">Strong</div></div>
-  <div class="stat-card"><div class="stat-num watch"  id="statWatch">—</div><div class="stat-label">Watch</div></div>
-  <div class="stat-card"><div class="stat-num avoid"  id="statAvoid">—</div><div class="stat-label">Avoid</div></div>
-  <div class="stat-card"><div class="stat-num total"  id="statShowing">—</div><div class="stat-label">Showing</div></div>
-</div>
 
 <!-- Failure Panel -->
 <div id="failurePanel" style="display:none; padding: 0 16px;"></div>
@@ -1731,13 +1720,7 @@ function _renderTable() {
 
 // ── Stats ─────────────────────────────────────────────────────────────────────
 function updateStats() {
-  const dist    = computeScoreDist();
-  const showing = getFiltered().length;
-  document.getElementById('statStrong').textContent  = dist.total ? dist.strong : '—';
-  document.getElementById('statWatch').textContent   = dist.total ? dist.watch  : '—';
-  document.getElementById('statAvoid').textContent   = dist.total ? dist.avoid  : '—';
-  document.getElementById('statShowing').textContent = dist.total ? showing     : '—';
-  renderDistBar(dist);
+  renderDistBar(computeScoreDist());
 }
 
 // ── Bottom Sheet ──────────────────────────────────────────────────────────────
@@ -2122,7 +2105,6 @@ function setView(v) {
     document.querySelector('.controls'),
     document.getElementById('progressWrap'),
     document.getElementById('msgBanner'),
-    document.querySelector('.stats-grid'),
     document.getElementById('failurePanel'),
     document.getElementById('tableWrap'),
     document.querySelector('.hero-section'),
@@ -2584,34 +2566,32 @@ function computeScoreDist() {
 }
 
 function renderDistBar(dist) {
-  const bar = document.getElementById('distBar');
-  const rag = document.getElementById('distRag');
-  const sum = document.getElementById('heroSummary');
+  const bar        = document.getElementById('distBar');
+  const ragEl      = document.getElementById('distRag');
+  const countEl    = document.getElementById('heroCount');
+  const statusEl   = document.getElementById('heroStatus');
   if (!bar) return;
 
-  if (!dist || !dist.total) {
-    bar.innerHTML = '';
-    if (rag) rag.innerHTML = '';
-    if (sum) sum.innerHTML = _cacheTimestamp
-      ? `<span style="color:var(--text-2);font-size:11px">Cached from ${new Date(_cacheTimestamp).toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}</span>`
-      : 'Run the screener to see results.';
-    return;
+  // Title row — left: "{N} of {universeSize} scored", right: status
+  const universeSize = getUniverse().length;
+  if (countEl) {
+    countEl.innerHTML = dist?.total
+      ? `<strong>${dist.total}</strong> of ${universeSize} scored`
+      : `— of ${universeSize} scored`;
+  }
+  if (statusEl) {
+    if (running) {
+      statusEl.innerHTML = `<span class="pulse-dot"></span>Running`;
+    } else if (_cacheTimestamp) {
+      const dt = new Date(_cacheTimestamp);
+      const label = dt.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+      statusEl.textContent = `Done · ${label}`;
+    } else {
+      statusEl.textContent = '';
+    }
   }
 
-  const { counts, perfect, strong, watch, avoid, total } = dist;
-
-  // Hero summary line
-  const newSince = _deltaData?.newPerfect?.length;
-  let heroText = `<strong>${total}</strong> stocks screened`;
-  if (perfect > 0) heroText += ` · <strong style="color:#f6c90e">★ ${perfect} perfect 7/7</strong>`;
-  if (newSince > 0) heroText += ` · <span style="color:var(--green)">${newSince} new since last run</span>`;
-  heroText += ` · <strong style="color:var(--green)">${strong}</strong> Strong · <strong style="color:var(--amber)">${watch}</strong> Watch · <strong style="color:var(--red)">${avoid}</strong> Avoid`;
-  if (_cacheTimestamp && !running) {
-    heroText += `<br><span style="font-size:10px;color:var(--text-2)">Last run: ${new Date(_cacheTimestamp).toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}</span>`;
-  }
-  if (sum) sum.innerHTML = heroText;
-
-  // Distribution segments: 7, 6, 5, 4, 3, ≤2
+  // All 6 bands always rendered; zero-count collapses to thin sliver (label only)
   const BANDS = [
     { score: 7,  label: '7/7 ★', cls: 'dist-seg-7',   filter: 'perfect'  },
     { score: 6,  label: '6/7',   cls: 'dist-seg-6',   filter: 'score6'   },
@@ -2621,22 +2601,37 @@ function renderDistBar(dist) {
     { score: -1, label: '≤2/7',  cls: 'dist-seg-low', filter: 'scoreLow' },
   ];
 
+  if (!dist || !dist.total) {
+    // Empty state: show ghost bar with all bands as equal thin slivers
+    bar.innerHTML = BANDS.map(b =>
+      `<div class="dist-seg ${b.cls}" style="flex:1;opacity:0.25" onclick="setScoreFilter('${b.filter}')">
+        <span class="dist-seg-label">${b.label}</span>
+      </div>`
+    ).join('');
+    if (ragEl) ragEl.innerHTML = '';
+    return;
+  }
+
+  const { counts, perfect, strong, watch, avoid, total } = dist;
+
   bar.innerHTML = BANDS.map(b => {
-    // ≤2/7 segment covers scores 0, 1, 2; score=3 has its own segment
-    const cnt = b.score === -1 ? counts[0] + counts[1] + counts[2] : counts[b.score];
-    if (!cnt) return '';
-    const pct = (cnt / total * 100).toFixed(1);
-    return `<div class="dist-seg ${b.cls}" style="flex:${cnt}" onclick="setScoreFilter('${b.filter}')" title="${b.label}: ${cnt} stocks (${pct}%)">
-      <span class="dist-seg-count">${cnt}</span>
-      <span class="dist-seg-label">${b.label}</span>
+    const cnt  = b.score === -1 ? counts[0] + counts[1] + counts[2] : counts[b.score];
+    const flex = cnt > 0 ? cnt : 0.12; // thin sliver for zero-count bands
+    const pct  = (cnt / total * 100).toFixed(1);
+    const inner = cnt > 0
+      ? `<span class="dist-seg-count">${cnt}</span><span class="dist-seg-label">${b.label}</span>`
+      : `<span class="dist-seg-label" style="font-size:7px;opacity:0.6">${b.label}</span>`;
+    return `<div class="dist-seg ${b.cls}" style="flex:${flex}" onclick="setScoreFilter('${b.filter}')" title="${b.label}: ${cnt} stocks (${pct}%)">
+      ${inner}
     </div>`;
   }).join('');
 
-  if (rag) rag.innerHTML =
-    `<span>STRONG (≥6): <strong style="color:var(--green)">${strong}</strong></span>` +
-    `<span>WATCH (4–5): <strong style="color:var(--amber)">${watch}</strong></span>` +
-    `<span>AVOID (&lt;4): <strong style="color:var(--red)">${avoid}</strong></span>` +
-    `<span style="margin-left:auto">TOTAL: <strong>${total}</strong></span>`;
+  // Single derived summary row — lightweight, no boxes
+  if (ragEl) ragEl.innerHTML =
+    `<span>★ <strong style="color:#f6c90e">${perfect}</strong> perfect</span>` +
+    `<span>· <strong style="color:var(--green)">${strong}</strong> strong</span>` +
+    `<span>· <strong style="color:var(--amber)">${watch}</strong> watch</span>` +
+    `<span>· <strong style="color:var(--red)">${avoid}</strong> avoid</span>`;
 }
 
 // ── Score band filter ─────────────────────────────────────────────────────────
