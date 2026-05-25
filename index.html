@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>Stuart's Stock Screener v4.0</title>
+  <title>Stuart's Stock Screener V5</title>
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Stock Screener">
@@ -344,17 +344,93 @@
       .btn-csv { margin-left: 0; }
       .sector-select { max-width: 120px; font-size: 11px; }
     }
+    /* V5: Hero / distribution bar */
+    .hero-section { padding: 14px 16px 10px; background: var(--bg-1); border-bottom: 1px solid var(--line); }
+    .hero-summary { font-size: 12px; color: var(--text-1); margin-bottom: 10px; line-height: 1.5; }
+    .hero-summary strong { color: var(--text-0); }
+    .dist-bar { display: flex; gap: 2px; height: 40px; align-items: stretch; border-radius: 7px; overflow: hidden; }
+    .dist-seg { display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; transition: filter 0.15s; gap: 1px; min-width: 20px; -webkit-tap-highlight-color: transparent; }
+    .dist-seg:hover { filter: brightness(1.2); }
+    .dist-seg-7   { background: #f6c90e; color: #1a1500; }
+    .dist-seg-6   { background: var(--green); color: #001a0d; }
+    .dist-seg-5   { background: rgba(52,211,153,0.45); color: var(--green); }
+    .dist-seg-4   { background: rgba(251,191,36,0.3); color: var(--amber); }
+    .dist-seg-3   { background: rgba(248,113,113,0.25); color: var(--red); }
+    .dist-seg-low { background: rgba(248,113,113,0.12); color: #f87171; }
+    .dist-seg-count { font-family: 'Fraunces', serif; font-size: 13px; font-weight: 700; }
+    .dist-seg-label { font-size: 8px; font-weight: 600; letter-spacing: 0.3px; opacity: 0.9; }
+    .dist-rag-row { display: flex; gap: 14px; margin-top: 8px; font-size: 11px; color: var(--text-2); }
+    /* V5: Settings gear */
+    .settings-gear { background: none; border: none; color: var(--text-2); cursor: pointer; font-size: 18px; padding: 2px 4px; -webkit-tap-highlight-color: transparent; transition: color 0.15s; line-height: 1; }
+    .settings-gear:hover { color: var(--text-0); }
+    .settings-sheet { position: fixed; bottom: 0; left: 0; right: 0; max-height: 60vh; background: var(--bg-1); border-radius: 16px 16px 0 0; transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.4,0,0.2,1); z-index: 150; overflow-y: auto; -webkit-overflow-scrolling: touch; border-top: 1px solid var(--line); }
+    .settings-sheet.open { transform: translateY(0); }
+    .settings-body { padding: 16px 20px 40px; }
+    .settings-title { font-family: 'Fraunces', serif; font-size: 20px; font-weight: 700; color: var(--text-0); margin-bottom: 18px; }
+    .settings-section-label { font-size: 10px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-2); margin-bottom: 8px; }
+    /* V5: Delta panel */
+    .delta-wrap { margin: 10px 16px; background: var(--bg-2); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+    .delta-head { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+    .delta-head-left { font-size: 12px; font-weight: 600; color: var(--text-0); }
+    .delta-head-sub { font-size: 10px; color: var(--text-2); margin-top: 2px; }
+    .delta-head-arrow { color: var(--text-2); font-size: 11px; }
+    .delta-body { padding: 0 14px 12px; }
+    .delta-group-title { font-size: 9px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-2); margin: 10px 0 6px; }
+    .delta-item { display: flex; align-items: center; gap: 8px; padding: 6px 0; border-bottom: 1px solid var(--line); cursor: pointer; -webkit-tap-highlight-color: transparent; }
+    .delta-item:last-child { border-bottom: none; }
+    .delta-t { color: var(--accent); font-weight: 600; font-size: 12px; min-width: 48px; }
+    .delta-desc { font-size: 11px; color: var(--text-1); flex: 1; }
+    .delta-pill { font-size: 9px; font-weight: 600; padding: 2px 7px; border-radius: 99px; white-space: nowrap; }
+    .delta-new  { background: rgba(52,211,153,0.15); color: var(--green); }
+    .delta-fell { background: rgba(248,113,113,0.15); color: var(--red); }
+    .delta-up   { background: rgba(94,234,212,0.12); color: var(--accent); }
+    /* V5: Criteria dots in table */
+    .score-cell-wrap { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; }
+    .crit-dots { display: flex; gap: 2px; }
+    .cdot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+    .cdot-on  { background: var(--green); }
+    .cdot-gold { background: #f6c90e; }
+    .cdot-off { background: var(--line); }
+    /* V5: Perfect row accent */
+    tr.row-perfect td:first-child { border-left: 3px solid #f6c90e; padding-left: 9px; }
+    /* V5: Verdict box in detail sheet */
+    .verdict-box { background: var(--bg-2); border: 1px solid var(--line); border-radius: 8px; padding: 12px 14px; font-size: 12px; color: var(--text-1); line-height: 1.75; margin-bottom: 4px; }
+    .verdict-box em { color: var(--text-0); font-style: normal; font-weight: 600; }
+    /* V5: Criteria checklist in detail sheet */
+    .crit-list { display: flex; flex-direction: column; gap: 5px; }
+    .crit-item { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 7px; border: 1px solid var(--line); }
+    .crit-item.ci-pass { border-color: rgba(52,211,153,0.2); background: rgba(52,211,153,0.04); }
+    .crit-item.ci-fail { border-color: rgba(248,113,113,0.12); }
+    .ci-icon { font-size: 13px; width: 18px; text-align: center; flex-shrink: 0; }
+    .ci-name  { font-size: 11px; color: var(--text-1); flex: 1; }
+    .ci-val   { font-size: 12px; font-weight: 600; }
+    .ci-thr   { font-size: 9px; color: var(--text-2); margin-top: 1px; }
+    /* V5: Footer */
+    .footer-note { padding: 14px 16px; font-size: 10px; color: var(--text-2); text-align: center; border-top: 1px solid var(--line); line-height: 1.7; }
+    /* V5: Animations */
+    @keyframes rowIn { from { opacity:0; transform:translateY(-4px); } to { opacity:1; transform:none; } }
+    .row-new { animation: rowIn 0.15s ease both; }
+    @media (prefers-reduced-motion: reduce) {
+      .row-new { animation: none; }
+    }
+    /* V5: Onboarding */
+    .onboard-overlay { position:fixed; inset:0; background:var(--bg-0); z-index:400; display:flex; align-items:center; justify-content:center; padding:24px; }
+    .onboard-overlay.hidden { display:none; }
+    .onboard-card { background:var(--bg-1); border:1px solid var(--line); border-radius:16px; padding:32px 24px; max-width:400px; width:100%; }
+    .onboard-title { font-family:'Fraunces',serif; font-size:26px; font-weight:700; color:var(--accent); margin-bottom:10px; }
+    .onboard-body { font-size:13px; color:var(--text-1); line-height:1.75; margin-bottom:24px; }
+    .onboard-nav { display:flex; gap:8px; }
   </style>
 </head>
 <body>
 
 <!-- Header -->
 <div class="header">
-  <div class="header-title">Stuart's Stock Screener</div>
+  <div class="header-title">Stuart's Stock Screener V5</div>
   <div class="header-sub">
     Quality · Value · Momentum
     <span class="info-icon" onclick="openInfoModal()" title="Methodology">ⓘ</span>
-    <span style="margin-left:8px;font-size:10px;background:rgba(100,220,255,0.15);color:var(--accent);border:1px solid rgba(100,220,255,0.3);border-radius:4px;padding:1px 6px;vertical-align:middle">v4</span>
+    <button class="settings-gear" onclick="openSettings()" aria-label="Settings">⚙</button>
   </div>
   <div id="headerRefresh" style="font-size:10px;color:var(--text-2);margin-top:3px"></div>
   <div id="headerSummary" style="font-size:10px;color:var(--text-2);margin-top:2px"></div>
@@ -381,21 +457,15 @@
   <button id="btnUnivHoldings" class="univ-btn univ-holdings" onclick="setView('holdings')">★ My Holdings</button>
 </div>
 
-<!-- API Key -->
-<div class="section">
-  <div class="api-card">
-    <div class="api-card-label">Financial Modeling Prep API Key</div>
-    <div class="api-input-row">
-      <input type="password" class="api-input" id="apiKey"
-             placeholder="Paste your FMP API key…"
-             autocomplete="off" spellcheck="false" autocorrect="off" autocapitalize="none">
-    </div>
-    <div class="api-note">
-      Free key at <a href="https://financialmodelingprep.com" target="_blank" rel="noopener">financialmodelingprep.com</a>
-      — 250 calls/day free tier. Starter plan ($25/mo) needed for full runs.
-    </div>
-  </div>
+<!-- Hero: score distribution -->
+<div class="hero-section">
+  <div id="heroSummary" class="hero-summary"></div>
+  <div id="distBar" class="dist-bar"></div>
+  <div id="distRag" class="dist-rag-row"></div>
 </div>
+
+<!-- Delta panel: what changed -->
+<div id="deltaPanel" style="display:none"></div>
 
 <!-- Controls -->
 <div class="controls">
@@ -403,6 +473,7 @@
   <button class="btn btn-pause"   id="btnPause" onclick="togglePause()"  style="display:none">&#9646;&#9646; Pause</button>
   <button class="btn btn-stop"    id="btnStop"  onclick="stopScreener()" style="display:none">&#9632; Stop</button>
   <div class="controls-sep"></div>
+  <button class="btn btn-filter" data-filter="perfect"   onclick="setFilter('perfect',this)">&#9733; 7/7</button>
   <button class="btn btn-filter active" data-filter="all"       onclick="setFilter('all',this)">All</button>
   <button class="btn btn-filter"        data-filter="strong"    onclick="setFilter('strong',this)">Strong</button>
   <button class="btn btn-filter"        data-filter="watch"     onclick="setFilter('watch',this)">Watch</button>
@@ -480,6 +551,23 @@
     <div id="holdingModalBody"></div>
   </div>
 </div>
+
+<!-- Settings Sheet -->
+<div class="sheet-overlay" id="settingsOverlay" onclick="closeSettings()"></div>
+<div class="settings-sheet" id="settingsSheet">
+  <div class="sheet-handle"></div>
+  <div class="settings-body">
+    <div class="settings-title">Settings</div>
+    <div class="settings-section-label">FMP API Key</div>
+    <div class="api-input-row" style="margin-bottom:10px">
+      <input type="password" class="api-input" id="apiKey" placeholder="Paste your FMP API key…" autocomplete="off" spellcheck="false" autocorrect="off" autocapitalize="none">
+    </div>
+    <div class="api-note">Free key at <a href="https://financialmodelingprep.com" target="_blank" rel="noopener">financialmodelingprep.com</a> — 250 calls/day free tier. Starter plan needed for full S&amp;P 500 runs.</div>
+  </div>
+</div>
+
+<!-- Onboarding -->
+<div class="onboard-overlay hidden" id="onboardOverlay"></div>
 
 <!-- Bottom Sheet Overlay -->
 <div class="sheet-overlay" id="sheetOverlay" onclick="closeStockSheet()"></div>
@@ -717,6 +805,10 @@ const UNIVERSE_DOW30 = [
 // ── Constants ─────────────────────────────────────────────────────────────────
 const BASE          = 'https://financialmodelingprep.com/stable';
 const DEFAULT_KEY   = 'Uq0TKcRxFVhqq4CvmOk2EStbeyTsONCi';
+const RUN_CACHE_KEY  = 'fmp_run_cache_v5';
+const PREV_RUN_KEY   = 'fmp_prev_run_v5';
+const CRIT_LABELS    = ['CROCI','PEG','Sortino','Beta','Alpha','6M','Analyst'];
+const CRIT_THRESHOLDS= ['>10%','0–1.5','> 0.5','< 1.5','> 0','> 0%','Buy/SB'];
 const STOCK_TIMEOUT = 60000;
 const STOCK_DELAY   = 600;
 const ROW_HEIGHT    = 43;
@@ -726,6 +818,7 @@ const PER_STOCK_MS  = STOCK_DELAY + 3000;
 // ── State ─────────────────────────────────────────────────────────────────────
 let results         = [];
 let failures        = [];
+let _cacheTimestamp = null;
 let currentFilter   = 'all';
 let currentSector   = 'all';
 let sortCol         = 'score';
@@ -751,6 +844,8 @@ let _hTrackBy       = 'amount';
 let _sectorTimer    = null;
 let _sortedRows     = [];
 let _scrollTimer    = null;
+let _scoreBandFilter = null;
+let _deltaData      = null;
 const delay = ms => new Promise(r => setTimeout(r, ms));
 
 // ── Built-in tabs ─────────────────────────────────────────────────────────────
@@ -794,6 +889,16 @@ const BUILTIN_TABS = [
   loadHoldings();
   loadHoldingsCache();
 
+  // Cache-first: render last run instantly
+  try {
+    const cached = JSON.parse(localStorage.getItem(RUN_CACHE_KEY) || 'null');
+    if (cached && Array.isArray(cached.results) && cached.results.length) {
+      results  = cached.results;
+      failures = cached.failures || [];
+      _cacheTimestamp = cached.timestamp || null;
+    }
+  } catch(_) {}
+
   currentUniverse = localStorage.getItem('fmp_universe') || 'sp500';
 
   // Restore last refresh timestamp
@@ -811,6 +916,10 @@ const BUILTIN_TABS = [
   updateRunButton();
   renderTabBar();
   renderTable();
+  updateStats();
+  renderDistBar();
+  renderDeltaPanel();
+  checkOnboarding();
 
   // Virtual scroll listener
   document.getElementById('tableWrap').addEventListener('scroll', _onTableScroll);
@@ -1125,6 +1234,16 @@ async function fetchStock(symbol, apiKey) {
 
   const rag = score >= 6 ? 'strong' : score >= 4 ? 'watch' : 'avoid';
 
+  const criteria = [
+    croci   != null && croci > 10,
+    peg     != null && peg > 0 && peg < 1.5,
+    sortino != null && sortino > 0.5,
+    beta    != null && beta < 1.5,
+    alpha   != null && alpha > 0,
+    chg6m   != null && chg6m > 0,
+    !!(analyst && (analyst.consensus === 'Strong Buy' || analyst.consensus === 'Buy')),
+  ];
+
   // Seasonality
   const seasonality = calcSeasonality(historyFull);
 
@@ -1142,6 +1261,7 @@ async function fetchStock(symbol, apiKey) {
     // sort helper for analyst column
     analystBuyCount: analyst ? analyst.buyCount : null,
     season: seasonality.thisMonth,
+    criteria,
   };
 }
 
@@ -1295,6 +1415,15 @@ async function runScreener() {
     localStorage.setItem('fmp_last_refresh', refreshStr);
     document.getElementById('headerRefresh').textContent = 'Last run: ' + refreshStr;
 
+    // Rotate cache
+    const prevCache = localStorage.getItem(RUN_CACHE_KEY);
+    if (prevCache) localStorage.setItem(PREV_RUN_KEY, prevCache);
+    localStorage.setItem(RUN_CACHE_KEY, JSON.stringify({
+      results, failures, timestamp: new Date().toISOString(), universe: currentUniverse,
+    }));
+    _cacheTimestamp = new Date().toISOString();
+    renderDeltaPanel();
+
     // Summary line
     const strongCount = results.filter(r => r.rag === 'strong').length;
     document.getElementById('headerSummary').textContent =
@@ -1415,6 +1544,7 @@ function getSorted(data) {
 
 // ── Filter ────────────────────────────────────────────────────────────────────
 function setFilter(f, btn) {
+  _scoreBandFilter = null; // clear score band when using main filter
   currentFilter = f;
   document.querySelectorAll('.btn-filter').forEach(b => b.classList.remove('active'));
   if (btn) btn.classList.add('active');
@@ -1423,10 +1553,23 @@ function setFilter(f, btn) {
 
 function getFiltered() {
   let data = results;
-  if (currentFilter === 'favorites')   data = data.filter(r => favorites.has(r.ticker));
+  if (currentFilter === 'perfect')     data = data.filter(r => r.score === 7 && r.maxScore === 7);
+  else if (currentFilter === 'favorites') data = data.filter(r => favorites.has(r.ticker));
   else if (currentFilter !== 'all')    data = data.filter(r => r.rag === currentFilter);
   if (currentSector !== 'all')         data = data.filter(r => r.industry === currentSector);
   if (activeTabIndustryRx)             data = data.filter(r => activeTabIndustryRx.test(r.industry));
+  if (_scoreBandFilter) {
+    data = data.filter(r => {
+      const sc = r.score || 0;
+      if (_scoreBandFilter === 'score6'   && sc !== 6) return false;
+      if (_scoreBandFilter === 'score5'   && sc !== 5) return false;
+      if (_scoreBandFilter === 'score4'   && sc !== 4) return false;
+      if (_scoreBandFilter === 'score3'   && sc !== 3) return false;
+      if (_scoreBandFilter === 'scoreLow' && sc > 2)   return false;
+      if (_scoreBandFilter === 'perfect'  && !(sc === 7 && r.maxScore === 7)) return false;
+      return true;
+    });
+  }
   return data;
 }
 
@@ -1506,14 +1649,18 @@ function _renderVirtual() {
       }
     }
 
+    const isElite = s.score === 7 && s.maxScore === 7;
+    const dots = (s.criteria || []).map((p,i) => `<span class="cdot ${isElite?'cdot-gold':p?'cdot-on':'cdot-off'}" title="${CRIT_LABELS[i]||''}"></span>`).join('');
+    if (isElite) tr.classList.add('row-perfect');
+
     tr.innerHTML = `
       <td class="cell-fav${isFav ? ' starred' : ''}" onclick="toggleFavorite('${esc(s.ticker)}',event)">${isFav ? '★' : '☆'}</td>
       <td class="cell-ticker">${esc(s.ticker)}</td>
       <td class="cell-company"  title="${esc(s.company)}">${esc(s.company)   || '&mdash;'}</td>
       <td class="cell-industry" title="${esc(s.industry)}">${esc(s.industry) || '&mdash;'}</td>
       <td class="muted">${fmtPrice(s.price)}</td>
-      <td class="cell-score ${s.score === 7 && s.maxScore === 7 ? 'elite' : s.rag}">${s.score}/${s.maxScore}</td>
-      <td><span class="rag-badge ${s.score === 7 && s.maxScore === 7 ? 'elite' : s.rag}">${s.score === 7 && s.maxScore === 7 ? '★ PERFECT' : s.rag}</span></td>
+      <td class="cell-score ${isElite ? 'elite' : s.rag}"><div class="score-cell-wrap"><div class="crit-dots">${dots}</div>${s.score}/${s.maxScore}</div></td>
+      <td><span class="rag-badge ${isElite ? 'elite' : s.rag}">${isElite ? '★ PERFECT' : s.rag}</span></td>
       ${metricTD(s.croci,   v => v > 10,           1, '%')}
       ${metricTD(s.peg,     v => v > 0 && v < 1.5, 2, '')}
       ${metricTD(s.sortino, v => v > 0.5,          2, '')}
@@ -1592,6 +1739,7 @@ function updateStats() {
   document.getElementById('statWatch').textContent   = results.length ? watch   : '—';
   document.getElementById('statAvoid').textContent   = results.length ? avoid   : '—';
   document.getElementById('statShowing').textContent = results.length ? showing : '—';
+  renderDistBar();
 }
 
 // ── Bottom Sheet ──────────────────────────────────────────────────────────────
@@ -1810,7 +1958,10 @@ function openStockSheet(ticker) {
       </div>`;
   }
 
-  content.innerHTML = headerHTML + `<div class="sheet-body">${chartHTML}${macdHTML}${metricsHTML}${seasonHTML}${analystDetailHTML}</div>`;
+  const verdictHTML = `<div class="verdict-box">${generateVerdict(s)}</div>`;
+  const criteriaHTML = `<div class="sheet-section-title">Score Breakdown — ${s.score}/${s.maxScore}</div>${renderCriteriaList(s)}`;
+
+  content.innerHTML = headerHTML + `<div class="sheet-body">${verdictHTML}${criteriaHTML}${chartHTML}${macdHTML}${metricsHTML}${seasonHTML}${analystDetailHTML}</div>`;
 
   overlay.classList.add('visible');
   sheet.classList.add('open');
@@ -1976,6 +2127,8 @@ function setView(v) {
     document.querySelector('.stats-grid'),
     document.getElementById('failurePanel'),
     document.getElementById('tableWrap'),
+    document.querySelector('.hero-section'),
+    document.getElementById('deltaPanel'),
   ].forEach(el => { if (el) el.style.display = isH ? 'none' : ''; });
   const hv = document.getElementById('holdingsView');
   if (hv) hv.style.display = isH ? 'block' : 'none';
@@ -2402,6 +2555,320 @@ function showMessage(text, type) {
 function hideMessage() {
   document.getElementById('msgBanner').className = 'message-banner';
 }
+
+// ── Settings sheet ────────────────────────────────────────────────────────────
+function openSettings() {
+  document.getElementById('settingsSheet').classList.add('open');
+  document.getElementById('settingsOverlay').classList.add('visible');
+}
+function closeSettings() {
+  document.getElementById('settingsSheet').classList.remove('open');
+  document.getElementById('settingsOverlay').classList.remove('visible');
+}
+
+// ── Score distribution bar ─────────────────────────────────────────────────────
+function renderDistBar() {
+  const bar  = document.getElementById('distBar');
+  const rag  = document.getElementById('distRag');
+  const sum  = document.getElementById('heroSummary');
+  if (!bar) return;
+
+  if (!results.length) {
+    bar.innerHTML = '';
+    if (rag) rag.innerHTML = '';
+    if (sum) sum.innerHTML = _cacheTimestamp
+      ? `<span style="color:var(--text-2);font-size:11px">Cached from ${new Date(_cacheTimestamp).toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}</span>`
+      : 'Run the screener to see results.';
+    return;
+  }
+
+  // Count by score 0-7
+  const counts = new Array(8).fill(0);
+  results.forEach(r => { const s = Math.min(7, Math.max(0, r.score||0)); counts[s]++; });
+
+  const total   = results.length;
+  const perfect = counts[7];
+  const strong  = results.filter(r => r.rag === 'strong').length;
+  const watch   = results.filter(r => r.rag === 'watch').length;
+  const avoid   = results.filter(r => r.rag === 'avoid').length;
+
+  // Hero summary line
+  const newSince = _deltaData?.newPerfect?.length;
+  let heroText = `<strong>${total}</strong> stocks screened`;
+  if (perfect > 0) heroText += ` · <strong style="color:#f6c90e">★ ${perfect} perfect 7/7</strong>`;
+  if (newSince > 0) heroText += ` · <span style="color:var(--green)">${newSince} new since last run</span>`;
+  heroText += ` · <strong style="color:var(--green)">${strong}</strong> Strong · <strong style="color:var(--amber)">${watch}</strong> Watch · <strong style="color:var(--red)">${avoid}</strong> Avoid`;
+  if (_cacheTimestamp && !running) {
+    heroText += `<br><span style="font-size:10px;color:var(--text-2)">Last run: ${new Date(_cacheTimestamp).toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}</span>`;
+  }
+  if (sum) sum.innerHTML = heroText;
+
+  // Distribution segments: 7,6,5,4,3,≤2
+  const BANDS = [
+    { score: 7, label: '7/7 ★', cls: 'dist-seg-7',   filter: 'perfect' },
+    { score: 6, label: '6/7',   cls: 'dist-seg-6',   filter: 'score6' },
+    { score: 5, label: '5/7',   cls: 'dist-seg-5',   filter: 'score5' },
+    { score: 4, label: '4/7',   cls: 'dist-seg-4',   filter: 'score4' },
+    { score: 3, label: '3/7',   cls: 'dist-seg-3',   filter: 'score3' },
+    { score: -1, label: '≤2/7', cls: 'dist-seg-low', filter: 'scoreLow' },
+  ];
+
+  bar.innerHTML = BANDS.map(b => {
+    const cnt = b.score === -1 ? counts[0]+counts[1]+counts[2] : counts[b.score];
+    if (!cnt) return '';
+    const pct = (cnt / total * 100).toFixed(1);
+    return `<div class="dist-seg ${b.cls}" style="flex:${cnt}" onclick="setScoreFilter('${b.filter}')" title="${b.label}: ${cnt} stocks (${pct}%)">
+      <span class="dist-seg-count">${cnt}</span>
+      <span class="dist-seg-label">${b.label}</span>
+    </div>`;
+  }).join('');
+
+  if (rag) rag.innerHTML =
+    `<span>STRONG (≥6): <strong style="color:var(--green)">${strong}</strong></span>` +
+    `<span>WATCH (4–5): <strong style="color:var(--amber)">${watch}</strong></span>` +
+    `<span>AVOID (&lt;4): <strong style="color:var(--red)">${avoid}</strong></span>` +
+    `<span style="margin-left:auto">TOTAL: <strong>${total}</strong></span>`;
+}
+
+// ── Score band filter ─────────────────────────────────────────────────────────
+const SCORE_FILTER_BANDS = { perfect:'perfect', score6:'score6', score5:'score5', score4:'score4', score3:'score3', scoreLow:'scoreLow' };
+
+function setScoreFilter(band) {
+  _scoreBandFilter = band === _scoreBandFilter ? null : band;
+  // Clear RAG filter
+  currentFilter = 'all';
+  document.querySelectorAll('.btn-filter').forEach(b => b.classList.remove('active'));
+  document.querySelector('[data-filter="all"]')?.classList.add('active');
+  debouncedRender();
+  updateStats();
+}
+
+// ── Delta panel ───────────────────────────────────────────────────────────────
+function computeDelta() {
+  _deltaData = null;
+  try {
+    const prevRaw = localStorage.getItem(PREV_RUN_KEY);
+    if (!prevRaw) return;
+    const prev = JSON.parse(prevRaw);
+    if (!prev.results?.length) return;
+
+    const prevMap = new Map(prev.results.map(r => [r.ticker, r]));
+    const currMap = new Map(results.map(r => [r.ticker, r]));
+
+    const newPerfect  = [], fellPerfect = [], newStrong = [], fellStrong = [];
+    const climbers    = [], fallers     = [];
+
+    for (const [t, c] of currMap) {
+      const p = prevMap.get(t);
+      if (!p) continue;
+      const delta = c.score - p.score;
+      if (delta > 0) climbers.push({ ticker: t, from: p.score, to: c.score, delta });
+      if (delta < 0) fallers.push(  { ticker: t, from: p.score, to: c.score, delta });
+      if (c.score === 7 && c.maxScore === 7 && !(p.score === 7 && p.maxScore === 7)) newPerfect.push(t);
+      if (p.score === 7 && p.maxScore === 7 && !(c.score === 7 && c.maxScore === 7)) fellPerfect.push(t);
+      if (c.rag === 'strong' && p.rag !== 'strong') newStrong.push(t);
+      if (p.rag === 'strong' && c.rag !== 'strong') fellStrong.push(t);
+    }
+
+    climbers.sort((a,b) => b.delta - a.delta);
+    fallers.sort((a, b) => a.delta - b.delta);
+
+    const unchanged = results.length - climbers.length - fallers.length;
+    _deltaData = {
+      newPerfect, fellPerfect, newStrong, fellStrong,
+      topClimbers: climbers.slice(0, 5),
+      topFallers:  fallers.slice(0, 5),
+      unchanged,
+      prevTimestamp: prev.timestamp,
+    };
+  } catch(_) {}
+}
+
+function renderDeltaPanel() {
+  computeDelta();
+  const panel = document.getElementById('deltaPanel');
+  if (!panel) return;
+
+  if (!_deltaData || (!_deltaData.newPerfect.length && !_deltaData.fellPerfect.length &&
+      !_deltaData.newStrong.length && !_deltaData.fellStrong.length &&
+      !_deltaData.topClimbers.length && !_deltaData.topFallers.length)) {
+    panel.style.display = 'none';
+    return;
+  }
+
+  panel.style.display = 'block';
+  const d = _deltaData;
+  const prevStr = d.prevTimestamp
+    ? new Date(d.prevTimestamp).toLocaleDateString('en-GB', {weekday:'short',day:'numeric',month:'short'}) : 'last run';
+
+  function makeItems(arr, label, pillCls) {
+    if (!arr.length) return '';
+    const items = arr.slice(0, 6).map(t => {
+      const s = results.find(r => r.ticker === t);
+      const desc = s ? `${s.score}/${s.maxScore} · ${s.company || ''}` : '';
+      return `<div class="delta-item" onclick="openStockSheet('${esc(t)}')">
+        <span class="delta-t">${esc(t)}</span>
+        <span class="delta-desc">${esc(desc)}</span>
+        <span class="delta-pill ${pillCls}">${label}</span>
+      </div>`;
+    }).join('');
+    return items;
+  }
+
+  function makeMovers(arr, pillCls) {
+    return arr.map(m => `<div class="delta-item" onclick="openStockSheet('${esc(m.ticker)}')">
+      <span class="delta-t">${esc(m.ticker)}</span>
+      <span class="delta-desc">${m.from}/7 → ${m.to}/7</span>
+      <span class="delta-pill ${pillCls}">${m.delta > 0 ? '+' : ''}${m.delta}</span>
+    </div>`).join('');
+  }
+
+  const sections = [
+    d.newPerfect.length  ? `<div class="delta-group-title">★ New 7/7 Perfect</div>${makeItems(d.newPerfect, 'NEW ★', 'delta-new')}` : '',
+    d.fellPerfect.length ? `<div class="delta-group-title">Fell from 7/7</div>${makeItems(d.fellPerfect, 'FELL', 'delta-fell')}` : '',
+    d.newStrong.length   ? `<div class="delta-group-title">New to Strong</div>${makeItems(d.newStrong, 'NEW', 'delta-new')}` : '',
+    d.fellStrong.length  ? `<div class="delta-group-title">Fell from Strong</div>${makeItems(d.fellStrong, 'FELL', 'delta-fell')}` : '',
+    d.topClimbers.length ? `<div class="delta-group-title">Biggest climbers</div>${makeMovers(d.topClimbers, 'delta-up')}` : '',
+    d.topFallers.length  ? `<div class="delta-group-title">Biggest fallers</div>${makeMovers(d.topFallers, 'delta-fell')}` : '',
+  ].filter(Boolean).join('');
+
+  const totalChanges = d.newPerfect.length + d.fellPerfect.length + d.newStrong.length + d.fellStrong.length + d.topClimbers.length + d.topFallers.length;
+
+  panel.innerHTML = `<div class="delta-wrap">
+    <div class="delta-head" onclick="this.nextElementSibling.classList.toggle('open');this.querySelector('.delta-head-arrow').textContent=this.nextElementSibling.classList.contains('open')?'▲':'▼'">
+      <div>
+        <div class="delta-head-left">What changed since ${prevStr}</div>
+        <div class="delta-head-sub">${totalChanges} notable changes · ${d.unchanged} unchanged</div>
+      </div>
+      <span class="delta-head-arrow">▼</span>
+    </div>
+    <div class="delta-body">${sections}</div>
+  </div>`;
+}
+
+// ── Plain-English verdict ─────────────────────────────────────────────────────
+function generateVerdict(s) {
+  const parts = [], flags = [];
+  if (s.croci != null) {
+    if (s.croci > 20) parts.push(`<em>exceptional quality</em> (CROCI ${s.croci.toFixed(0)}%)`);
+    else if (s.croci > 10) parts.push(`<em>strong quality</em> (CROCI ${s.croci.toFixed(0)}%)`);
+    else parts.push(`<em>below-par quality</em> (CROCI ${s.croci.toFixed(0)}%)`);
+  }
+  if (s.peg != null && s.peg > 0) {
+    if (s.peg < 1.0) parts.push(`<em>attractively valued</em> (PEG ${s.peg.toFixed(2)})`);
+    else if (s.peg < 1.5) parts.push(`<em>fairly valued</em> (PEG ${s.peg.toFixed(2)})`);
+    else parts.push(`<em>expensive relative to growth</em> (PEG ${s.peg.toFixed(2)})`);
+  }
+  if (s.chg6m != null) {
+    if (s.chg6m > 15) parts.push(`<em>strong momentum</em> (6M: +${s.chg6m.toFixed(0)}%)`);
+    else if (s.chg6m > 0) parts.push(`<em>positive momentum</em> (6M: +${s.chg6m.toFixed(0)}%)`);
+    else parts.push(`<em>negative momentum</em> (6M: ${s.chg6m.toFixed(0)}%)`);
+  }
+  if (s.analyst?.consensus) parts.push(`analyst consensus <em>${esc(s.analyst.consensus)}</em> (${s.analyst.total} analysts)`);
+  if (s.beta != null && s.beta >= 1.5) flags.push(`high beta (${s.beta.toFixed(1)})`);
+  if (s.sortino != null && s.sortino < 0.5) flags.push(`weak risk-adjusted return (Sortino ${s.sortino.toFixed(1)})`);
+  if (s.vol != null && s.vol > 40) flags.push(`high volatility (${s.vol.toFixed(0)}%)`);
+  let v = parts.join(', ');
+  if (flags.length) v += `. Flag${flags.length > 1 ? 's' : ''}: ${flags.join(', ')}`;
+  return v || 'Insufficient data for a summary.';
+}
+
+// ── Criteria checklist (for detail sheet) ─────────────────────────────────────
+const CRIT_DEFS = [
+  { name: 'CROCI',    desc: 'Cash Return on Capital Invested', threshold: '> 10%',  val: s => s.croci != null ? s.croci.toFixed(1)+'%' : '—' },
+  { name: 'PEG',      desc: 'Price/Earnings to Growth',        threshold: '0–1.5',  val: s => s.peg   != null ? s.peg.toFixed(2) : '—' },
+  { name: 'Sortino',  desc: 'Downside risk-adjusted return',   threshold: '> 0.5',  val: s => s.sortino != null ? s.sortino.toFixed(2) : '—' },
+  { name: 'Beta',     desc: 'Market sensitivity',              threshold: '< 1.5',  val: s => s.beta  != null ? s.beta.toFixed(2) : '—' },
+  { name: 'Alpha',    desc: 'Excess return vs market',         threshold: '> 0',    val: s => s.alpha != null ? s.alpha.toFixed(1)+'%' : '—' },
+  { name: '6M Return',desc: '6-month price momentum',          threshold: '> 0%',   val: s => s.chg6m != null ? (s.chg6m>=0?'+':'')+s.chg6m.toFixed(1)+'%' : '—' },
+  { name: 'Analyst',  desc: 'Analyst consensus rating',        threshold: 'Buy/Strong Buy', val: s => s.analyst?.consensus || '—' },
+];
+
+function renderCriteriaList(s) {
+  if (!s.criteria || !s.criteria.length) return '';
+  return `<div class="crit-list">${s.criteria.map((passed, i) => {
+    const d = CRIT_DEFS[i];
+    const cls = passed ? 'ci-pass' : 'ci-fail';
+    const icon = passed ? '✓' : '✗';
+    const iconColor = passed ? 'var(--green)' : 'var(--red)';
+    return `<div class="crit-item ${cls}">
+      <span class="ci-icon" style="color:${iconColor}">${icon}</span>
+      <div style="flex:1">
+        <div class="ci-name">${d.name} <span style="color:var(--text-2);font-size:9px">threshold ${d.threshold}</span></div>
+      </div>
+      <div style="text-align:right">
+        <div class="ci-val ${passed?'pass':'fail'}">${d.val(s)}</div>
+      </div>
+    </div>`;
+  }).join('')}</div>`;
+}
+
+// ── Onboarding ────────────────────────────────────────────────────────────────
+function checkOnboarding() {
+  const key = document.getElementById('apiKey')?.value || '';
+  if (!key || key === 'Uq0TKcRxFVhqq4CvmOk2EStbeyTsONCi') {
+    const seen = localStorage.getItem('fmp_onboarded_v5');
+    if (!seen) showOnboarding();
+  }
+}
+
+let _onboardStep = 0;
+function showOnboarding() {
+  _onboardStep = 0;
+  const overlay = document.getElementById('onboardOverlay');
+  if (overlay) { overlay.classList.remove('hidden'); renderOnboardStep(); }
+}
+function renderOnboardStep() {
+  const steps = [
+    {
+      title: 'Stuart\'s Stock Screener',
+      body: 'A systematic screening tool built on 7 proven financial criteria — CROCI, PEG, Sortino, Beta, Alpha, 6-month momentum, and analyst consensus.\n\nRun it once, see what the data says. Review monthly, not daily.',
+      cta: 'How does it score?',
+    },
+    {
+      title: 'The 7-point score',
+      body: '① CROCI > 10%  — business quality\n② PEG 0–1.5  — growth value\n③ Sortino > 0.5  — downside risk\n④ Beta < 1.5  — stability\n⑤ Alpha > 0  — market outperformance\n⑥ 6M return > 0  — momentum\n⑦ Analyst Buy/Strong Buy\n\n7/7 = PERFECT. 6–7 = STRONG. 4–5 = WATCH. Below 4 = AVOID.',
+      cta: 'Add your API key',
+    },
+    {
+      title: 'Your FMP API key',
+      body: 'Get a free key at financialmodelingprep.com (250 calls/day). For full S&P 500 runs, the Starter plan is needed.\n\nPaste it below and you\'re ready.',
+      cta: 'Get started',
+      showInput: true,
+    },
+  ];
+  const s = steps[_onboardStep];
+  const overlay = document.getElementById('onboardOverlay');
+  if (!overlay) return;
+  overlay.innerHTML = `<div class="onboard-card">
+    <div class="onboard-title">${esc(s.title)}</div>
+    <div class="onboard-body" style="white-space:pre-line">${esc(s.body)}</div>
+    ${s.showInput ? `<input type="text" class="api-input" id="onboardKey" placeholder="Paste your FMP API key…" style="margin-bottom:14px;width:100%" autocomplete="off" spellcheck="false">` : ''}
+    <div class="onboard-nav">
+      ${_onboardStep > 0 ? `<button class="btn btn-filter" onclick="onboardPrev()">Back</button>` : ''}
+      <button class="btn btn-primary" style="flex:1" onclick="onboardNext()">${esc(s.cta)}</button>
+    </div>
+  </div>`;
+}
+function onboardNext() {
+  if (_onboardStep === 2) {
+    const k = document.getElementById('onboardKey')?.value?.trim();
+    if (k) {
+      document.getElementById('apiKey').value = k;
+      localStorage.setItem('fmp_api_key', k);
+    }
+    localStorage.setItem('fmp_onboarded_v5', '1');
+    document.getElementById('onboardOverlay').classList.add('hidden');
+    return;
+  }
+  _onboardStep++;
+  renderOnboardStep();
+}
+function onboardPrev() {
+  _onboardStep = Math.max(0, _onboardStep - 1);
+  renderOnboardStep();
+}
 </script>
+<div class="footer-note">Screening tool for information only. Not investment advice. Do your own research.</div>
 </body>
 </html>
