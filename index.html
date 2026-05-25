@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>Stuart's Stock Screener V5.2.1</title>
+  <title>Stuart's Stock Screener V5.3</title>
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Stock Screener">
@@ -404,6 +404,22 @@
     @media (prefers-reduced-motion: reduce) {
       .row-new { animation: none; }
     }
+    /* V5.3: Score heat map */
+    .map-view { padding: 8px 16px 40px; }
+    .map-sector { margin-bottom: 20px; }
+    .map-sector-hdr { display: flex; justify-content: space-between; align-items: baseline; font-size: 9px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-2); border-bottom: 1px solid var(--line); padding-bottom: 5px; margin-bottom: 7px; }
+    .map-sector-hdr span:last-child { font-family: 'Fraunces', serif; font-size: 11px; font-weight: 700; color: var(--text-1); }
+    .map-tiles { display: flex; flex-wrap: wrap; gap: 4px; }
+    .map-tile { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 6px 9px; border-radius: 5px; cursor: pointer; min-width: 46px; text-align: center; -webkit-tap-highlight-color: transparent; transition: transform 0.1s, filter 0.1s; }
+    .map-tile:active { transform: scale(0.88); }
+    .map-tile-tk { font-size: 10px; font-weight: 700; font-family: 'JetBrains Mono', monospace; line-height: 1.3; }
+    .map-tile-sc { font-size: 8px; opacity: 0.8; line-height: 1; margin-top: 2px; }
+    .map-s7  { background: #f6c90e; color: #1a1500; }
+    .map-s6  { background: var(--green); color: #001508; }
+    .map-s5  { background: rgba(52,211,153,0.42); color: var(--green); }
+    .map-s4  { background: rgba(251,191,36,0.32); color: var(--amber); }
+    .map-s3  { background: rgba(248,113,113,0.28); color: #f87171; }
+    .map-s2  { background: rgba(248,113,113,0.14); color: #f87171; }
     /* V5: Onboarding */
     .onboard-overlay { position:fixed; inset:0; background:var(--bg-0); z-index:400; display:flex; align-items:center; justify-content:center; padding:24px; }
     .onboard-overlay.hidden { display:none; }
@@ -417,7 +433,7 @@
 
 <!-- Header -->
 <div class="header">
-  <div class="header-title">Stuart's Stock Screener V5.2.1</div>
+  <div class="header-title">Stuart's Stock Screener V5.3</div>
   <div class="header-sub">
     Quality · Value · Momentum
     <span class="info-icon" onclick="openInfoModal()" title="Methodology">ⓘ</span>
@@ -477,6 +493,7 @@
   <select class="sector-select" id="sectorSelect" onchange="setSector(this.value)">
     <option value="all">All Industries</option>
   </select>
+  <button class="btn btn-filter btn-view-toggle" id="btnMapToggle" onclick="toggleViewMode()">&#9632;&#9632;&#9632;&#9632; Map</button>
   <button class="btn btn-csv" onclick="exportCSV()">&#8595; CSV</button>
 </div>
 
@@ -526,6 +543,9 @@
     <tbody id="tableBody"></tbody>
   </table>
 </div>
+
+<!-- Score Heat Map View -->
+<div id="mapView" class="map-view" style="display:none"></div>
 
 <!-- Holdings View -->
 <div id="holdingsView" style="display:none"></div>
@@ -832,6 +852,7 @@ let _sortedRows     = [];
 let _scrollTimer    = null;
 let _scoreBandFilter = null;
 let _deltaData      = null;
+let _mapMode        = false;
 let _scoreDist      = null;  // single source of truth for all classification counts
 const delay = ms => new Promise(r => setTimeout(r, ms));
 
@@ -1236,6 +1257,7 @@ async function fetchStock(symbol, apiKey) {
   return {
     ticker: symbol,
     company: p.companyName || '',
+    sector: p.sector || '',
     industry: p.industry || p.sector || '',
     price: +price.toFixed(2),
     score, maxScore, rag,
@@ -1532,9 +1554,9 @@ function getSorted(data) {
 
 // ── Filter ────────────────────────────────────────────────────────────────────
 function setFilter(f, btn) {
-  _scoreBandFilter = null; // clear score band when using main filter
+  _scoreBandFilter = null;
   currentFilter = f;
-  document.querySelectorAll('.btn-filter').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.btn-filter:not(.btn-view-toggle)').forEach(b => b.classList.remove('active'));
   if (btn) btn.classList.add('active');
   debouncedRender(); updateStats();
 }
@@ -1693,6 +1715,7 @@ function debouncedRender() {
 function renderTable() { debouncedRender(); }
 
 function _renderTable() {
+  if (_mapMode) { renderMapView(); return; }
   const tbody = document.getElementById('tableBody');
   if (!tbody) return;
   const sorted = getSorted(getFiltered());
@@ -2105,10 +2128,14 @@ function setView(v) {
     document.getElementById('progressWrap'),
     document.getElementById('msgBanner'),
     document.getElementById('failurePanel'),
-    document.getElementById('tableWrap'),
     document.querySelector('.hero-section'),
     document.getElementById('deltaPanel'),
   ].forEach(el => { if (el) el.style.display = isH ? 'none' : ''; });
+  // Table and map are mutually exclusive; restore correct one when returning from holdings
+  const tw = document.getElementById('tableWrap');
+  const mv = document.getElementById('mapView');
+  if (tw) tw.style.display = isH ? 'none' : (_mapMode ? 'none' : '');
+  if (mv) mv.style.display = isH ? 'none' : (_mapMode ? 'block' : 'none');
   const hv = document.getElementById('holdingsView');
   if (hv) hv.style.display = isH ? 'block' : 'none';
   const hBtn = document.getElementById('btnUnivHoldings');
@@ -2546,6 +2573,66 @@ function closeSettings() {
   document.getElementById('settingsOverlay').classList.remove('visible');
 }
 
+// ── View toggle: table ↔ heat map ─────────────────────────────────────────────
+function toggleViewMode() {
+  _mapMode = !_mapMode;
+  const tw  = document.getElementById('tableWrap');
+  const mv  = document.getElementById('mapView');
+  const btn = document.getElementById('btnMapToggle');
+  if (tw)  tw.style.display  = _mapMode ? 'none'  : '';
+  if (mv)  mv.style.display  = _mapMode ? 'block' : 'none';
+  if (btn) {
+    btn.classList.toggle('active', _mapMode);
+    btn.textContent = _mapMode ? '☰ List' : '⊞ Map';
+  }
+  debouncedRender();
+}
+
+function renderMapView() {
+  const el = document.getElementById('mapView');
+  if (!el) return;
+  const data = getFiltered();
+
+  if (!data.length) {
+    el.innerHTML = '<div style="padding:40px 16px;text-align:center;color:var(--text-2);font-size:13px">No stocks match the current filter.</div>';
+    return;
+  }
+
+  // Group by broad sector; fall back to industry for pre-v5.3 cached data
+  const groups = new Map();
+  data.forEach(s => {
+    const grp = s.sector || s.industry || 'Other';
+    if (!groups.has(grp)) groups.set(grp, []);
+    groups.get(grp).push(s);
+  });
+
+  // Sort sectors by stock count desc; stocks within each sector by score desc then ticker asc
+  const sorted = [...groups.entries()].sort((a, b) => b[1].length - a[1].length);
+  sorted.forEach(([, stocks]) => stocks.sort((a, b) => (b.score - a.score) || a.ticker.localeCompare(b.ticker)));
+
+  const tileCls = s => {
+    if (s.score === 7 && s.maxScore === 7) return 'map-s7';
+    if (s.score >= 6)  return 'map-s6';
+    if (s.score === 5) return 'map-s5';
+    if (s.score === 4) return 'map-s4';
+    if (s.score === 3) return 'map-s3';
+    return 'map-s2';
+  };
+
+  el.innerHTML = sorted.map(([sector, stocks]) => {
+    const tiles = stocks.map(s =>
+      `<div class="map-tile ${tileCls(s)}" onclick="openStockSheet('${esc(s.ticker)}')" title="${esc(s.company)} — ${s.score}/${s.maxScore}">
+        <span class="map-tile-tk">${esc(s.ticker)}</span>
+        <span class="map-tile-sc">${s.score}/${s.maxScore}</span>
+      </div>`
+    ).join('');
+    return `<div class="map-sector">
+      <div class="map-sector-hdr"><span>${esc(sector)}</span><span>${stocks.length}</span></div>
+      <div class="map-tiles">${tiles}</div>
+    </div>`;
+  }).join('');
+}
+
 // ── Score distribution — single source of truth ───────────────────────────────
 // All displayed counts (hero title row, bar segments, distRag summary)
 // derive from this one object. Never compute RAG counts elsewhere.
@@ -2638,9 +2725,8 @@ const SCORE_FILTER_BANDS = { perfect:'perfect', score6:'score6', score5:'score5'
 
 function setScoreFilter(band) {
   _scoreBandFilter = band === _scoreBandFilter ? null : band;
-  // Clear RAG filter
   currentFilter = 'all';
-  document.querySelectorAll('.btn-filter').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.btn-filter:not(.btn-view-toggle)').forEach(b => b.classList.remove('active'));
   document.querySelector('[data-filter="all"]')?.classList.add('active');
   debouncedRender();
   updateStats();
