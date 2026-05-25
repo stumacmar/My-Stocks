@@ -846,6 +846,7 @@ let _sortedRows     = [];
 let _scrollTimer    = null;
 let _scoreBandFilter = null;
 let _deltaData      = null;
+let _scoreDist      = null;  // single source of truth for all classification counts
 const delay = ms => new Promise(r => setTimeout(r, ms));
 
 // ── Built-in tabs ─────────────────────────────────────────────────────────────
@@ -917,7 +918,6 @@ const BUILTIN_TABS = [
   renderTabBar();
   renderTable();
   updateStats();
-  renderDistBar();
   renderDeltaPanel();
   checkOnboarding();
 
@@ -1424,10 +1424,10 @@ async function runScreener() {
     _cacheTimestamp = new Date().toISOString();
     renderDeltaPanel();
 
-    // Summary line
-    const strongCount = results.filter(r => r.rag === 'strong').length;
+    // Summary line — read from the single source of truth
+    const dist = computeScoreDist();
     document.getElementById('headerSummary').textContent =
-      `${results.length} stocks · ${strongCount} STRONG · ${failCount} failed`;
+      `${dist.total} stocks · ${dist.strong} STRONG · ${failCount} failed`;
 
     if (results.length === 0 && firstErr) {
       showMessage(`All stocks failed: ${firstErr.message}`, 'error');
@@ -1731,15 +1731,13 @@ function _renderTable() {
 
 // ── Stats ─────────────────────────────────────────────────────────────────────
 function updateStats() {
-  const strong  = results.filter(r => r.rag === 'strong').length;
-  const watch   = results.filter(r => r.rag === 'watch').length;
-  const avoid   = results.filter(r => r.rag === 'avoid').length;
+  const dist    = computeScoreDist();
   const showing = getFiltered().length;
-  document.getElementById('statStrong').textContent  = results.length ? strong  : '—';
-  document.getElementById('statWatch').textContent   = results.length ? watch   : '—';
-  document.getElementById('statAvoid').textContent   = results.length ? avoid   : '—';
-  document.getElementById('statShowing').textContent = results.length ? showing : '—';
-  renderDistBar();
+  document.getElementById('statStrong').textContent  = dist.total ? dist.strong : '—';
+  document.getElementById('statWatch').textContent   = dist.total ? dist.watch  : '—';
+  document.getElementById('statAvoid').textContent   = dist.total ? dist.avoid  : '—';
+  document.getElementById('statShowing').textContent = dist.total ? showing     : '—';
+  renderDistBar(dist);
 }
 
 // ── Bottom Sheet ──────────────────────────────────────────────────────────────
@@ -2567,13 +2565,31 @@ function closeSettings() {
 }
 
 // ── Score distribution bar ─────────────────────────────────────────────────────
-function renderDistBar() {
-  const bar  = document.getElementById('distBar');
-  const rag  = document.getElementById('distRag');
-  const sum  = document.getElementById('heroSummary');
+// ── Score distribution — single source of truth ───────────────────────────────
+// All displayed counts (stat cards, hero summary, distRag row, headerSummary)
+// derive from this one object. Never compute RAG counts elsewhere.
+function computeScoreDist() {
+  const counts = new Array(8).fill(0);
+  results.forEach(r => { const s = Math.min(7, Math.max(0, r.score || 0)); counts[s]++; });
+  const perfect = counts[7];
+  const strong  = counts[7] + counts[6];
+  const watch   = counts[5] + counts[4];
+  const avoid   = counts[3] + counts[2] + counts[1] + counts[0];
+  const total   = results.length;
+  if (total && strong + watch + avoid !== total) {
+    console.warn('[ScoreDist] Mismatch: strong+watch+avoid =', strong + watch + avoid, '≠ total =', total);
+  }
+  _scoreDist = { counts, perfect, strong, watch, avoid, total };
+  return _scoreDist;
+}
+
+function renderDistBar(dist) {
+  const bar = document.getElementById('distBar');
+  const rag = document.getElementById('distRag');
+  const sum = document.getElementById('heroSummary');
   if (!bar) return;
 
-  if (!results.length) {
+  if (!dist || !dist.total) {
     bar.innerHTML = '';
     if (rag) rag.innerHTML = '';
     if (sum) sum.innerHTML = _cacheTimestamp
@@ -2582,15 +2598,7 @@ function renderDistBar() {
     return;
   }
 
-  // Count by score 0-7
-  const counts = new Array(8).fill(0);
-  results.forEach(r => { const s = Math.min(7, Math.max(0, r.score||0)); counts[s]++; });
-
-  const total   = results.length;
-  const perfect = counts[7];
-  const strong  = results.filter(r => r.rag === 'strong').length;
-  const watch   = results.filter(r => r.rag === 'watch').length;
-  const avoid   = results.filter(r => r.rag === 'avoid').length;
+  const { counts, perfect, strong, watch, avoid, total } = dist;
 
   // Hero summary line
   const newSince = _deltaData?.newPerfect?.length;
@@ -2603,18 +2611,19 @@ function renderDistBar() {
   }
   if (sum) sum.innerHTML = heroText;
 
-  // Distribution segments: 7,6,5,4,3,≤2
+  // Distribution segments: 7, 6, 5, 4, 3, ≤2
   const BANDS = [
-    { score: 7, label: '7/7 ★', cls: 'dist-seg-7',   filter: 'perfect' },
-    { score: 6, label: '6/7',   cls: 'dist-seg-6',   filter: 'score6' },
-    { score: 5, label: '5/7',   cls: 'dist-seg-5',   filter: 'score5' },
-    { score: 4, label: '4/7',   cls: 'dist-seg-4',   filter: 'score4' },
-    { score: 3, label: '3/7',   cls: 'dist-seg-3',   filter: 'score3' },
-    { score: -1, label: '≤2/7', cls: 'dist-seg-low', filter: 'scoreLow' },
+    { score: 7,  label: '7/7 ★', cls: 'dist-seg-7',   filter: 'perfect'  },
+    { score: 6,  label: '6/7',   cls: 'dist-seg-6',   filter: 'score6'   },
+    { score: 5,  label: '5/7',   cls: 'dist-seg-5',   filter: 'score5'   },
+    { score: 4,  label: '4/7',   cls: 'dist-seg-4',   filter: 'score4'   },
+    { score: 3,  label: '3/7',   cls: 'dist-seg-3',   filter: 'score3'   },
+    { score: -1, label: '≤2/7',  cls: 'dist-seg-low', filter: 'scoreLow' },
   ];
 
   bar.innerHTML = BANDS.map(b => {
-    const cnt = b.score === -1 ? counts[0]+counts[1]+counts[2] : counts[b.score];
+    // ≤2/7 segment covers scores 0, 1, 2; score=3 has its own segment
+    const cnt = b.score === -1 ? counts[0] + counts[1] + counts[2] : counts[b.score];
     if (!cnt) return '';
     const pct = (cnt / total * 100).toFixed(1);
     return `<div class="dist-seg ${b.cls}" style="flex:${cnt}" onclick="setScoreFilter('${b.filter}')" title="${b.label}: ${cnt} stocks (${pct}%)">
