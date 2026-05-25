@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>Stuart's Stock Screener V5.2</title>
+  <title>Stuart's Stock Screener V5.2.1</title>
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Stock Screener">
@@ -84,8 +84,6 @@
     .univ-holdings.active { background: var(--amber); color: var(--bg-0); border-color: var(--amber); }
     /* API Card */
     .section { padding: 16px; }
-    .api-card { background: var(--bg-2); border: 1px solid var(--line); border-radius: 10px; padding: 16px; }
-    .api-card-label { font-size: 10px; font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-2); margin-bottom: 10px; }
     .api-input-row { display: flex; gap: 8px; }
     .api-input {
       flex: 1; background: var(--bg-1); border: 1px solid var(--line); border-radius: 6px;
@@ -137,7 +135,6 @@
     .message-banner { margin: 0 16px 12px; padding: 10px 14px; border-radius: 7px; font-size: 12px; display: none; line-height: 1.5; }
     .message-banner.error   { display: block; background: rgba(248,113,113,0.12); border: 1px solid rgba(248,113,113,0.3); color: var(--red); }
     .message-banner.success { display: block; background: rgba(52,211,153,0.12);  border: 1px solid rgba(52,211,153,0.3);  color: var(--green); }
-    /* Stats Grid */
     /* Table */
     .table-wrap {
       padding: 0 16px 40px;
@@ -420,7 +417,7 @@
 
 <!-- Header -->
 <div class="header">
-  <div class="header-title">Stuart's Stock Screener V5.2</div>
+  <div class="header-title">Stuart's Stock Screener V5.2.1</div>
   <div class="header-sub">
     Quality · Value · Momentum
     <span class="info-icon" onclick="openInfoModal()" title="Methodology">ⓘ</span>
@@ -1413,10 +1410,12 @@ async function runScreener() {
     _cacheTimestamp = new Date().toISOString();
     renderDeltaPanel();
 
-    // Summary line — read from the single source of truth
+    // Header line — unique info only (breakdown already in hero bar)
     const dist = computeScoreDist();
-    document.getElementById('headerSummary').textContent =
-      `${dist.total} stocks · ${dist.strong} STRONG · ${failCount} failed`;
+    const hdrEl = document.getElementById('headerSummary');
+    if (hdrEl) hdrEl.textContent = failCount > 0
+      ? `${dist.total} scored · ${failCount} failed to load`
+      : `${dist.total} scored`;
 
     if (results.length === 0 && firstErr) {
       showMessage(`All stocks failed: ${firstErr.message}`, 'error');
@@ -1586,7 +1585,7 @@ function _renderVirtual() {
   if (startIdx > 0) {
     const topSpacer = document.createElement('tr');
     topSpacer.style.height = (startIdx * ROW_HEIGHT) + 'px';
-    topSpacer.innerHTML = '<td colspan="20"></td>';
+    topSpacer.innerHTML = '<td colspan="9999"></td>';
     frag.appendChild(topSpacer);
   }
 
@@ -1673,7 +1672,7 @@ function _renderVirtual() {
   if (remaining > 0) {
     const botSpacer = document.createElement('tr');
     botSpacer.style.height = (remaining * ROW_HEIGHT) + 'px';
-    botSpacer.innerHTML = '<td colspan="20"></td>';
+    botSpacer.innerHTML = '<td colspan="9999"></td>';
     frag.appendChild(botSpacer);
   }
 
@@ -1707,7 +1706,7 @@ function _renderTable() {
   if (!sorted.length) {
     const title = results.length ? 'No results' : 'Ready to screen';
     const sub   = results.length ? 'No stocks match the current filter' : 'Press ► Run Screener to start';
-    tbody.innerHTML = `<tr><td colspan="20"><div class="empty-state">
+    tbody.innerHTML = `<tr><td colspan="9999"><div class="empty-state">
       <div class="empty-state-title">${title}</div>${sub}
     </div></td></tr>`;
     _sortedRows = [];
@@ -2150,6 +2149,7 @@ function renderHoldingsView() {
       </div>
       <div class="h-actions">
         <button class="btn btn-sm btn-filter" onclick="openHoldingModal(null)">+ Add</button>
+        <button class="btn btn-sm btn-filter" onclick="exportHoldings()" title="Export holdings as JSON">↓ Export</button>
         <button class="btn btn-sm btn-primary" id="btnHoldingsRefresh" onclick="refreshHoldings()">⟳ Refresh</button>
       </div>
     </div>
@@ -2546,9 +2546,8 @@ function closeSettings() {
   document.getElementById('settingsOverlay').classList.remove('visible');
 }
 
-// ── Score distribution bar ─────────────────────────────────────────────────────
 // ── Score distribution — single source of truth ───────────────────────────────
-// All displayed counts (stat cards, hero summary, distRag row, headerSummary)
+// All displayed counts (hero title row, bar segments, distRag summary)
 // derive from this one object. Never compute RAG counts elsewhere.
 function computeScoreDist() {
   const counts = new Array(8).fill(0);
