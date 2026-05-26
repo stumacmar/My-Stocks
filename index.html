@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>Stuart's Stock Screener V6</title>
+  <title>Stuart's Stock Screener V6.1</title>
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Stock Screener">
   <meta name="mobile-web-app-capable" content="yes">
-  <meta name="theme-color" content="#0b0d12" media="(prefers-color-scheme: dark)">
+  <meta name="theme-color" content="#0e1117" media="(prefers-color-scheme: dark)">
   <meta name="theme-color" content="#f3f4f7" media="(prefers-color-scheme: light)">
   <meta name="description" content="Stuart's Bloomberg-style stock screener — CROCI, PEG, Sortino and more.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -495,7 +495,7 @@
 
 <!-- Header -->
 <div class="header">
-  <div class="header-title">Stuart's Stock Screener V6</div>
+  <div class="header-title">Stuart's Stock Screener V6.1</div>
   <div class="header-sub">
     Quality · Value · Momentum
     <span class="info-icon" onclick="openInfoModal()" title="Methodology">ⓘ</span>
@@ -992,6 +992,13 @@ const BUILTIN_TABS = [
 
   // Virtual scroll listener
   document.getElementById('tableWrap').addEventListener('scroll', _onTableScroll);
+
+  // Tap-through = delegated handler on stable parent via data-ticker.
+  // Never move listeners onto per-row/tile elements — they're wiped on every render.
+  document.getElementById('tableWrap').addEventListener('click', e => {
+    const row = e.target.closest('tr[data-ticker]');
+    if (row) openStockSheet(row.dataset.ticker);
+  });
 })();
 
 function saveFavorites() {
@@ -1748,7 +1755,7 @@ function _renderVirtual() {
       ${entryPriceCell}
       ${entrySinceCell}`;
 
-    tr.onclick = () => openStockSheet(s.ticker);
+    tr.dataset.ticker = s.ticker;
     frag.appendChild(tr);
   }
 
@@ -1811,7 +1818,7 @@ function updateStats() {
 // ── Bottom Sheet ──────────────────────────────────────────────────────────────
 function openStockSheet(ticker) {
   const s = results.find(r => r.ticker === ticker);
-  if (!s) return;
+  if (!s) { showMessage('Data for ' + ticker + ' not yet loaded.', 'error'); setTimeout(hideMessage, 3000); return; }
 
   const sheet   = document.getElementById('bottomSheet');
   const overlay = document.getElementById('sheetOverlay');
