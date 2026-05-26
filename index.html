@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>Stuart's Stock Screener V5.3</title>
+  <title>Stuart's Stock Screener V5.4</title>
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Stock Screener">
@@ -404,16 +404,18 @@
     @media (prefers-reduced-motion: reduce) {
       .row-new { animation: none; }
     }
-    /* V5.3: Score heat map */
+    /* V5.4: Score treemap */
     .map-view { padding: 8px 16px 40px; }
     .map-sector { margin-bottom: 20px; }
     .map-sector-hdr { display: flex; justify-content: space-between; align-items: baseline; font-size: 9px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-2); border-bottom: 1px solid var(--line); padding-bottom: 5px; margin-bottom: 7px; }
     .map-sector-hdr span:last-child { font-family: 'Fraunces', serif; font-size: 11px; font-weight: 700; color: var(--text-1); }
-    .map-tiles { display: flex; flex-wrap: wrap; gap: 4px; }
-    .map-tile { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 6px 9px; border-radius: 5px; cursor: pointer; min-width: 46px; text-align: center; -webkit-tap-highlight-color: transparent; transition: transform 0.1s, filter 0.1s; }
-    .map-tile:active { transform: scale(0.88); }
-    .map-tile-tk { font-size: 10px; font-weight: 700; font-family: 'JetBrains Mono', monospace; line-height: 1.3; }
-    .map-tile-sc { font-size: 8px; opacity: 0.8; line-height: 1; margin-top: 2px; }
+    .map-tiles { position: relative; overflow: hidden; border-radius: 7px; }
+    .map-tile { position: absolute; display: flex; flex-direction: column; align-items: center; justify-content: center; box-sizing: border-box; padding: 2px; border-radius: 3px; cursor: pointer; text-align: center; -webkit-tap-highlight-color: transparent; transition: filter 0.1s; overflow: hidden; border: 1.5px solid rgba(0,0,0,0.25); }
+    .map-tile:active { filter: brightness(1.2); }
+    .map-tile-tk { font-size: 10px; font-weight: 700; font-family: 'JetBrains Mono', monospace; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+    .map-tile-sc { font-size: 8px; opacity: 0.8; line-height: 1; margin-top: 1px; white-space: nowrap; }
+    .map-tile-mc { font-size: 7px; opacity: 0.6; line-height: 1; margin-top: 1px; white-space: nowrap; }
+    .map-no-mktcap { font-size: 10px; color: var(--text-2); padding: 6px 0 10px; font-style: italic; }
     .map-s7  { background: #f6c90e; color: #1a1500; }
     .map-s6  { background: var(--green); color: #001508; }
     .map-s5  { background: rgba(52,211,153,0.42); color: var(--green); }
@@ -433,7 +435,7 @@
 
 <!-- Header -->
 <div class="header">
-  <div class="header-title">Stuart's Stock Screener V5.3</div>
+  <div class="header-title">Stuart's Stock Screener V5.4</div>
   <div class="header-sub">
     Quality · Value · Momentum
     <span class="info-icon" onclick="openInfoModal()" title="Methodology">ⓘ</span>
@@ -1260,6 +1262,7 @@ async function fetchStock(symbol, apiKey) {
     sector: p.sector || '',
     industry: p.industry || p.sector || '',
     price: +price.toFixed(2),
+    mktCap: +(p.mktCap || p.marketCap || 0),
     score, maxScore, rag,
     croci, peg, sortino, alpha, beta, vol, corr,
     chg6m, chg1m,
@@ -2588,6 +2591,86 @@ function toggleViewMode() {
   debouncedRender();
 }
 
+// ── Squarified treemap helpers ────────────────────────────────────────────────
+function fmtMktCap(v) {
+  if (!v || !isFinite(v)) return '';
+  if (v >= 1e12) return (v / 1e12).toFixed(1) + 'T';
+  if (v >= 1e9)  return (v / 1e9).toFixed(1) + 'B';
+  if (v >= 1e6)  return (v / 1e6).toFixed(0) + 'M';
+  return '<1M';
+}
+
+// Worst aspect ratio of a row of sizes laid along shortSide
+function worstAR(row, shortSide) {
+  const sum = row.reduce((a, b) => a + b, 0);
+  if (sum <= 0 || shortSide <= 0) return Infinity;
+  let worst = 0;
+  for (const s of row) {
+    if (s <= 0) return Infinity;
+    const ar = Math.max(sum * sum / (shortSide * shortSide * s), shortSide * shortSide * s / (sum * sum));
+    if (ar > worst) worst = ar;
+  }
+  return worst;
+}
+
+// Squarified treemap (Bruls et al.) — iterative row-building
+function squarify(items, x, y, w, h) {
+  const result = [];
+  if (!items.length || w <= 0 || h <= 0) return result;
+  const totalSize = items.reduce((acc, i) => acc + i.size, 0);
+  if (totalSize <= 0) return result;
+
+  // Normalise sizes to fill area exactly, sort largest-first
+  const area = w * h;
+  const sorted = [...items]
+    .sort((a, b) => b.size - a.size)
+    .map(i => ({ index: i.index, size: (i.size / totalSize) * area }));
+
+  let rx = x, ry = y, rw = w, rh = h;
+  let ptr = 0;
+
+  while (ptr < sorted.length && rw > 0.5 && rh > 0.5) {
+    const shortSide = Math.min(rw, rh);
+    let row = [];
+    let rowSum = 0;
+    let j = ptr;
+
+    while (j < sorted.length) {
+      const s = sorted[j].size;
+      const candidate = [...row, s];
+      if (row.length === 0 || worstAR(candidate, shortSide) <= worstAR(row, shortSide)) {
+        row.push(s); rowSum += s; j++;
+      } else {
+        break;
+      }
+    }
+    // Guard: ensure at least one item to prevent infinite loop
+    if (row.length === 0) { row.push(sorted[ptr].size); rowSum = row[0]; j = ptr + 1; }
+
+    if (rw >= rh) {
+      const colW = rowSum / rh;
+      let cy = ry;
+      row.forEach((s, k) => {
+        const tileH = rh * s / rowSum;
+        result.push({ index: sorted[ptr + k].index, x: rx, y: cy, w: colW, h: tileH });
+        cy += tileH;
+      });
+      rx += colW; rw -= colW;
+    } else {
+      const rowH = rowSum / rw;
+      let cx = rx;
+      row.forEach((s, k) => {
+        const tileW = rw * s / rowSum;
+        result.push({ index: sorted[ptr + k].index, x: cx, y: ry, w: tileW, h: rowH });
+        cx += tileW;
+      });
+      ry += rowH; rh -= rowH;
+    }
+    ptr = j;
+  }
+  return result;
+}
+
 function renderMapView() {
   const el = document.getElementById('mapView');
   if (!el) return;
@@ -2601,7 +2684,10 @@ function renderMapView() {
     return;
   }
 
-  // Group by broad sector; fall back to industry for pre-v5.3 cached data
+  const hasMktCap = data.some(s => s.mktCap > 0);
+  const containerW = el.clientWidth || (window.innerWidth - 32);
+
+  // Group by sector
   const groups = new Map();
   data.forEach(s => {
     const grp = s.sector || s.industry || 'Other';
@@ -2609,9 +2695,15 @@ function renderMapView() {
     groups.get(grp).push(s);
   });
 
-  // Sort sectors by stock count desc; stocks within each sector by score desc then ticker asc
-  const sorted = [...groups.entries()].sort((a, b) => b[1].length - a[1].length);
-  sorted.forEach(([, stocks]) => stocks.sort((a, b) => (b.score - a.score) || a.ticker.localeCompare(b.ticker)));
+  // Sort sectors by total mktCap desc (or count if no mktCap data)
+  const sorted = [...groups.entries()].sort((a, b) => {
+    if (hasMktCap) {
+      const aSum = a[1].reduce((t, s) => t + (s.mktCap || 0), 0);
+      const bSum = b[1].reduce((t, s) => t + (s.mktCap || 0), 0);
+      return bSum - aSum;
+    }
+    return b[1].length - a[1].length;
+  });
 
   const tileCls = s => {
     if (s.score === 7 && s.maxScore === 7) return 'map-s7';
@@ -2622,18 +2714,54 @@ function renderMapView() {
     return 'map-s2';
   };
 
-  el.innerHTML = sorted.map(([sector, stocks]) => {
-    const tiles = stocks.map(s =>
-      `<div class="map-tile ${tileCls(s)}" onclick="openStockSheet('${esc(s.ticker)}')" title="${esc(s.company)} — ${s.score}/${s.maxScore}">
-        <span class="map-tile-tk">${esc(s.ticker)}</span>
-        <span class="map-tile-sc">${s.score}/${s.maxScore}</span>
-      </div>`
-    ).join('');
+  const GAP = 2;
+  const MIN_W = 44, MIN_H = 30;
+
+  const sectionsHtml = sorted.map(([sector, stocks]) => {
+    // Derive sizes: use mktCap if available, else equal weight
+    const sectorMktCap = stocks.reduce((t, s) => t + (s.mktCap || 0), 0);
+    const useEqualWeight = !hasMktCap || sectorMktCap === 0;
+
+    // Clamp mktCap so tiny stocks still get a usable tile (min 0.5% of sector max)
+    const maxMc = useEqualWeight ? 1 : Math.max(...stocks.map(s => s.mktCap || 0));
+    const minMc = maxMc * 0.005;
+    const items = stocks.map((s, i) => ({
+      index: i,
+      size: useEqualWeight ? 1 : Math.max(s.mktCap || 0, minMc),
+    }));
+
+    // Total area: height proportional to stock count, capped between 80–320px
+    const rowH = Math.max(80, Math.min(320, stocks.length * 28));
+    const totalW = containerW - 32; // 16px padding each side
+
+    const layout = squarify(items, 0, 0, totalW, rowH);
+
+    const tilesHtml = layout.map(rect => {
+      const s = stocks[rect.index];
+      const tw = Math.max(rect.w - GAP, 4);
+      const th = Math.max(rect.h - GAP, 4);
+      const showLabel = tw >= MIN_W && th >= MIN_H;
+      const showScore = tw >= 38 && th >= 22;
+      const showMc = tw >= 54 && th >= 44 && s.mktCap > 0;
+      return `<div class="map-tile ${tileCls(s)}"
+        style="left:${rect.x.toFixed(1)}px;top:${rect.y.toFixed(1)}px;width:${tw.toFixed(1)}px;height:${th.toFixed(1)}px;"
+        onclick="openStockSheet('${esc(s.ticker)}')"
+        title="${esc(s.company)} · ${s.score}/${s.maxScore}${s.mktCap ? ' · ' + fmtMktCap(s.mktCap) : ''}">
+        ${showLabel ? `<span class="map-tile-tk">${esc(s.ticker)}</span>` : ''}
+        ${showScore ? `<span class="map-tile-sc">${s.score}/${s.maxScore}</span>` : ''}
+        ${showMc    ? `<span class="map-tile-mc">${fmtMktCap(s.mktCap)}</span>` : ''}
+      </div>`;
+    }).join('');
+
+    const sectorMcLabel = hasMktCap && sectorMktCap > 0 ? fmtMktCap(sectorMktCap) : stocks.length;
     return `<div class="map-sector">
-      <div class="map-sector-hdr"><span>${esc(sector)}</span><span>${stocks.length}</span></div>
-      <div class="map-tiles">${tiles}</div>
+      <div class="map-sector-hdr"><span>${esc(sector)}</span><span>${sectorMcLabel}</span></div>
+      ${useEqualWeight ? `<div class="map-no-mktcap">Run screener again for market-cap sizing</div>` : ''}
+      <div class="map-tiles" style="height:${rowH}px;">${tilesHtml}</div>
     </div>`;
   }).join('');
+
+  el.innerHTML = sectionsHtml;
 }
 
 // ── Score distribution — single source of truth ───────────────────────────────
