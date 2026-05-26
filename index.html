@@ -409,12 +409,12 @@
     .map-sector { margin-bottom: 20px; }
     .map-sector-hdr { display: flex; justify-content: space-between; align-items: baseline; font-size: 9px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--text-2); border-bottom: 1px solid var(--line); padding-bottom: 5px; margin-bottom: 7px; }
     .map-sector-hdr span:last-child { font-family: 'Fraunces', serif; font-size: 11px; font-weight: 700; color: var(--text-1); }
-    .map-tiles { position: relative; overflow: hidden; border-radius: 7px; }
-    .map-tile { position: absolute; display: flex; flex-direction: column; align-items: center; justify-content: center; box-sizing: border-box; padding: 2px; border-radius: 3px; cursor: pointer; text-align: center; -webkit-tap-highlight-color: transparent; transition: filter 0.1s; overflow: hidden; border: 1.5px solid rgba(0,0,0,0.25); }
+    .map-tiles { position: relative; border-radius: 7px; }
+    .map-tile { position: absolute; display: flex; flex-direction: column; align-items: center; justify-content: center; box-sizing: border-box; padding: 2px; border-radius: 3px; cursor: pointer; pointer-events: auto; text-align: center; -webkit-tap-highlight-color: transparent; transition: filter 0.1s; border: 1.5px solid rgba(0,0,0,0.25); overflow: hidden; }
     .map-tile:active { filter: brightness(1.2); }
-    .map-tile-tk { font-size: 10px; font-weight: 700; font-family: 'JetBrains Mono', monospace; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
-    .map-tile-sc { font-size: 8px; opacity: 0.8; line-height: 1; margin-top: 1px; white-space: nowrap; }
-    .map-tile-mc { font-size: 7px; opacity: 0.6; line-height: 1; margin-top: 1px; white-space: nowrap; }
+    .map-tile-tk { font-size: 10px; font-weight: 700; font-family: 'JetBrains Mono', monospace; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; pointer-events: none; }
+    .map-tile-sc { font-size: 8px; opacity: 0.8; line-height: 1; margin-top: 1px; white-space: nowrap; pointer-events: none; }
+    .map-tile-mc { font-size: 7px; opacity: 0.6; line-height: 1; margin-top: 1px; white-space: nowrap; pointer-events: none; }
     .map-no-mktcap { font-size: 10px; color: var(--text-2); padding: 6px 0 10px; font-style: italic; }
     .map-s7  { background: #f6c90e; color: #1a1500; }
     .map-s6  { background: var(--green); color: #001508; }
@@ -2745,7 +2745,7 @@ function renderMapView() {
       const showMc = tw >= 54 && th >= 44 && s.mktCap > 0;
       return `<div class="map-tile ${tileCls(s)}"
         style="left:${rect.x.toFixed(1)}px;top:${rect.y.toFixed(1)}px;width:${tw.toFixed(1)}px;height:${th.toFixed(1)}px;"
-        onclick="openStockSheet('${esc(s.ticker)}')"
+        data-ticker="${esc(s.ticker)}"
         title="${esc(s.company)} · ${s.score}/${s.maxScore}${s.mktCap ? ' · ' + fmtMktCap(s.mktCap) : ''}">
         ${showLabel ? `<span class="map-tile-tk">${esc(s.ticker)}</span>` : ''}
         ${showScore ? `<span class="map-tile-sc">${s.score}/${s.maxScore}</span>` : ''}
@@ -2762,6 +2762,14 @@ function renderMapView() {
   }).join('');
 
   el.innerHTML = sectionsHtml;
+
+  // Event delegation: single listener handles all tile clicks/taps.
+  // Inline onclick on absolutely-positioned tiles is unreliable in iOS Safari
+  // when the parent has overflow:hidden — delegation on the container bypasses that.
+  el.onclick = e => {
+    const tile = e.target.closest('[data-ticker]');
+    if (tile) openStockSheet(tile.dataset.ticker);
+  };
 }
 
 // ── Score distribution — single source of truth ───────────────────────────────
