@@ -198,6 +198,7 @@
     td {
       padding: 8px 12px; border-bottom: 1px solid var(--line); text-align: right;
       font-size: 13px; color: var(--text-1); white-space: nowrap; font-variant-numeric: tabular-nums;
+      touch-action: manipulation;
     }
     td:nth-child(2), td:nth-child(3), td:nth-child(4) { text-align: left; font-variant-numeric: normal; }
     tbody tr:nth-child(even) td { background: rgba(255,255,255,0.012); }
@@ -469,7 +470,7 @@
     .map-sector-hdr { display: flex; justify-content: space-between; align-items: baseline; font-size: 11px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; color: var(--text-2); border-bottom: 1px solid var(--line); padding-bottom: 7px; margin-bottom: 10px; }
     .map-sector-hdr span:last-child { font-family: 'Fraunces', serif; font-size: 13px; font-weight: 700; color: var(--text-1); font-variant-numeric: tabular-nums; }
     .map-tiles { position: relative; border-radius: var(--r-sm); }
-    .map-tile { position: absolute; display: flex; flex-direction: column; align-items: center; justify-content: center; box-sizing: border-box; padding: 2px; border-radius: 4px; cursor: pointer; pointer-events: auto; text-align: center; -webkit-tap-highlight-color: transparent; transition: filter 0.12s; border: 1.5px solid rgba(0,0,0,0.2); overflow: hidden; }
+    .map-tile { position: absolute; display: flex; flex-direction: column; align-items: center; justify-content: center; box-sizing: border-box; padding: 2px; border-radius: 4px; cursor: pointer; pointer-events: auto; touch-action: manipulation; text-align: center; -webkit-tap-highlight-color: transparent; transition: filter 0.12s; border: 1.5px solid rgba(0,0,0,0.2); overflow: hidden; }
     .map-tile:active { filter: brightness(1.18); }
     .map-tile-tk { font-size: 10px; font-weight: 700; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; pointer-events: none; letter-spacing: 0.3px; }
     .map-tile-sc { font-size: 8px; opacity: 0.8; line-height: 1; margin-top: 1px; white-space: nowrap; pointer-events: none; font-variant-numeric: tabular-nums; }
@@ -991,11 +992,29 @@ const BUILTIN_TABS = [
   checkOnboarding();
 
   // Virtual scroll listener
-  document.getElementById('tableWrap').addEventListener('scroll', _onTableScroll);
+  const _tw = document.getElementById('tableWrap');
+  _tw.addEventListener('scroll', _onTableScroll);
 
-  // Tap-through = delegated handler on stable parent via data-ticker.
-  // Never move listeners onto per-row/tile elements — they're wiped on every render.
-  document.getElementById('tableWrap').addEventListener('click', e => {
+  // Tap-through: primary handler uses touchend (fires before click, works inside
+  // -webkit-overflow-scrolling:touch without the 300ms delay or UIScrollView suppression).
+  // Scroll detection prevents accidental opens during scroll gestures.
+  let _twTouchY = 0, _twDidScroll = false;
+  _tw.addEventListener('touchstart', e => {
+    _twTouchY = e.touches[0].clientY;
+    _twDidScroll = false;
+  }, {passive: true});
+  _tw.addEventListener('touchmove', () => { _twDidScroll = true; }, {passive: true});
+  _tw.addEventListener('touchend', e => {
+    if (_twDidScroll) return;
+    if (e.target.closest('.cell-fav')) return; // star cell — let onclick handle it
+    const row = e.target.closest('tr[data-ticker]');
+    if (row) {
+      e.preventDefault(); // suppress ghost-click on newly-visible overlay
+      openStockSheet(row.dataset.ticker);
+    }
+  });
+  // Click fallback for desktop (pointer) devices
+  _tw.addEventListener('click', e => {
     const row = e.target.closest('tr[data-ticker]');
     if (row) openStockSheet(row.dataset.ticker);
   });
@@ -2830,9 +2849,16 @@ function renderMapView() {
 
   el.innerHTML = sectionsHtml;
 
-  // Event delegation: single listener handles all tile clicks/taps.
-  // Inline onclick on absolutely-positioned tiles is unreliable in iOS Safari
-  // when the parent has overflow:hidden — delegation on the container bypasses that.
+  // Event delegation on #mapView: handles both touch (iOS) and click (desktop).
+  // touchend fires before click and doesn't get swallowed by scroll recognisers.
+  let _mvTouchY = 0, _mvDidScroll = false;
+  el.ontouchstart = e => { _mvTouchY = e.touches[0].clientY; _mvDidScroll = false; };
+  el.ontouchmove  = () => { _mvDidScroll = true; };
+  el.ontouchend   = e => {
+    if (_mvDidScroll) return;
+    const tile = e.target.closest('[data-ticker]');
+    if (tile) { e.preventDefault(); openStockSheet(tile.dataset.ticker); }
+  };
   el.onclick = e => {
     const tile = e.target.closest('[data-ticker]');
     if (tile) openStockSheet(tile.dataset.ticker);
