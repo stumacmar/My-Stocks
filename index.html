@@ -915,6 +915,7 @@ let runStartTime    = null;
 let favorites       = new Map(); // ticker -> {entryPrice, entryDate}
 let currentUniverse = 'sp500';
 let currentTabId    = 'all';
+let _onboardStep    = 0;
 let activeTabIndustryRx = null;
 let customTabs      = [];
 let spyPrices       = [];
@@ -3151,7 +3152,6 @@ function checkOnboarding() {
   }
 }
 
-let _onboardStep = 0;
 function showOnboarding() {
   _onboardStep = 0;
   const overlay = document.getElementById('onboardOverlay');
