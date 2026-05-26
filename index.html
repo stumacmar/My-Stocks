@@ -784,20 +784,6 @@
 <script>
 'use strict';
 
-// ── DIAGNOSTIC LOGGING (temporary) ───────────────────────────────────────────
-document.addEventListener('click', e => {
-  console.log('[DIAG-A] click fired — target:', e.target.tagName,
-    '| class:', e.target.className,
-    '| closest tr[data-ticker]:', e.target.closest('tr[data-ticker]') ? e.target.closest('tr[data-ticker]').dataset.ticker : 'NONE');
-});
-document.addEventListener('touchend', e => {
-  console.log('[DIAG-A] touchend fired — target:', e.target.tagName,
-    '| class:', e.target.className,
-    '| closest tr[data-ticker]:', e.target.closest('tr[data-ticker]') ? e.target.closest('tr[data-ticker]').dataset.ticker : 'NONE',
-    '| closest [data-ticker]:', e.target.closest('[data-ticker]') ? e.target.closest('[data-ticker]').dataset.ticker : 'NONE');
-}, {passive: true});
-// ─────────────────────────────────────────────────────────────────────────────
-
 // ── Metric explanations ───────────────────────────────────────────────────────
 const METRIC_INFO = {
   score: {
@@ -1943,9 +1929,7 @@ function updateStats() {
 
 // ── Bottom Sheet ──────────────────────────────────────────────────────────────
 function openStockSheet(ticker) {
-  console.log('[DIAG-B] HANDLER FIRED', ticker, '| results.length:', results.length);
   const s = results.find(r => r.ticker === ticker);
-  console.log('[DIAG-B] stock found:', s ? 'YES — ' + s.ticker : 'NO — ticker not in results');
   if (!s) { showMessage('Data for ' + ticker + ' not yet loaded.', 'error'); setTimeout(hideMessage, 3000); return; }
 
   const sheet   = document.getElementById('bottomSheet');
@@ -2164,10 +2148,8 @@ function openStockSheet(ticker) {
 
   content.innerHTML = headerHTML + `<div class="sheet-body">${verdictHTML}${criteriaHTML}${chartHTML}${macdHTML}${metricsHTML}${seasonHTML}${analystDetailHTML}</div>`;
 
-  console.log('[DIAG-C] adding .open to sheet — sheet el:', !!sheet, '| overlay el:', !!overlay);
   overlay.classList.add('visible');
   sheet.classList.add('open');
-  console.log('[DIAG-C] sheet classes after:', sheet.className, '| overlay classes after:', overlay.className);
 }
 
 function closeStockSheet() {
