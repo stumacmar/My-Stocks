@@ -18,25 +18,25 @@
     /* ═══ V6 Design System ═══════════════════════════════════════════════ */
     :root {
       /* Surfaces */
-      --bg-0: #0b0d12;
-      --bg-1: #12141d;
-      --bg-2: #191c28;
+      --bg-0: #0e1117;
+      --bg-1: #161b22;
+      --bg-2: #1f2937;
       /* Borders */
-      --line: rgba(255,255,255,0.07);
+      --line: rgba(255,255,255,0.08);
       /* Brand accent */
       --accent: #5eead4;
-      --accent-dim: rgba(94,234,212,0.12);
+      --accent-dim: rgba(94,234,212,0.15);
       /* Semantic colour — used ONLY for data signals */
       --green: #34d399;
       --amber: #fbbf24;
       --red:   #f87171;
       /* Text scale */
-      --text-0: #eef0f4;
-      --text-1: #8a91a8;
-      --text-2: #4d5570;
+      --text-0: #f0f2f5;
+      --text-1: #8b9ab4;
+      --text-2: #4a5568;
       /* Elevation */
       --shadow-sm: 0 1px 4px rgba(0,0,0,0.5);
-      --shadow-md: 0 4px 20px rgba(0,0,0,0.55);
+      --shadow-md: 0 4px 20px rgba(0,0,0,0.6);
       /* Geometry */
       --r-sm:  8px;
       --r-md: 12px;
@@ -49,7 +49,7 @@
         --bg-2: #eef0f5;
         --line: rgba(0,0,0,0.07);
         --accent: #0d9488;
-        --accent-dim: rgba(13,148,136,0.10);
+        --accent-dim: rgba(13,148,136,0.12);
         --green: #059669;
         --amber: #d97706;
         --red:   #dc2626;
@@ -394,11 +394,11 @@
     .dist-seg { display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; transition: flex 0.38s ease, filter 0.15s; gap: 2px; min-width: 8px; -webkit-tap-highlight-color: transparent; overflow: hidden; }
     .dist-seg:hover { filter: brightness(1.15); }
     .dist-seg-7   { background: #f6c90e; color: #1a1500; }
-    .dist-seg-6   { background: var(--green); color: #001a0d; }
-    .dist-seg-5   { background: rgba(52,211,153,0.42); color: var(--green); }
-    .dist-seg-4   { background: rgba(251,191,36,0.28); color: var(--amber); }
-    .dist-seg-3   { background: rgba(248,113,113,0.24); color: var(--red); }
-    .dist-seg-low { background: rgba(248,113,113,0.12); color: #f87171; }
+    .dist-seg-6   { background: #34d399; color: #001a0d; }
+    .dist-seg-5   { background: rgba(52,211,153,0.4); color: #34d399; }
+    .dist-seg-4   { background: rgba(251,191,36,0.32); color: #fbbf24; }
+    .dist-seg-3   { background: rgba(251,140,36,0.32); color: #fb8c24; }
+    .dist-seg-low { background: rgba(248,113,113,0.2); color: #f87171; }
     .dist-seg-count { font-family: 'Fraunces', serif; font-size: 15px; font-weight: 700; }
     .dist-seg-label { font-size: 9px; font-weight: 500; opacity: 0.85; }
     .dist-rag-row { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 10px; font-size: 13px; color: var(--text-1); line-height: 1.5; }
@@ -475,12 +475,12 @@
     .map-tile-sc { font-size: 8px; opacity: 0.8; line-height: 1; margin-top: 1px; white-space: nowrap; pointer-events: none; font-variant-numeric: tabular-nums; }
     .map-tile-mc { font-size: 7px; opacity: 0.6; line-height: 1; margin-top: 1px; white-space: nowrap; pointer-events: none; }
     .map-no-mktcap { font-size: 12px; color: var(--text-2); padding: 6px 0 10px; font-style: italic; }
-    .map-s7  { background: #f6c90e; color: #1a1500; }
-    .map-s6  { background: var(--green); color: #001508; }
-    .map-s5  { background: rgba(52,211,153,0.42); color: var(--green); }
-    .map-s4  { background: rgba(251,191,36,0.32); color: var(--amber); }
-    .map-s3  { background: rgba(248,113,113,0.28); color: #f87171; }
-    .map-s2  { background: rgba(248,113,113,0.14); color: #f87171; }
+    .map-s7 { background: #f6c90e; color: #1a1500; }
+    .map-s6 { background: #34d399; color: #001508; }
+    .map-s5 { background: rgba(52,211,153,0.40); color: #34d399; }
+    .map-s4 { background: rgba(251,191,36,0.32); color: #fbbf24; }
+    .map-s3 { background: rgba(251,140,36,0.28); color: #fb8c24; }
+    .map-s2 { background: rgba(248,113,113,0.18); color: #f87171; }
 
     /* ── Onboarding overlay ──────────────────────────────────────────────── */
     .onboard-overlay { position:fixed; inset:0; background:var(--bg-0); z-index:400; display:flex; align-items:center; justify-content:center; padding:24px; }
