@@ -489,11 +489,11 @@
   <button class="btn btn-filter"        data-filter="watch"     onclick="setFilter('watch',this)">Watch</button>
   <button class="btn btn-filter"        data-filter="avoid"     onclick="setFilter('avoid',this)">Avoid</button>
   <button class="btn btn-filter"        data-filter="favorites" onclick="setFilter('favorites',this)">&#9733; Starred</button>
+  <button class="btn btn-filter btn-view-toggle" id="btnMapToggle" onclick="toggleViewMode()" title="Toggle heat map view">&#9783; Map</button>
   <div class="controls-sep"></div>
   <select class="sector-select" id="sectorSelect" onchange="setSector(this.value)">
     <option value="all">All Industries</option>
   </select>
-  <button class="btn btn-filter btn-view-toggle" id="btnMapToggle" onclick="toggleViewMode()">&#9632;&#9632;&#9632;&#9632; Map</button>
   <button class="btn btn-csv" onclick="exportCSV()">&#8595; CSV</button>
 </div>
 
@@ -2583,7 +2583,7 @@ function toggleViewMode() {
   if (mv)  mv.style.display  = _mapMode ? 'block' : 'none';
   if (btn) {
     btn.classList.toggle('active', _mapMode);
-    btn.textContent = _mapMode ? '☰ List' : '⊞ Map';
+    btn.innerHTML = _mapMode ? '&#9776; List' : '&#9783; Map';
   }
   debouncedRender();
 }
@@ -2594,7 +2594,10 @@ function renderMapView() {
   const data = getFiltered();
 
   if (!data.length) {
-    el.innerHTML = '<div style="padding:40px 16px;text-align:center;color:var(--text-2);font-size:13px">No stocks match the current filter.</div>';
+    const msg = results.length
+      ? 'No stocks match the current filter — try a broader filter above.'
+      : 'Press ▶ Run Screener to load data, then tap ⊙ Map to see the heat map.';
+    el.innerHTML = `<div style="padding:48px 16px;text-align:center;color:var(--text-2);font-size:13px;line-height:1.8">${msg}</div>`;
     return;
   }
 
