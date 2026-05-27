@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>Stuart's Stock Screener V7</title>
+  <title>Stuart's Stock Screener V7.1</title>
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Stock Screener">
@@ -573,7 +573,7 @@
 
 <!-- Header -->
 <div class="header">
-  <div class="header-title">Stuart's Stock Screener V7</div>
+  <div class="header-title">Stuart's Stock Screener V7.1</div>
   <div class="header-sub">
     Quality · Value · Momentum
     <span class="info-icon" onclick="openInfoModal()" title="Methodology">ⓘ</span>
@@ -625,9 +625,9 @@
   <div class="controls-sep"></div>
   <button class="btn btn-filter" data-filter="perfect"   onclick="setFilter('perfect',this)">&#9733; 7/7</button>
   <button class="btn btn-filter active" data-filter="all"       onclick="setFilter('all',this)">All</button>
-  <button class="btn btn-filter"        data-filter="strong"    onclick="setFilter('strong',this)">Strong</button>
-  <button class="btn btn-filter"        data-filter="watch"     onclick="setFilter('watch',this)">Watch</button>
-  <button class="btn btn-filter"        data-filter="avoid"     onclick="setFilter('avoid',this)">Avoid</button>
+  <button class="btn btn-filter"        data-filter="strong"    onclick="setFilter('strong',this)">High score</button>
+  <button class="btn btn-filter"        data-filter="watch"     onclick="setFilter('watch',this)">Mid score</button>
+  <button class="btn btn-filter"        data-filter="avoid"     onclick="setFilter('avoid',this)">Low score</button>
   <button class="btn btn-filter"        data-filter="favorites" onclick="setFilter('favorites',this)">&#9733; Starred</button>
   <button class="btn btn-filter btn-view-toggle" id="btnMapToggle" onclick="toggleViewMode()" title="Toggle heat map view">&#9783; Map</button>
   <div class="controls-sep"></div>
@@ -739,7 +739,7 @@
       6. 6M% &gt; 0<br>
       7. Analyst consensus = Buy or Strong Buy
       <h4>RAG Rating</h4>
-      STRONG ≥ 6 pts · WATCH 4–5 pts · AVOID &lt; 4 pts
+      High score ≥ 6 pts · Mid score 4–5 pts · Low score &lt; 4 pts
       <h4>Data Source</h4>
       All data from Financial Modeling Prep (FMP) API. No values are fabricated.
     </div>
@@ -771,7 +771,7 @@
 <div id="carouselOverlay" class="carousel-overlay" style="display:none">
   <div class="carousel-bg-glow"></div>
   <div class="carousel-header">
-    <div class="carousel-title">&#9733; Perfect Picks</div>
+    <div class="carousel-title">&#9733; 7 of 7</div>
     <button class="carousel-close" onclick="closeCarousel()">&#10005;</button>
   </div>
   <div class="carousel-stage" id="carouselStage">
@@ -798,11 +798,13 @@ document.addEventListener('touchend', e => {
 }, {passive: true});
 // ─────────────────────────────────────────────────────────────────────────────
 
+function ragLabel(r) { return r === 'strong' ? 'High score' : r === 'watch' ? 'Mid score' : 'Low score'; }
+
 // ── Metric explanations ───────────────────────────────────────────────────────
 const METRIC_INFO = {
   score: {
     title: 'Quality Score',
-    body: 'Composite score from 0–7. Each of the seven metrics below adds 1 point when it passes its threshold. <strong>6–7 = Strong</strong>, 4–5 = Watch, 0–3 = Avoid. A perfect 7/7 earns the gold ★ PERFECT badge.',
+    body: 'Composite score from 0–7. Each of the seven metrics below adds 1 point when it passes its threshold. <strong>6–7 = High score</strong>, 4–5 = Mid score, 0–3 = Low score. A 7/7 earns the gold ★ 7 of 7 badge.',
     threshold: null,
   },
   croci: {
@@ -1866,7 +1868,7 @@ function _renderVirtual() {
       <td class="cell-industry" title="${esc(s.industry)}">${esc(s.industry) || '&mdash;'}</td>
       <td class="muted">${fmtPrice(s.price)}</td>
       <td class="cell-score ${isElite ? 'elite' : s.rag}"><div class="score-cell-wrap"><div class="crit-dots">${dots}</div>${s.score}/${s.maxScore}</div></td>
-      <td><span class="rag-badge ${isElite ? 'elite' : s.rag}">${isElite ? '★ PERFECT' : s.rag}</span></td>
+      <td><span class="rag-badge ${isElite ? 'elite' : s.rag}">${isElite ? '★ 7 of 7' : ragLabel(s.rag)}</span></td>
       ${metricTD(s.croci,   v => v > 10,           1, '%')}
       ${metricTD(s.peg,     v => v > 0 && v < 1.5, 2, '')}
       ${metricTD(s.sortino, v => v > 0.5,          2, '')}
@@ -1957,7 +1959,7 @@ function openStockSheet(ticker) {
 
   // Build header
   const isElite  = s.score === 7 && s.maxScore === 7;
-  const ragBadge = `<span class="rag-badge ${isElite ? 'elite' : s.rag}" style="margin-left:8px">${isElite ? '★ PERFECT' : s.rag}</span>`;
+  const ragBadge = `<span class="rag-badge ${isElite ? 'elite' : s.rag}" style="margin-left:8px">${isElite ? '★ 7 of 7' : ragLabel(s.rag)}</span>`;
   let headerHTML = `
     <div class="sheet-header">
       <div>
@@ -2420,7 +2422,7 @@ function renderPortfolioSummary(stats) {
     <div class="h-summary-card">
       <div class="h-summary-label">Avg Score</div>
       <div class="h-summary-val muted">${avgScore}<span style="font-size:12px;color:var(--text-2)">/7</span></div>
-      <div class="h-summary-sub">${stats.countStrong} <span class="pass">Strong</span> · ${stats.countWatch} <span class="warn">Watch</span> · ${stats.countAvoid} <span class="fail">Avoid</span></div>
+      <div class="h-summary-sub">${stats.countStrong} <span class="pass">High score</span> · ${stats.countWatch} <span class="warn">Mid score</span> · ${stats.countAvoid} <span class="fail">Low score</span></div>
     </div>
   </div>`;
 }
@@ -2510,8 +2512,8 @@ function renderHoldingsTable() {
       scoreCell = `<td><span class="cell-score ${elite?'elite':cached.rag}" style="font-size:14px">${cached.score}/${cached.maxScore}</span></td>`;
       if (h.entryRag&&cached.rag) {
         const el = ragOrder[h.entryRag]??1, cl = ragOrder[cached.rag]??1;
-        if (cached.rag==='avoid'&&el>0)       alertCell = `<td><span class="h-alert h-alert-avoid">Was ${h.entryRag.toUpperCase()} → now AVOID. Review.</span></td>`;
-        else if (cached.rag==='watch'&&el===2) alertCell = `<td><span class="h-alert h-alert-watch">Was STRONG → now WATCH. Review.</span></td>`;
+        if (cached.rag==='avoid'&&el>0)       alertCell = `<td><span class="h-alert h-alert-avoid">Was ${ragLabel(h.entryRag)} → now Low score. Review.</span></td>`;
+        else if (cached.rag==='watch'&&el===2) alertCell = `<td><span class="h-alert h-alert-watch">Was High score → now Mid score. Review.</span></td>`;
         else if (cl>=el)                       alertCell = `<td><span class="h-alert h-alert-ok">Quality maintained</span></td>`;
         else                                   alertCell = `<td class="muted">—</td>`;
       } else if (!h.entryRag) {
@@ -3157,10 +3159,10 @@ function renderDeltaPanel() {
   }
 
   const sections = [
-    d.newPerfect.length  ? `<div class="delta-group-title">★ New 7/7 Perfect</div>${makeItems(d.newPerfect, 'NEW ★', 'delta-new')}` : '',
-    d.fellPerfect.length ? `<div class="delta-group-title">Fell from 7/7</div>${makeItems(d.fellPerfect, 'FELL', 'delta-fell')}` : '',
-    d.newStrong.length   ? `<div class="delta-group-title">New to Strong</div>${makeItems(d.newStrong, 'NEW', 'delta-new')}` : '',
-    d.fellStrong.length  ? `<div class="delta-group-title">Fell from Strong</div>${makeItems(d.fellStrong, 'FELL', 'delta-fell')}` : '',
+    d.newPerfect.length  ? `<div class="delta-group-title">★ New 7 of 7</div>${makeItems(d.newPerfect, 'NEW ★', 'delta-new')}` : '',
+    d.fellPerfect.length ? `<div class="delta-group-title">Fell from 7 of 7</div>${makeItems(d.fellPerfect, 'FELL', 'delta-fell')}` : '',
+    d.newStrong.length   ? `<div class="delta-group-title">New to High score</div>${makeItems(d.newStrong, 'NEW', 'delta-new')}` : '',
+    d.fellStrong.length  ? `<div class="delta-group-title">Fell from High score</div>${makeItems(d.fellStrong, 'FELL', 'delta-fell')}` : '',
     d.topClimbers.length ? `<div class="delta-group-title">Biggest climbers</div>${makeMovers(d.topClimbers, 'delta-up')}` : '',
     d.topFallers.length  ? `<div class="delta-group-title">Biggest fallers</div>${makeMovers(d.topFallers, 'delta-fell')}` : '',
   ].filter(Boolean).join('');
@@ -3259,7 +3261,7 @@ function renderOnboardStep() {
     },
     {
       title: 'The 7-point score',
-      body: '① CROCI > 10%  — business quality\n② PEG 0–1.5  — growth value\n③ Sortino > 0.5  — downside risk\n④ Beta < 1.5  — stability\n⑤ Alpha > 0  — market outperformance\n⑥ 6M return > 0  — momentum\n⑦ Analyst Buy/Strong Buy\n\n7/7 = PERFECT. 6–7 = STRONG. 4–5 = WATCH. Below 4 = AVOID.',
+      body: '① CROCI > 10%  — business quality\n② PEG 0–1.5  — growth value\n③ Sortino > 0.5  — downside risk\n④ Beta < 1.5  — stability\n⑤ Alpha > 0  — market outperformance\n⑥ 6M return > 0  — momentum\n⑦ Analyst Buy/Strong Buy\n\n7/7 = ★ 7 of 7. 6–7 = High score. 4–5 = Mid score. Below 4 = Low score.',
       cta: 'Add your API key',
     },
     {
@@ -3305,6 +3307,7 @@ function onboardPrev() {
 let _carouselIdx = 0;
 let _carouselStocks = [];
 let _cTouchStartX = 0;
+let _cTouchStartY = 0;
 
 function openCarousel() {
   _carouselStocks = results.filter(r => r.score === 7 && r.maxScore === 7);
@@ -3312,13 +3315,25 @@ function openCarousel() {
   const overlay = document.getElementById('carouselOverlay');
   overlay.style.display = 'flex';
   renderCarousel();
-  // touch handling
+
   const stage = document.getElementById('carouselStage');
-  stage.ontouchstart = e => { _cTouchStartX = e.touches[0].clientX; };
+  stage.ontouchstart = e => {
+    _cTouchStartX = e.touches[0].clientX;
+    _cTouchStartY = e.touches[0].clientY;
+  };
   stage.ontouchend = e => {
     const dx = e.changedTouches[0].clientX - _cTouchStartX;
-    if (Math.abs(dx) > 40) { dx < 0 ? carouselNext() : carouselPrev(); }
+    const dy = e.changedTouches[0].clientY - _cTouchStartY;
+    if (dy > 70 && Math.abs(dy) > Math.abs(dx)) { closeCarousel(); return; }
+    if (Math.abs(dx) > 25 && Math.abs(dx) > Math.abs(dy)) {
+      e.preventDefault();
+      dx < 0 ? carouselNext() : carouselPrev();
+    }
   };
+
+  // Tap outside cards to close
+  overlay.ontouchend = e => { if (e.target === overlay) closeCarousel(); };
+  overlay.onclick    = e => { if (e.target === overlay) closeCarousel(); };
 }
 
 function closeCarousel() {
@@ -3399,7 +3414,7 @@ function renderCarousel() {
       <div class="carousel-card${isCenter ? ' is-center' : ''}">
         <div class="cc-ticker">${esc(s.ticker)}</div>
         <div class="cc-company">${esc(s.company)}</div>
-        <div class="cc-badge">&#9733; 7/7 Perfect</div>
+        <div class="cc-badge">&#9733; 7 of 7</div>
         <div class="cc-price">${fmtPrice(s.price)}</div>
         <div class="cc-criteria">${critChips}</div>
         ${chartSVG ? `<div class="cc-chart">${chartSVG}</div>` : ''}
@@ -3419,6 +3434,6 @@ function carouselGoTo(idx) {
   renderCarousel();
 }
 </script>
-<div class="footer-note">Screening tool for information only. Not investment advice. Do your own research.</div>
+<div class="footer-note">Information and education only. Not financial advice or a personal recommendation. Capital at risk. Do your own research.</div>
 </body>
 </html>
