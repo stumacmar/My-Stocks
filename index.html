@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>Stuart's Stock Screener V7.1</title>
+  <title>Stuart's Stock Screener V9</title>
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Stock Screener">
@@ -444,6 +444,83 @@
     /* ── Footer ──────────────────────────────────────────────────────────── */
     .footer-note { padding: 18px 20px; font-size: 11px; color: var(--text-2); text-align: center; border-top: 1px solid var(--line); line-height: 1.7; }
 
+    /* ── V9: Mode Nav ────────────────────────────────────────────────────── */
+    .mode-nav { display: flex; gap: 6px; padding: 10px 16px 8px; background: var(--bg-1); border-bottom: 1px solid var(--line); }
+    .mode-btn {
+      flex: 1; padding: 8px 12px; border-radius: 99px; border: 1px solid var(--line);
+      background: transparent; color: var(--text-1); font-family: 'Inter', sans-serif;
+      font-size: 13px; font-weight: 500; cursor: pointer; transition: background 0.18s, color 0.18s, border-color 0.18s;
+      -webkit-tap-highlight-color: transparent; text-align: center;
+    }
+    .mode-btn.active { background: var(--accent); color: var(--bg-0); border-color: var(--accent); font-weight: 600; }
+
+    /* ── V9: Trickle Status Badge ────────────────────────────────────────── */
+    .trickle-status {
+      display: none; font-size: 11px; color: var(--text-2); padding: 4px 16px 6px;
+      background: var(--bg-1); border-bottom: 1px solid var(--line);
+      display: flex; align-items: center; gap: 6px;
+    }
+    .trickle-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); animation: pulse 1.2s ease-in-out infinite; flex-shrink: 0; }
+
+    /* ── V9: Portfolio strip in stock sheet ──────────────────────────────── */
+    .portfolio-strip {
+      background: rgba(20,184,166,0.1); border-left: 3px solid var(--accent);
+      padding: 10px 16px; font-size: 12px; color: var(--text-1); line-height: 1.6;
+    }
+
+    /* ── V9: Chart info button ───────────────────────────────────────────── */
+    .chart-info-btn {
+      background: none; border: none; color: var(--accent); font-size: 14px;
+      cursor: pointer; padding: 0 2px; -webkit-tap-highlight-color: transparent;
+      line-height: 1; vertical-align: middle;
+    }
+
+    /* ── V9: Candle explainer modal ──────────────────────────────────────── */
+    .candle-explainer { }
+    .candle-explainer ul { font-size: 13px; color: var(--text-1); line-height: 1.7; padding-left: 18px; margin: 0; }
+
+    /* ── V9: Settings note ───────────────────────────────────────────────── */
+    .settings-note { font-size: 12px; color: var(--text-2); line-height: 1.65; margin-bottom: 16px; }
+    .settings-section-title { font-size: 11px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; color: var(--text-2); margin-bottom: 8px; margin-top: 20px; }
+    .settings-cache-btns { display: flex; gap: 8px; margin-top: 8px; }
+    .settings-cache-btns button { flex: 1; padding: 9px 12px; border-radius: 99px; border: 1px solid var(--line); background: transparent; color: var(--text-1); font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 500; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+    .settings-cache-btns button:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* ── V9: Portfolio view groups ───────────────────────────────────────── */
+    .portfolio-group-title { font-size: 11px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; color: var(--text-2); padding: 16px 20px 8px; }
+    .portfolio-row { display: flex; align-items: flex-start; gap: 12px; padding: 12px 20px; border-bottom: 1px solid var(--line); cursor: pointer; -webkit-tap-highlight-color: transparent; }
+    .portfolio-row:hover { background: rgba(94,234,212,0.04); }
+    .portfolio-row-left { flex: 1; min-width: 0; }
+    .portfolio-row-right { text-align: right; flex-shrink: 0; }
+    .portfolio-ticker { color: var(--accent); font-weight: 700; font-size: 14px; }
+    .portfolio-name { color: var(--text-1); font-size: 12px; margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .portfolio-sub { color: var(--text-2); font-size: 11px; margin-top: 3px; }
+    .portfolio-value { font-family: 'Fraunces', serif; font-size: 16px; font-weight: 700; font-variant-numeric: tabular-nums; }
+    .portfolio-pnl { font-size: 12px; margin-top: 2px; font-variant-numeric: tabular-nums; }
+    .portfolio-chip { display: inline-block; padding: 2px 7px; border-radius: 99px; font-size: 10px; font-weight: 600; margin-top: 4px; }
+    .chip-review { background: rgba(248,113,113,0.14); color: var(--red); }
+    .chip-watch  { background: rgba(251,191,36,0.14);  color: var(--amber); }
+    .chip-ok     { background: rgba(52,211,153,0.08);  color: var(--green); }
+    .alloc-bar-wrap { margin: 0 20px 20px; }
+    .alloc-bar { display: flex; border-radius: var(--r-sm); overflow: hidden; height: 28px; }
+    .alloc-seg { display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 600; color: rgba(255,255,255,0.9); overflow: hidden; transition: flex 0.4s ease; min-width: 0; }
+    .alloc-labels { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 8px; font-size: 11px; color: var(--text-2); }
+    .alloc-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 4px; }
+    .discipline-footer { padding: 14px 20px 32px; display: flex; align-items: center; justify-content: space-between; border-top: 1px solid var(--line); margin-top: 8px; }
+    .discipline-text { font-size: 11px; color: var(--text-2); line-height: 1.65; }
+    .type-seg-control { display: flex; border-radius: var(--r-sm); overflow: hidden; border: 1px solid var(--line); margin-bottom: 16px; }
+    .type-seg-btn { flex: 1; padding: 8px 4px; border: none; background: transparent; color: var(--text-1); font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 500; cursor: pointer; transition: all 0.15s; text-align: center; -webkit-tap-highlight-color: transparent; border-right: 1px solid var(--line); }
+    .type-seg-btn:last-child { border-right: none; }
+    .type-seg-btn.active { background: var(--accent); color: var(--bg-0); font-weight: 600; }
+    .ticker-autocomplete { position: relative; }
+    .ticker-dropdown { position: absolute; top: 100%; left: 0; right: 0; background: var(--bg-2); border: 1px solid var(--line); border-radius: var(--r-sm); z-index: 10; max-height: 200px; overflow-y: auto; box-shadow: var(--shadow-md); }
+    .ticker-option { padding: 10px 14px; cursor: pointer; font-size: 13px; color: var(--text-1); border-bottom: 1px solid var(--line); -webkit-tap-highlight-color: transparent; }
+    .ticker-option:last-child { border-bottom: none; }
+    .ticker-option:hover, .ticker-option:active { background: rgba(94,234,212,0.08); color: var(--text-0); }
+    .ticker-option strong { color: var(--accent); font-weight: 700; }
+    .cash-field { display: none; }
+    .fund-note { font-size: 11px; color: var(--text-2); margin-top: 4px; display: none; }
+
     /* ── Motion ──────────────────────────────────────────────────────────── */
     @keyframes rowIn { from { opacity:0; transform:translateY(-3px); } to { opacity:1; transform:none; } }
     @keyframes cardIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:none; } }
@@ -571,9 +648,15 @@
 </head>
 <body>
 
+<!-- Mode Nav -->
+<div class="mode-nav">
+  <button onclick="setView('screener')" id="modeScreener" class="mode-btn active">Screen</button>
+  <button onclick="setView('portfolio')" id="modePortfolio" class="mode-btn">Portfolio</button>
+</div>
+
 <!-- Header -->
 <div class="header">
-  <div class="header-title">Stuart's Stock Screener V7.1</div>
+  <div class="header-title">Stuart's Stock Screener V9</div>
   <div class="header-sub">
     Quality · Value · Momentum
     <span class="info-icon" onclick="openInfoModal()" title="Methodology">ⓘ</span>
@@ -581,6 +664,12 @@
   </div>
   <div id="headerRefresh" style="font-size:12px;color:var(--text-2);margin-top:4px"></div>
   <div id="headerSummary" style="font-size:12px;color:var(--text-2);margin-top:2px"></div>
+</div>
+
+<!-- Trickle Refresh Status -->
+<div id="trickleStatus" class="trickle-status" style="display:none">
+  <span class="trickle-dot"></span>
+  <span id="trickleStatusText">Refreshing…</span>
 </div>
 
 <!-- Tab Bar -->
@@ -642,7 +731,7 @@
   <div class="progress-bar-bg">
     <div class="progress-bar-fill" id="progressFill"></div>
   </div>
-  <div class="progress-label"  id="progressLabel"></div>
+  <div class="progress-label"  id="progressLabel"><span id="wakeLockStatus" style="display:none;font-size:10px;color:var(--text-2);margin-left:8px">&#9728; Keeping screen awake</span></div>
   <div class="progress-eta"    id="progressETA"></div>
   <div class="progress-errors" id="liveErrors" style="display:none"></div>
 </div>
@@ -687,7 +776,7 @@
 <!-- Score Heat Map View -->
 <div id="mapView" class="map-view" style="display:none"></div>
 
-<!-- Holdings View -->
+<!-- Portfolio View -->
 <div id="holdingsView" style="display:none"></div>
 
 <!-- Holding Add/Edit Modal -->
@@ -709,6 +798,48 @@
       <input type="password" class="api-input" id="apiKey" placeholder="Paste your FMP API key…" autocomplete="off" spellcheck="false" autocorrect="off" autocapitalize="none">
     </div>
     <div class="api-note">Free key at <a href="https://financialmodelingprep.com" target="_blank" rel="noopener">financialmodelingprep.com</a> — 250 calls/day free tier. Starter plan needed for full S&amp;P 500 runs.</div>
+
+    <div class="settings-section-title">About refreshing</div>
+    <p class="settings-note">iOS and Safari suspend background JavaScript to save battery. A pure web app cannot reliably run for 30 minutes in the background — this is an OS restriction, not a bug. The combination of per-stock caching (work survives interruption), incremental trickle refresh (25 oldest on every open), and screen wake lock (during a full run) covers most real-world use. Please keep this tab open during a full refresh.</p>
+
+    <div class="settings-section-title">Cache</div>
+    <p class="settings-note">Per-stock data is cached locally. Export to back up your cache or share between devices. Import merges into existing data.</p>
+    <div class="settings-cache-btns">
+      <button onclick="exportCache()">&#8595; Export cache</button>
+      <button onclick="document.getElementById('importCacheInput').click()">&#8593; Import cache</button>
+    </div>
+    <input type="file" id="importCacheInput" accept=".json" style="display:none" onchange="importCache(this)">
+  </div>
+</div>
+
+<!-- Candle Explainer Modal -->
+<div class="modal-overlay" id="candleExplainerModal" onclick="if(event.target===this)closeCandleExplainer()">
+  <div class="modal-box">
+    <div class="candle-explainer">
+      <div class="modal-title">Reading a candlestick</div>
+      <p style="font-size:13px;color:var(--text-1);line-height:1.7">Each candle is one day (or week) of trading. The <strong>body</strong> shows where the price opened and closed. The thin <strong>wicks</strong> above and below show the highest and lowest prices reached.</p>
+      <svg viewBox="0 0 180 120" width="180" height="120" style="display:block;margin:16px auto">
+        <line x1="45" y1="15" x2="45" y2="35" stroke="#2ECC71" stroke-width="1.5"/>
+        <rect x="35" y="35" width="20" height="40" fill="#2ECC71" rx="1"/>
+        <line x1="45" y1="75" x2="45" y2="95" stroke="#2ECC71" stroke-width="1.5"/>
+        <text x="75" y="30" font-size="9" fill="#8B949E">High wick</text>
+        <text x="75" y="57" font-size="9" fill="#8B949E">Open&#8594;Close</text>
+        <text x="75" y="90" font-size="9" fill="#8B949E">Low wick</text>
+        <line x1="68" y1="28" x2="55" y2="25" stroke="#4A5568" stroke-width="0.8"/>
+        <line x1="68" y1="55" x2="55" y2="55" stroke="#4A5568" stroke-width="0.8"/>
+        <line x1="68" y1="88" x2="55" y2="88" stroke="#4A5568" stroke-width="0.8"/>
+        <line x1="135" y1="15" x2="135" y2="35" stroke="#E74C3C" stroke-width="1.5"/>
+        <rect x="125" y="35" width="20" height="40" fill="#E74C3C" rx="1"/>
+        <line x1="135" y1="75" x2="135" y2="95" stroke="#E74C3C" stroke-width="1.5"/>
+      </svg>
+      <ul>
+        <li><span style="color:#2ECC71">Green</span> = closed higher than it opened</li>
+        <li><span style="color:#E74C3C">Red</span> = closed lower than it opened</li>
+        <li>Long wicks = wide range, volatile day</li>
+        <li>Small body + small wicks = quiet, indecisive day</li>
+      </ul>
+      <button class="modal-close" onclick="closeCandleExplainer()">Got it</button>
+    </div>
   </div>
 </div>
 
@@ -983,6 +1114,8 @@ const BASE          = 'https://financialmodelingprep.com/stable';
 const DEFAULT_KEY   = 'Uq0TKcRxFVhqq4CvmOk2EStbeyTsONCi';
 const RUN_CACHE_KEY  = 'fmp_run_cache_v5';
 const PREV_RUN_KEY   = 'fmp_prev_run_v5';
+const PER_STOCK_CACHE_KEY = 'fmp_per_stock_v1'; // { [ticker]: { ...stockData, ts, slowTs } }
+const SLOW_CACHE_MS  = 7 * 24 * 3600 * 1000;    // 7 days for profile/fundamental data
 const CRIT_LABELS    = ['CROCI','PEG','Sortino','Beta','Alpha','6M','Analyst'];
 const CRIT_THRESHOLDS= ['>10%','0–1.5','> 0.5','< 1.5','> 0','> 0%','Buy/SB'];
 const STOCK_TIMEOUT = 60000;
@@ -1018,6 +1151,7 @@ let holdings        = [];
 let holdingsCache   = { lastRefresh: null, stocks: {}, spyHistory: [] };
 let _hEditTicker    = null;
 let _hTrackBy       = 'amount';
+let _hType          = 'stock'; // V9: 'stock' | 'fund' | 'etf' | 'etc' | 'cash'
 let _sectorTimer    = null;
 let _sortedRows     = [];
 let _scrollTimer    = null;
@@ -1025,6 +1159,7 @@ let _scoreBandFilter = null;
 let _deltaData      = null;
 let _mapMode        = false;
 let _scoreDist      = null;  // single source of truth for all classification counts
+let _wakeLock       = null;  // V9: Screen Wake Lock API
 const delay = ms => new Promise(r => setTimeout(r, ms));
 
 // ── Built-in tabs ─────────────────────────────────────────────────────────────
@@ -1078,6 +1213,24 @@ const BUILTIN_TABS = [
     }
   } catch(_) {}
 
+  // V9: Also load per-stock cache — merge into results if full-run cache is empty/stale
+  if (!results.length) {
+    try {
+      const perStock = loadPerStockCache();
+      const stocks = Object.values(perStock);
+      if (stocks.length) {
+        results = stocks;
+        console.log('[V9] Loaded', stocks.length, 'stocks from per-stock cache');
+      }
+    } catch(_) {}
+  }
+
+  // Restore last mode
+  try {
+    const savedMode = localStorage.getItem('fmp_mode');
+    if (savedMode === 'portfolio') { currentView = 'portfolio'; }
+  } catch(_) {}
+
   currentUniverse = localStorage.getItem('fmp_universe') || 'sp500';
 
   // Restore last refresh timestamp
@@ -1094,10 +1247,32 @@ const BUILTIN_TABS = [
   updateUniverseUI();
   updateRunButton();
   renderTabBar();
+  // Restore mode view after init elements are ready
+  if (currentView === 'portfolio') {
+    setView('portfolio');
+  }
   renderTable();
   updateStats();
   renderDeltaPanel();
   checkOnboarding();
+
+  // V9: Start trickle refresh after 500ms (only if there's cached data)
+  if (results.length > 0) {
+    setTimeout(() => {
+      const key = document.getElementById('apiKey').value.trim();
+      if (key && !running) trickleRefresh(key).catch(() => {});
+    }, 500);
+  }
+
+  // V9: Wake Lock — release on visibility change
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden && _wakeLock) {
+      _wakeLock.release().catch(() => {});
+      _wakeLock = null;
+      const wls = document.getElementById('wakeLockStatus');
+      if (wls) wls.style.display = 'none';
+    }
+  });
 
   // Virtual scroll listener
   const _tw = document.getElementById('tableWrap');
@@ -1132,6 +1307,134 @@ function saveFavorites() {
   const obj = {};
   favorites.forEach((v, k) => { obj[k] = v; });
   localStorage.setItem('fmp_favorites_v2', JSON.stringify(obj));
+}
+
+// ── V9: Per-stock cache helpers ───────────────────────────────────────────────
+function loadPerStockCache() {
+  try { return JSON.parse(localStorage.getItem(PER_STOCK_CACHE_KEY) || '{}'); } catch(_) { return {}; }
+}
+
+function writePerStockCache(ticker, stock) {
+  try {
+    const cache = loadPerStockCache();
+    const existing = cache[ticker] || {};
+    cache[ticker] = {
+      ticker: stock.ticker,
+      company: stock.company,
+      sector: stock.sector,
+      industry: stock.industry,
+      price: stock.price,
+      mktCap: stock.mktCap,
+      croci: stock.croci,
+      peg: stock.peg,
+      sortino: stock.sortino,
+      beta: stock.beta,
+      alpha: stock.alpha,
+      chg6m: stock.chg6m,
+      chg1m: stock.chg1m,
+      vol: stock.vol,
+      corr: stock.corr,
+      analyst: stock.analyst,
+      history: (stock.history || []).slice(0, 500), // truncate to 500 days
+      macd: stock.macd,
+      signal: stock.signal,
+      macdHist: stock.macdHist,
+      season: stock.season,
+      seasonality: stock.seasonality,
+      score: stock.score,
+      maxScore: stock.maxScore,
+      rag: stock.rag,
+      criteria: stock.criteria,
+      analystBuyCount: stock.analystBuyCount,
+      ts: Date.now(),
+      slowTs: stock._slowTs || existing.slowTs || Date.now(),
+    };
+    localStorage.setItem(PER_STOCK_CACHE_KEY, JSON.stringify(cache));
+  } catch(e) { console.warn('[Cache] write failed:', e.message); }
+}
+
+function saveFullRunCache() {
+  try {
+    localStorage.setItem(RUN_CACHE_KEY, JSON.stringify({
+      results, failures, timestamp: new Date().toISOString(), universe: currentUniverse,
+    }));
+    _cacheTimestamp = new Date().toISOString();
+  } catch(e) { console.warn('[Cache] full run cache write failed:', e.message); }
+}
+
+// ── V9: Trickle status UI ─────────────────────────────────────────────────────
+function showTrickleStatus(msg) {
+  const el = document.getElementById('trickleStatus');
+  const txt = document.getElementById('trickleStatusText');
+  if (el) el.style.display = 'flex';
+  if (txt) txt.textContent = msg;
+}
+function hideTrickleStatus() {
+  const el = document.getElementById('trickleStatus');
+  if (el) el.style.display = 'none';
+}
+
+// ── V9: Trickle refresh — background refresh of 25 oldest stocks ──────────────
+async function trickleRefresh(key) {
+  if (running) return; // don't run during a full screener run
+  const perStock = loadPerStockCache();
+  const all = Object.entries(perStock)
+    .map(([ticker, d]) => ({ ticker, ts: d.ts || 0 }))
+    .sort((a, b) => a.ts - b.ts)
+    .slice(0, 25);
+  if (!all.length) return;
+
+  showTrickleStatus(`Refreshing ${all.length} oldest…`);
+  for (const { ticker } of all) {
+    if (stopRequested || running) break;
+    try {
+      const stock = await fetchStockSafe(ticker, key);
+      const idx = results.findIndex(r => r.ticker === ticker);
+      if (idx >= 0) results[idx] = stock; else results.push(stock);
+      writePerStockCache(ticker, stock);
+      debouncedRender(); updateStats();
+      await delay(STOCK_DELAY);
+    } catch(_) {}
+  }
+  hideTrickleStatus();
+  saveFullRunCache();
+}
+
+// ── V9: Cache export/import ───────────────────────────────────────────────────
+function exportCache() {
+  const perStock = loadPerStockCache();
+  const data = JSON.stringify({ perStock, timestamp: Date.now() }, null, 0);
+  const blob = new Blob([data], {type:'application/json'});
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url; a.download = 'fmp_cache_export.json';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 10000);
+}
+
+function importCache(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const data = JSON.parse(e.target.result);
+      const perStock = data.perStock || data; // support both formats
+      const existing = loadPerStockCache();
+      const merged = { ...existing, ...perStock };
+      localStorage.setItem(PER_STOCK_CACHE_KEY, JSON.stringify(merged));
+      // Rebuild results from merged cache
+      results = Object.values(merged);
+      debouncedRender(); updateStats();
+      showMessage(`Imported ${Object.keys(perStock).length} stocks from cache.`, 'success');
+      setTimeout(hideMessage, 4000);
+    } catch(err) {
+      showMessage('Import failed: ' + err.message, 'error');
+      setTimeout(hideMessage, 5000);
+    }
+    input.value = ''; // reset file input
+  };
+  reader.readAsText(file);
 }
 
 // ── Tab Bar ───────────────────────────────────────────────────────────────────
@@ -1220,7 +1523,7 @@ function setUniverse(u) {
   if (running) return;
   currentUniverse = u;
   localStorage.setItem('fmp_universe', u);
-  if (currentView === 'holdings') {
+  if (currentView === 'portfolio' || currentView === 'holdings') {
     setView('screener');
   } else {
     updateUniverseUI();
@@ -1308,6 +1611,109 @@ function emaArray(prices, period) {
   return result;
 }
 
+// ── V9: Weekly candle aggregation ─────────────────────────────────────────────
+function toWeeklyCandles(data) {
+  const weeks = {};
+  data.forEach(d => {
+    const dt = new Date(d.date);
+    const dayOfWeek = dt.getDay();
+    const monday = new Date(dt);
+    monday.setDate(dt.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1));
+    const wk = monday.toISOString().slice(0, 10);
+    if (!weeks[wk]) weeks[wk] = { date: wk, open: d.open, high: d.high, low: d.low, close: d.close };
+    else {
+      weeks[wk].high  = Math.max(weeks[wk].high, d.high);
+      weeks[wk].low   = Math.min(weeks[wk].low, d.low);
+      weeks[wk].close = d.close;
+    }
+  });
+  return Object.values(weeks).sort((a, b) => a.date.localeCompare(b.date));
+}
+
+// ── V9: Candlestick SVG renderer ──────────────────────────────────────────────
+function renderCandlestickChart(data, W, H, pad, favData) {
+  if (!data || data.length < 2) return '';
+
+  // Auto-aggregate to weekly if more than 125 candles
+  const candles = data.length > 125 ? toWeeklyCandles(data) : data;
+  if (candles.length < 2) return '';
+
+  const minP = Math.min(...candles.map(d => d.low));
+  const maxP = Math.max(...candles.map(d => d.high));
+  const range = maxP - minP || 1;
+
+  const plotW = W - pad * 2;
+  const plotH = H - pad * 2;
+  const bw    = Math.max(2, (plotW / candles.length) * 0.6);
+
+  let svgContent = '';
+
+  // Month axis labels
+  const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  let lastMonth = '';
+  candles.forEach((d, i) => {
+    if (!d.date) return;
+    const mo = d.date.slice(5, 7);
+    if (mo !== lastMonth) {
+      lastMonth = mo;
+      const x = pad + (i / (candles.length - 1)) * plotW;
+      const mName = monthNames[parseInt(mo, 10) - 1];
+      svgContent += `<text x="${x.toFixed(1)}" y="${H + 16}" font-size="9" fill="#5a6175" text-anchor="middle">${mName}</text>`;
+    }
+  });
+
+  // Entry price line (if starred)
+  if (favData && favData.entryPrice != null) {
+    const ep = favData.entryPrice;
+    if (ep >= minP && ep <= maxP) {
+      const ey = (pad + (1 - (ep - minP) / range) * plotH).toFixed(1);
+      svgContent += `<line x1="${pad}" y1="${ey}" x2="${W - pad}" y2="${ey}" stroke="#fbbf24" stroke-width="1" stroke-dasharray="4,3"/>
+        <text x="${W - pad + 2}" y="${parseFloat(ey) + 3}" font-size="8" fill="#fbbf24">Entry</text>`;
+    }
+  }
+
+  // Draw candles
+  candles.forEach((d, i) => {
+    const o = d.open, h = d.high, l = d.low, cl = d.close;
+    const x = pad + (i / (candles.length - 1)) * plotW;
+    const isUp = cl >= o;
+    const color = isUp ? '#2ECC71' : '#E74C3C';
+
+    // Wick (high to low)
+    const yHigh = pad + (1 - (h - minP) / range) * plotH;
+    const yLow  = pad + (1 - (l - minP) / range) * plotH;
+    svgContent += `<line x1="${x.toFixed(1)}" y1="${yHigh.toFixed(1)}" x2="${x.toFixed(1)}" y2="${yLow.toFixed(1)}" stroke="${color}" stroke-width="1"/>`;
+
+    // Body
+    const bodyTop = pad + (1 - (Math.max(o, cl) - minP) / range) * plotH;
+    const bodyBot = pad + (1 - (Math.min(o, cl) - minP) / range) * plotH;
+    const bodyH   = Math.max(1, bodyBot - bodyTop);
+    svgContent += `<rect x="${(x - bw / 2).toFixed(1)}" y="${bodyTop.toFixed(1)}" width="${bw.toFixed(1)}" height="${bodyH.toFixed(1)}" fill="${color}" stroke="${color}" stroke-width="0.5" rx="0.5"/>`;
+  });
+
+  // Price range labels
+  svgContent += `<text x="${pad}" y="${H + 16}" font-size="9" fill="#5a6175">$${minP.toFixed(0)}</text>`;
+  svgContent += `<text x="${W - pad}" y="${pad + 6}" font-size="9" fill="#5a6175" text-anchor="end">$${maxP.toFixed(0)}</text>`;
+
+  // Latest price dot on last candle
+  const lastC = candles[candles.length - 1];
+  const lastX = (W - pad).toFixed(1);
+  const lastY = (pad + (1 - (lastC.close - minP) / range) * plotH).toFixed(1);
+  svgContent += `<circle cx="${lastX}" cy="${lastY}" r="3.5" fill="#5eead4"/>`;
+
+  return `<svg viewBox="0 0 ${W} ${H + 24}" width="100%" style="display:block;background:var(--bg-2);border-radius:8px">
+    ${svgContent}
+  </svg>`;
+}
+
+// ── V9: Candle explainer modal ────────────────────────────────────────────────
+function openCandleExplainer() {
+  document.getElementById('candleExplainerModal').classList.add('visible');
+}
+function closeCandleExplainer() {
+  document.getElementById('candleExplainerModal').classList.remove('visible');
+}
+
 // ── Seasonality ───────────────────────────────────────────────────────────────
 function calcSeasonality(historyFull) {
   const monthly = {};
@@ -1349,39 +1755,83 @@ function withTimeout(promise, ms, message, extras={}) {
 
 // ── fetchStock ────────────────────────────────────────────────────────────────
 async function fetchStock(symbol, apiKey) {
-  // 7 sequential calls
-  const profile    = await fwt(`${BASE}/profile?symbol=${symbol}&apikey=${apiKey}`);
-  const income     = await fwt(`${BASE}/income-statement?symbol=${symbol}&limit=1&apikey=${apiKey}`);
-  const balance    = await fwt(`${BASE}/balance-sheet-statement?symbol=${symbol}&limit=1&apikey=${apiKey}`);
-  const cashflow   = await fwt(`${BASE}/cash-flow-statement?symbol=${symbol}&limit=1&apikey=${apiKey}`);
+  // V9: Check per-stock cache for slow fields (profile/fundamentals — 7-day window)
+  const perStockCache = loadPerStockCache();
+  const cached = perStockCache[symbol] || null;
+  const now = Date.now();
+  const slowFresh = cached && cached.slowTs && (now - cached.slowTs) < SLOW_CACHE_MS;
+
+  let p, i, b, c, r;
+  let _slowTs;
+
+  if (slowFresh) {
+    // Use cached slow fields — skip profile/income/balance/cashflow/ratios calls
+    console.log(`[Cache] ${symbol}: skipped slow fields (fresh)`);
+    p = {
+      price: null, // will be overwritten by quote
+      companyName: cached.company,
+      sector: cached.sector,
+      industry: cached.industry,
+      mktCap: cached.mktCap,
+      beta: cached.beta,
+    };
+    i = {}; b = {}; c = {};
+    r = { priceToEarningsGrowthRatio: cached.peg };
+    _slowTs = cached.slowTs;
+  } else {
+    // Fetch all slow fields
+    const profile    = await fwt(`${BASE}/profile?symbol=${symbol}&apikey=${apiKey}`);
+    const income     = await fwt(`${BASE}/income-statement?symbol=${symbol}&limit=1&apikey=${apiKey}`);
+    const balance    = await fwt(`${BASE}/balance-sheet-statement?symbol=${symbol}&limit=1&apikey=${apiKey}`);
+    const cashflow   = await fwt(`${BASE}/cash-flow-statement?symbol=${symbol}&limit=1&apikey=${apiKey}`);
+    const ratios     = await fwt(`${BASE}/ratios?symbol=${symbol}&limit=1&apikey=${apiKey}`);
+    p = Array.isArray(profile)  ? profile[0]  : profile;
+    i = Array.isArray(income)   ? income[0]   : {};
+    b = Array.isArray(balance)  ? balance[0]  : {};
+    c = Array.isArray(cashflow) ? cashflow[0] : {};
+    r = Array.isArray(ratios)   ? ratios[0]   : {};
+    _slowTs = now;
+  }
+
+  // Always fetch: price history + analyst grades
   const history    = await fwt(`${BASE}/historical-price-eod/full?symbol=${symbol}&apikey=${apiKey}`);
-  const ratios     = await fwt(`${BASE}/ratios?symbol=${symbol}&limit=1&apikey=${apiKey}`);
   const gradesRaw  = await fwt(`${BASE}/grades-consensus?symbol=${symbol}&apikey=${apiKey}`);
 
-  const p = Array.isArray(profile)  ? profile[0]  : profile;
-  const i = Array.isArray(income)   ? income[0]   : {};
-  const b = Array.isArray(balance)  ? balance[0]  : {};
-  const c = Array.isArray(cashflow) ? cashflow[0] : {};
-  const r = Array.isArray(ratios)   ? ratios[0]   : {};
+  // Overwrite price from live quote if we used cached slow fields
+  let livePrice = null;
+  if (slowFresh) {
+    try {
+      const quoteRaw = await fwt(`${BASE}/quote-short?symbol=${symbol}&apikey=${apiKey}`);
+      const q = Array.isArray(quoteRaw) ? quoteRaw[0] : quoteRaw;
+      livePrice = q?.price || null;
+    } catch(_) {}
+    if (livePrice) p.price = livePrice;
+    else if (cached?.price) p.price = cached.price;
+  }
 
-  // Build historyFull (newest-first array of {date, close})
+  // Build historyFull — V9: preserve OHLC data (newest-first)
   const historyFull = Array.isArray(history)
-    ? history.filter(d => d.date && d.close).map(d => ({date: d.date, close: d.close}))
-    : (history?.historical || []).filter(d => d.date && d.close).map(d => ({date: d.date, close: d.close}));
+    ? history.filter(d => d.date && d.close).map(d => ({date:d.date, open:d.open||d.close, high:d.high||d.close, low:d.low||d.close, close:d.close}))
+    : (history?.historical||[]).filter(d=>d.date&&d.close).map(d=>({date:d.date, open:d.open||d.close, high:d.high||d.close, low:d.low||d.close, close:d.close}));
 
   const prices = historyFull.map(d => d.close);
 
   if (!p || !p.price) throw new Error('No price data returned');
 
-  // CROCI
-  const opIncome = i.operatingIncome || 0;
-  const da       = Math.abs(i.depreciationAndAmortization || c.depreciationAndAmortization || 0);
-  const assets   = b.totalAssets || 1;
-  const curLiab  = b.totalCurrentLiabilities || 0;
-  const nopat    = opIncome * 0.79;
-  const gcf      = nopat + da;
-  const gic      = assets + da * 5 - curLiab;
-  const croci    = gic > 0 ? (gcf / gic) * 100 : null;
+  // CROCI — use cached value if slow fields were skipped
+  let croci;
+  if (slowFresh && cached?.croci !== undefined) {
+    croci = cached.croci;
+  } else {
+    const opIncome = i.operatingIncome || 0;
+    const da       = Math.abs(i.depreciationAndAmortization || c.depreciationAndAmortization || 0);
+    const assets   = b.totalAssets || 1;
+    const curLiab  = b.totalCurrentLiabilities || 0;
+    const nopat    = opIncome * 0.79;
+    const gcf      = nopat + da;
+    const gic      = assets + da * 5 - curLiab;
+    croci          = gic > 0 ? (gcf / gic) * 100 : null;
+  }
 
   // Price changes (prices[0] = newest)
   const price = p.price;
@@ -1405,11 +1855,14 @@ async function fetchStock(symbol, apiKey) {
     const v    = rets.reduce((a,b) => a + Math.pow(b - avg, 2), 0) / rets.length;
     vol        = +(Math.sqrt(v) * Math.sqrt(252) * 100).toFixed(1);
   }
+  // Use cached sortino/vol if we used slow cached fields and fresh compute failed
+  if (slowFresh && sortino == null && cached?.sortino != null) sortino = cached.sortino;
+  if (slowFresh && vol == null && cached?.vol != null) vol = cached.vol;
 
   const alpha = chg6m != null ? +((chg6m * 2) - 10).toFixed(1) : null;
-  const beta  = p.beta ? +parseFloat(p.beta).toFixed(2) : null;
+  const beta  = p.beta ? +parseFloat(p.beta).toFixed(2) : (slowFresh && cached?.beta != null ? cached.beta : null);
   const rawPeg = r.priceToEarningsGrowthRatio ?? null;
-  const peg   = rawPeg != null && rawPeg !== 0 ? +parseFloat(rawPeg).toFixed(2) : null;
+  const peg   = rawPeg != null && rawPeg !== 0 ? +parseFloat(rawPeg).toFixed(2) : (slowFresh && cached?.peg != null ? cached.peg : null);
 
   // Pearson correlation with SPY
   const corr = spyPrices.length ? pearsonCorr(prices, spyPrices) : null;
@@ -1452,21 +1905,22 @@ async function fetchStock(symbol, apiKey) {
 
   return {
     ticker: symbol,
-    company: p.companyName || '',
-    sector: p.sector || '',
-    industry: p.industry || p.sector || '',
+    company: p.companyName || (cached?.company) || '',
+    sector: p.sector || (cached?.sector) || '',
+    industry: p.industry || p.sector || (cached?.industry) || '',
     price: +price.toFixed(2),
-    mktCap: +(p.mktCap || p.marketCap || 0),
+    mktCap: +(p.mktCap || p.marketCap || cached?.mktCap || 0),
     score, maxScore, rag,
     croci, peg, sortino, alpha, beta, vol, corr,
     chg6m, chg1m,
     analyst,
     seasonality,
-    history: historyFull,
+    history: historyFull.slice(0, 500), // V9: truncate for localStorage
     // sort helper for analyst column
     analystBuyCount: analyst ? analyst.buyCount : null,
     season: seasonality.thisMonth,
     criteria,
+    _slowTs, // V9: used by writePerStockCache
   };
 }
 
@@ -1515,6 +1969,17 @@ async function runScreener() {
 
   running = true; stopRequested = false; pauseRequested = false; paused = false;
   results = []; failures = []; runStartTime = Date.now();
+
+  // V9: Acquire Wake Lock
+  _wakeLock = null;
+  try {
+    if ('wakeLock' in navigator) {
+      _wakeLock = await navigator.wakeLock.request('screen');
+      const wls = document.getElementById('wakeLockStatus');
+      if (wls) wls.style.display = 'inline';
+      console.log('[V9] Screen Wake Lock acquired');
+    }
+  } catch(_) { console.log('[V9] Wake Lock not available'); }
 
   const universe = getUniverse();
   const total    = universe.length;
@@ -1580,6 +2045,7 @@ async function runScreener() {
       try {
         const stock = await fetchStockSafe(symbol, key);
         results.push(stock);
+        writePerStockCache(symbol, stock); // V9: write immediately after scoring
         debouncedRender();
         updateStats();
         debouncedSectorUpdate();
@@ -1651,6 +2117,14 @@ async function runScreener() {
     progETA.textContent   = '';
     progLabel.textContent = `Failed — ${results.length} stocks loaded`;
   } finally {
+    // V9: Release Wake Lock
+    if (_wakeLock) {
+      try { _wakeLock.release(); } catch(_) {}
+      _wakeLock = null;
+    }
+    const wls = document.getElementById('wakeLockStatus');
+    if (wls) wls.style.display = 'none';
+
     renderFailurePanel();
     _renderTable(); updateStats();
     running = false; stopRequested = false; pauseRequested = false; paused = false;
@@ -1666,6 +2140,13 @@ function stopScreener() {
   if (paused && resumeResolver) { resumeResolver(); resumeResolver = null; }
   const b = document.getElementById('btnStop');
   if (b) { b.disabled = true; b.textContent = '⧖ Stopping…'; }
+  // V9: Release Wake Lock immediately on stop
+  if (_wakeLock) {
+    try { _wakeLock.release(); } catch(_) {}
+    _wakeLock = null;
+    const wls = document.getElementById('wakeLockStatus');
+    if (wls) wls.style.display = 'none';
+  }
 }
 
 // ── Favourites ────────────────────────────────────────────────────────────────
@@ -1970,60 +2451,18 @@ function openStockSheet(ticker) {
       <button class="sheet-close" onclick="closeStockSheet()">✕</button>
     </div>`;
 
-  // Build price chart (6 months = last 125 points, chronological oldest→newest)
-  const chartData = (s.history || []).slice(0, 125).reverse();
+  // V9: Build candlestick price chart (up to 365 days → auto weekly aggregation)
+  const chartData = (s.history || []).slice(0, 365).reverse(); // chronological oldest→newest
   let chartHTML = '';
   if (chartData.length >= 2) {
-    const closes = chartData.map(d => d.close);
-    const minP = Math.min(...closes), maxP = Math.max(...closes);
-    const range = maxP - minP || 1;
-    const W = 400, H = 110, pad = 10;
-    const pts = closes.map((c, i) => {
-      const x = pad + (i / (closes.length - 1)) * (W - pad*2);
-      const y = pad + (1 - (c - minP) / range) * (H - pad*2);
-      return `${x.toFixed(1)},${y.toFixed(1)}`;
-    }).join(' ');
-
-    // Last dot
-    const lastX = (W - pad).toFixed(1);
-    const lastY = (pad + (1 - (closes[closes.length-1] - minP) / range) * (H - pad*2)).toFixed(1);
-
-    // Month labels
-    const monthNames = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-    let monthLabels = '';
-    let lastMonth = '';
-    chartData.forEach((d, i) => {
-      if (!d.date) return;
-      const mo = d.date.slice(5,7);
-      if (mo !== lastMonth) {
-        lastMonth = mo;
-        const x = pad + (i / (chartData.length-1)) * (W - pad*2);
-        const mName = monthNames[parseInt(mo,10)-1];
-        monthLabels += `<text x="${x.toFixed(1)}" y="${H+16}" font-size="9" fill="#5a6175" text-anchor="middle">${mName}</text>`;
-      }
-    });
-
-    // Entry price line (if starred)
-    let entryLine = '';
-    if (favData && favData.entryPrice != null) {
-      const ep = favData.entryPrice;
-      if (ep >= minP && ep <= maxP) {
-        const ey = (pad + (1 - (ep - minP) / range) * (H - pad*2)).toFixed(1);
-        entryLine = `<line x1="${pad}" y1="${ey}" x2="${W-pad}" y2="${ey}" stroke="#fbbf24" stroke-width="1" stroke-dasharray="4,3"/>
-          <text x="${W-pad+2}" y="${parseFloat(ey)+3}" font-size="8" fill="#fbbf24">Entry</text>`;
-      }
-    }
-
+    const candleSVG = renderCandlestickChart(chartData, 400, 110, 10, favData);
+    const isFirstExplainer = !localStorage.getItem('candle_explained_v1');
     chartHTML = `
-      <div class="sheet-section-title">Price Chart (6M)</div>
-      <svg viewBox="0 0 ${W} ${H+24}" width="100%" style="display:block;background:var(--bg-2);border-radius:8px">
-        ${entryLine}
-        <polyline points="${pts}" fill="none" stroke="#5eead4" stroke-width="2" stroke-linejoin="round"/>
-        <circle cx="${lastX}" cy="${lastY}" r="4" fill="#5eead4"/>
-        <text x="${pad}" y="${H+16}" font-size="9" fill="#5a6175">$${minP.toFixed(0)}</text>
-        <text x="${W-pad}" y="${pad+6}" font-size="9" fill="#5a6175" text-anchor="end">$${maxP.toFixed(0)}</text>
-        ${monthLabels}
-      </svg>`;
+      <div class="sheet-section-title" style="display:flex;align-items:center;gap:8px">
+        Price chart
+        <button class="chart-info-btn" onclick="openCandleExplainer()" title="How to read this chart">ⓘ</button>
+      </div>
+      ${candleSVG}`;
   }
 
   // MACD section — prices252 = last 252 days, oldest-first for EMA
@@ -2164,17 +2603,134 @@ function openStockSheet(ticker) {
   const verdictHTML = `<div class="verdict-box">${generateVerdict(s)}</div>`;
   const criteriaHTML = `<div class="sheet-section-title">Score Breakdown — ${s.score}/${s.maxScore}</div>${renderCriteriaList(s)}`;
 
-  content.innerHTML = headerHTML + `<div class="sheet-body">${verdictHTML}${criteriaHTML}${chartHTML}${macdHTML}${metricsHTML}${seasonHTML}${analystDetailHTML}</div>`;
+  // V9: Portfolio strip — show if this stock is in holdings
+  const portfolioHolding = holdings.find(h => h.ticker === ticker && (!h.type || h.type === 'stock'));
+  let portfolioStripHTML = '';
+  if (portfolioHolding) {
+    const entryScore = portfolioHolding.entryScore != null ? portfolioHolding.entryScore : '?';
+    const nowScore   = s.score;
+    portfolioStripHTML = `<div class="portfolio-strip">★ In your portfolio · entered at ${fmtPrice(portfolioHolding.entryPrice)} on ${esc(portfolioHolding.entryDate || '?')} · score then ${entryScore} of 7 · now ${nowScore} of 7</div>`;
+  }
 
-  console.log('[DIAG-C] adding .open to sheet — sheet el:', !!sheet, '| overlay el:', !!overlay);
+  content.innerHTML = portfolioStripHTML + headerHTML + `<div class="sheet-body">${verdictHTML}${criteriaHTML}${chartHTML}${macdHTML}${metricsHTML}${seasonHTML}${analystDetailHTML}</div>`;
+
   overlay.classList.add('visible');
   sheet.classList.add('open');
-  console.log('[DIAG-C] sheet classes after:', sheet.className, '| overlay classes after:', overlay.className);
+
+  // V9: Auto-open candle explainer on first visit
+  if (!localStorage.getItem('candle_explained_v1') && chartData.length >= 2) {
+    localStorage.setItem('candle_explained_v1', '1');
+    setTimeout(() => openCandleExplainer(), 400);
+  }
 }
 
 function closeStockSheet() {
   document.getElementById('bottomSheet').classList.remove('open');
   document.getElementById('sheetOverlay').classList.remove('visible');
+}
+
+// ── V9: Fund/ETF detail sheet ─────────────────────────────────────────────────
+async function openFundSheet(ticker) {
+  const sheet   = document.getElementById('bottomSheet');
+  const overlay = document.getElementById('sheetOverlay');
+  const content = document.getElementById('sheetContent');
+
+  const holding = holdings.find(h => h.ticker === ticker);
+  const cached  = holdingsCache.stocks[ticker] || null;
+
+  // Show loading state
+  content.innerHTML = `<div class="sheet-header"><div><div class="sheet-ticker">${esc(ticker)}</div><div class="sheet-company">Loading…</div></div><button class="sheet-close" onclick="closeStockSheet()">&#10005;</button></div>`;
+  overlay.classList.add('visible');
+  sheet.classList.add('open');
+
+  // Fetch history if not cached
+  let history = cached?.history || null;
+  if (!history || history.length < 10) {
+    try {
+      const key = document.getElementById('apiKey').value.trim();
+      const raw = await fwt(`${BASE}/historical-price-eod/full?symbol=${ticker}&apikey=${key}`);
+      history = Array.isArray(raw)
+        ? raw.filter(d => d.date && d.close).map(d => ({date:d.date, open:d.open||d.close, high:d.high||d.close, low:d.low||d.close, close:d.close}))
+        : (raw?.historical||[]).filter(d => d.date && d.close).map(d => ({date:d.date, open:d.open||d.close, high:d.high||d.close, low:d.low||d.close, close:d.close}));
+      if (!holdingsCache.stocks[ticker]) holdingsCache.stocks[ticker] = {};
+      holdingsCache.stocks[ticker].history = history.slice(0, 500);
+      saveHoldingsCache();
+    } catch(e) { history = []; }
+  }
+
+  const histChron = (history || []).slice(0, 365).reverse(); // chronological for chart
+  const prices252 = (history || []).slice(0, 252).map(d => d.close).filter(Boolean);
+  const currentPrice = cached?.price || (history?.length ? history[0].close : null);
+
+  // P&L
+  let pnlHTML = '';
+  if (holding && holding.entryPrice && currentPrice) {
+    const invested = holding.amountInvested || (holding.shares && holding.entryPrice ? holding.shares * holding.entryPrice : null);
+    let currentVal = null;
+    if (holding.amountInvested && holding.entryPrice) currentVal = holding.amountInvested * (currentPrice / holding.entryPrice);
+    else if (holding.shares) currentVal = holding.shares * currentPrice;
+    if (currentVal != null && invested) {
+      const pnlPct = (currentVal - invested) / invested * 100;
+      const pCls = pnlPct >= 0 ? 'pass' : 'fail';
+      pnlHTML = `<div style="font-size:13px;color:var(--text-1);margin-top:4px">
+        P&L: <span class="${pCls}">${pnlPct >= 0 ? '+' : ''}${pnlPct.toFixed(1)}%</span>
+        · Value: <strong>$${currentVal.toLocaleString('en',{maximumFractionDigits:0})}</strong>
+      </div>`;
+    }
+  }
+
+  // Compute performance metrics from history
+  let perf6m = null, perf12m = null, vol = null, maxDD = null;
+  if (prices252.length > 20) {
+    const p0 = prices252[prices252.length - 1]; // oldest
+    if (prices252.length >= 126) perf6m  = (prices252[0] - prices252[Math.min(125, prices252.length-1)]) / prices252[Math.min(125, prices252.length-1)] * 100;
+    if (prices252.length >= 252) perf12m = (prices252[0] - prices252[251]) / prices252[251] * 100;
+    const rets = [];
+    for (let j = 0; j < prices252.length - 1; j++) {
+      if (prices252[j] && prices252[j+1]) rets.push((prices252[j] - prices252[j+1]) / prices252[j+1]);
+    }
+    if (rets.length > 10) {
+      const avg = rets.reduce((a,b)=>a+b,0)/rets.length;
+      const v = rets.reduce((a,b)=>a+Math.pow(b-avg,2),0)/rets.length;
+      vol = Math.sqrt(v)*Math.sqrt(252)*100;
+    }
+    // Max drawdown
+    let peak = prices252[0];
+    let minDrawdown = 0;
+    for (const p of prices252) {
+      if (p > peak) peak = p;
+      const dd = (p - peak) / peak * 100;
+      if (dd < minDrawdown) minDrawdown = dd;
+    }
+    maxDD = minDrawdown;
+  }
+
+  const chartSVG = histChron.length >= 2 ? renderCandlestickChart(histChron, 400, 110, 10, null) : '';
+  const typeLabel = (holding?.type || 'fund').toUpperCase();
+  const priceStr = currentPrice ? `$${currentPrice.toFixed(2)}` : '—';
+
+  content.innerHTML = `
+    <div class="sheet-header">
+      <div>
+        <div class="sheet-ticker">${esc(ticker)} <span style="font-size:12px;font-weight:400;color:var(--text-2)">${typeLabel}</span></div>
+        <div class="sheet-company">${esc(cached?.company || holding?.note || ticker)}</div>
+        <div class="sheet-price">${priceStr}</div>
+        ${pnlHTML}
+      </div>
+      <button class="sheet-close" onclick="closeStockSheet()">&#10005;</button>
+    </div>
+    <div class="sheet-body">
+      ${chartSVG ? `<div class="sheet-section-title" style="display:flex;align-items:center;gap:8px">Price chart <button class="chart-info-btn" onclick="openCandleExplainer()">ⓘ</button></div>${chartSVG}` : ''}
+      <div class="sheet-section-title">Performance</div>
+      <div class="metrics-grid">
+        <div class="metric-cell"><div class="metric-label">6M Return</div><div class="metric-value ${perf6m == null ? 'muted' : perf6m >= 0 ? 'pass' : 'fail'}">${perf6m != null ? (perf6m >= 0 ? '+' : '') + perf6m.toFixed(1) + '%' : '—'}</div></div>
+        <div class="metric-cell"><div class="metric-label">12M Return</div><div class="metric-value ${perf12m == null ? 'muted' : perf12m >= 0 ? 'pass' : 'fail'}">${perf12m != null ? (perf12m >= 0 ? '+' : '') + perf12m.toFixed(1) + '%' : '—'}</div></div>
+        <div class="metric-cell"><div class="metric-label">Volatility</div><div class="metric-value muted">${vol != null ? vol.toFixed(1) + '%' : '—'}</div></div>
+        <div class="metric-cell"><div class="metric-label">Max Drawdown</div><div class="metric-value ${maxDD == null ? 'muted' : 'fail'}">${maxDD != null ? maxDD.toFixed(1) + '%' : '—'}</div></div>
+      </div>
+      <div style="font-size:11px;color:var(--text-2);margin-top:16px;line-height:1.65">Funds, ETFs and ETCs are not scored on the 7-point quality model — that model is designed for individual equities.</div>
+      <button class="modal-close" style="margin-top:20px" onclick="closeStockSheet()">Close</button>
+    </div>`;
 }
 
 // ── Info Modal ────────────────────────────────────────────────────────────────
@@ -2319,10 +2875,14 @@ function saveHoldingsCache() {
 
 // ── View switching ────────────────────────────────────────────────────────────
 function setView(v) {
-  if (running && v === 'holdings') return;
+  // V9: 'portfolio' is the new canonical name; 'holdings' is kept for backward compat
+  if (v === 'holdings') v = 'portfolio';
+  if (running && v === 'portfolio') return;
   currentView = v;
-  const isH = v === 'holdings';
-  // Elements to hide while holdings view is active
+  const isH = v === 'portfolio';
+  // Persist mode
+  try { localStorage.setItem('fmp_mode', v); } catch(_) {}
+  // Elements to hide while portfolio view is active
   [
     document.querySelector('.tab-bar-wrap'),
     document.querySelector('.tab-new-form'),
@@ -2333,7 +2893,10 @@ function setView(v) {
     document.querySelector('.hero-section'),
     document.getElementById('deltaPanel'),
   ].forEach(el => { if (el) el.style.display = isH ? 'none' : ''; });
-  // Table and map are mutually exclusive; restore correct one when returning from holdings
+  // Trickle status: hide when in portfolio, restore only if it was visible
+  const trickleEl = document.getElementById('trickleStatus');
+  if (trickleEl && isH) trickleEl.style.display = 'none';
+  // Table and map are mutually exclusive; restore correct one when returning from portfolio
   const tw = document.getElementById('tableWrap');
   const mv = document.getElementById('mapView');
   if (tw) tw.style.display = isH ? 'none' : (_mapMode ? 'none' : '');
@@ -2342,6 +2905,11 @@ function setView(v) {
   if (hv) hv.style.display = isH ? 'block' : 'none';
   const hBtn = document.getElementById('btnUnivHoldings');
   if (hBtn) hBtn.classList.toggle('active', isH);
+  // Update mode nav buttons
+  const modeS = document.getElementById('modeScreener');
+  const modeP = document.getElementById('modePortfolio');
+  if (modeS) modeS.classList.toggle('active', !isH);
+  if (modeP) modeP.classList.toggle('active', isH);
   if (!isH) updateUniverseUI();
   else ['btnUnivSP500','btnUnivR1K','btnUnivNasdaq','btnUnivDow'].forEach(id => {
     const b = document.getElementById(id); if (b) b.classList.remove('active');
@@ -2349,7 +2917,7 @@ function setView(v) {
   if (isH) renderHoldingsView();
 }
 
-// ── Render holdings view ──────────────────────────────────────────────────────
+// ── Render holdings view — V9 improved ───────────────────────────────────────
 function renderHoldingsView() {
   const el = document.getElementById('holdingsView');
   if (!el) return;
@@ -2361,7 +2929,7 @@ function renderHoldingsView() {
 
   let refreshBar;
   if (lastStr) {
-    const recentNote = daysSince < 25
+    const recentNote = daysSince != null && daysSince < 25
       ? ` · <span style="color:var(--accent)">Reviewed recently — nothing here needs daily attention.</span>` : '';
     refreshBar = `<div class="h-refresh-bar">Last refreshed: <strong>${lastStr}</strong> · <strong>${daysSince} day${daysSince===1?'':'s'} ago</strong>${recentNote}</div>`;
   } else {
@@ -2370,26 +2938,35 @@ function renderHoldingsView() {
 
   const stats = calcPortfolioStats();
 
+  let bodyHTML = '';
+  if (!holdings.length) {
+    bodyHTML = renderHoldingsEmpty();
+  } else {
+    bodyHTML = `
+      ${stats ? renderPortfolioSummary(stats) : ''}
+      ${stats && stats.portfolioReturn != null && holdingsCache.lastRefresh ? renderBenchmark(stats) : ''}
+      ${renderAllocationBar()}
+      ${renderPortfolioGroups()}
+      ${renderDisciplineFooter(daysSince)}
+    `;
+  }
+
   el.innerHTML = `
     <div class="h-header">
       <div>
-        <div class="h-title">My Holdings</div>
+        <div class="h-title">My Portfolio</div>
         <div class="h-tagline">Review monthly · Not daily</div>
       </div>
       <div class="h-actions">
         <button class="btn btn-sm btn-filter" onclick="openHoldingModal(null)">+ Add</button>
-        <button class="btn btn-sm btn-filter" onclick="exportHoldings()" title="Export holdings as JSON">↓ Export</button>
-        <button class="btn btn-sm btn-primary" id="btnHoldingsRefresh" onclick="refreshHoldings()">⟳ Refresh</button>
+        <button class="btn btn-sm btn-filter" onclick="exportHoldings()" title="Export holdings as JSON">&#8595; Export</button>
+        <button class="btn btn-sm btn-primary" id="btnHoldingsRefresh" onclick="refreshHoldings()">&#8635; Refresh</button>
       </div>
     </div>
     ${refreshBar}
     <div class="h-progress" id="holdingsProgress"></div>
     <div class="h-errors"   id="holdingsErrors"></div>
-    ${!holdings.length ? renderHoldingsEmpty() : `
-      ${stats ? renderPortfolioSummary(stats) : ''}
-      ${stats && stats.portfolioReturn != null && holdingsCache.lastRefresh ? renderBenchmark(stats) : ''}
-      ${renderHoldingsTable()}
-    `}`;
+    ${bodyHTML}`;
 }
 
 function renderHoldingsEmpty() {
@@ -2486,64 +3063,162 @@ function renderBenchmarkBars(portfolioReturn, spyReturn) {
   </svg>`;
 }
 
-function renderHoldingsTable() {
+// V9 portfolio grouping — Stocks / Funds & ETCs / Cash
+function renderPortfolioGroups() {
   const ragOrder = { strong:2, watch:1, avoid:0 };
-  const rows = holdings.map(h => {
+  const stocks  = holdings.filter(h => !h.type || h.type === 'stock');
+  const funds   = holdings.filter(h => h.type === 'fund' || h.type === 'etf' || h.type === 'etc');
+  const cash    = holdings.filter(h => h.type === 'cash');
+
+  function getHoldingValue(h) {
     const cached = holdingsCache.stocks[h.ticker];
-    const invested = h.amountInvested || (h.shares&&h.entryPrice ? h.shares*h.entryPrice : null);
+    const invested = h.amountInvested || (h.shares && h.entryPrice ? h.shares * h.entryPrice : null);
     let currentVal = null;
-    if (h.amountInvested&&h.entryPrice&&cached?.price)  currentVal = h.amountInvested*(cached.price/h.entryPrice);
-    else if (h.shares&&cached?.price)                   currentVal = h.shares*cached.price;
+    if (h.type === 'cash') return { invested: h.manualValue || 0, currentVal: h.manualValue || 0 };
+    if (h.amountInvested && h.entryPrice && cached?.price) currentVal = h.amountInvested * (cached.price / h.entryPrice);
+    else if (h.shares && cached?.price) currentVal = h.shares * cached.price;
+    return { invested, currentVal };
+  }
 
-    const pnlPct = (invested&&currentVal!=null) ? (currentVal-invested)/invested*100 : null;
-    const pnl    = (invested&&currentVal!=null) ? currentVal-invested : null;
-    const pCls   = pnlPct==null?'muted':pnlPct>=0?'pass':'fail';
-    const pPctStr = pnlPct!=null ? `${pnlPct>=0?'+':''}${pnlPct.toFixed(1)}%` : '—';
-    const pStr    = pnl!=null    ? `${pnl>=0?'+$':'-$'}${Math.abs(pnl).toFixed(0)}` : '—';
+  function renderStockRow(h) {
+    const cached = holdingsCache.stocks[h.ticker];
+    const { invested, currentVal } = getHoldingValue(h);
+    const pnlPct = (invested && currentVal != null) ? (currentVal - invested) / invested * 100 : null;
+    const pnl    = (invested && currentVal != null) ? currentVal - invested : null;
+    const pCls   = pnlPct == null ? 'muted' : pnlPct >= 0 ? 'pass' : 'fail';
+    const pPctStr = pnlPct != null ? `${pnlPct >= 0 ? '+' : ''}${pnlPct.toFixed(1)}%` : '—';
+    const valStr  = currentVal != null ? `$${currentVal.toLocaleString('en', {maximumFractionDigits:0})}` : '—';
 
-    const cp = cached?.price;
-    const cpStr = cp!=null ? `$${cp.toFixed(2)}` : '—';
-    const epStr = h.entryPrice!=null ? `$${(+h.entryPrice).toFixed(2)}` : '—';
-
-    let scoreCell = '<td class="muted">—</td>';
-    let alertCell = '<td class="muted">—</td>';
+    let scoreInfo = '';
+    let chipHTML = '';
     if (cached) {
-      const elite = cached.score===7&&cached.maxScore===7;
-      scoreCell = `<td><span class="cell-score ${elite?'elite':cached.rag}" style="font-size:14px">${cached.score}/${cached.maxScore}</span></td>`;
-      if (h.entryRag&&cached.rag) {
-        const el = ragOrder[h.entryRag]??1, cl = ragOrder[cached.rag]??1;
-        if (cached.rag==='avoid'&&el>0)       alertCell = `<td><span class="h-alert h-alert-avoid">Was ${ragLabel(h.entryRag)} → now Low score. Review.</span></td>`;
-        else if (cached.rag==='watch'&&el===2) alertCell = `<td><span class="h-alert h-alert-watch">Was High score → now Mid score. Review.</span></td>`;
-        else if (cl>=el)                       alertCell = `<td><span class="h-alert h-alert-ok">Quality maintained</span></td>`;
-        else                                   alertCell = `<td class="muted">—</td>`;
-      } else if (!h.entryRag) {
-        alertCell = `<td style="font-size:10px;color:var(--text-2)">No baseline yet</td>`;
+      const elite = cached.score === 7 && cached.maxScore === 7;
+      scoreInfo = `Now: <span class="cell-score ${elite?'elite':cached.rag}" style="font-size:11px">${cached.score}/${cached.maxScore}</span>`;
+      if (h.entryRag && cached.rag) {
+        const el = ragOrder[h.entryRag] ?? 1, cl = ragOrder[cached.rag] ?? 1;
+        if (cached.rag === 'avoid' && el > 0)       chipHTML = `<span class="portfolio-chip chip-review">Was ${ragLabel(h.entryRag)}, now Low — review</span>`;
+        else if (cached.rag === 'watch' && el === 2) chipHTML = `<span class="portfolio-chip chip-watch">Was High score, now Mid — review</span>`;
+        else if (cl >= el)                           chipHTML = `<span class="portfolio-chip chip-ok">Quality maintained</span>`;
       }
     }
+    const entryScore = h.entryScore != null ? ` · Entry: ${h.entryScore}/7` : '';
+    const subLine = `Entered ${esc(h.entryDate || '?')} at ${fmtPrice(h.entryPrice)}${entryScore}${scoreInfo ? ' · ' + scoreInfo : ''}`;
 
-    return `<tr onclick="openHoldingModal('${esc(h.ticker)}')">
-      <td class="cell-ticker">${esc(h.ticker)}</td>
-      <td class="cell-company">${esc(cached?.company||h.ticker)}</td>
-      <td class="muted">${epStr}</td>
-      <td class="muted">${cpStr}</td>
-      <td class="${pCls}">${pPctStr}</td>
-      <td class="${pCls}" style="font-size:11px">${pStr}</td>
-      ${scoreCell}
-      ${alertCell}
-    </tr>`;
-  }).join('');
+    return `<div class="portfolio-row" onclick="openStockSheet('${esc(h.ticker)}')">
+      <div class="portfolio-row-left">
+        <div class="portfolio-ticker">${esc(h.ticker)}</div>
+        <div class="portfolio-name">${esc(cached?.company || h.ticker)}</div>
+        <div class="portfolio-sub">${subLine}</div>
+        ${chipHTML}
+      </div>
+      <div class="portfolio-row-right">
+        <div class="portfolio-value ${pCls}">${valStr}</div>
+        <div class="portfolio-pnl ${pCls}">${pPctStr} (${pnl != null ? (pnl >= 0 ? '+$' : '-$') + Math.abs(pnl).toFixed(0) : '—'})</div>
+        <div style="font-size:11px;color:var(--text-2);margin-top:4px"><button style="font-size:10px;color:var(--text-2);background:none;border:1px solid var(--line);border-radius:99px;padding:2px 8px;cursor:pointer" onclick="event.stopPropagation();openHoldingModal('${esc(h.ticker)}')">Edit</button></div>
+      </div>
+    </div>`;
+  }
 
-  return `<div class="h-table-wrap">
-    <div class="h-section-title" style="padding-top:16px">Holdings <span style="font-weight:400;color:var(--text-2)">(tap to edit)</span></div>
-    <table class="h-table">
-      <thead><tr>
-        <th style="text-align:left">Ticker</th>
-        <th style="text-align:left">Company</th>
-        <th>Entry</th><th>Price</th><th>P&amp;L %</th><th>P&amp;L $</th>
-        <th>Score</th><th>Status</th>
-      </tr></thead>
-      <tbody>${rows}</tbody>
-    </table>
+  function renderFundRow(h) {
+    const cached = holdingsCache.stocks[h.ticker];
+    const { invested, currentVal } = getHoldingValue(h);
+    const pnlPct = (invested && currentVal != null) ? (currentVal - invested) / invested * 100 : null;
+    const pnl    = (invested && currentVal != null) ? currentVal - invested : null;
+    const pCls   = pnlPct == null ? 'muted' : pnlPct >= 0 ? 'pass' : 'fail';
+    const pPctStr = pnlPct != null ? `${pnlPct >= 0 ? '+' : ''}${pnlPct.toFixed(1)}%` : '—';
+    const valStr  = currentVal != null ? `$${currentVal.toLocaleString('en', {maximumFractionDigits:0})}` : '—';
+    const typeLabel = (h.type || 'fund').toUpperCase();
+
+    return `<div class="portfolio-row" onclick="openFundSheet('${esc(h.ticker)}')">
+      <div class="portfolio-row-left">
+        <div class="portfolio-ticker">${esc(h.ticker)} <span style="font-size:10px;color:var(--text-2);font-weight:400">${typeLabel}</span></div>
+        <div class="portfolio-name">${esc(cached?.company || h.ticker)}</div>
+        <div class="portfolio-sub">Entered ${esc(h.entryDate || '?')} at ${fmtPrice(h.entryPrice)}</div>
+      </div>
+      <div class="portfolio-row-right">
+        <div class="portfolio-value ${pCls}">${valStr}</div>
+        <div class="portfolio-pnl ${pCls}">${pPctStr} (${pnl != null ? (pnl >= 0 ? '+$' : '-$') + Math.abs(pnl).toFixed(0) : '—'})</div>
+        <div style="font-size:11px;color:var(--text-2);margin-top:4px"><button style="font-size:10px;color:var(--text-2);background:none;border:1px solid var(--line);border-radius:99px;padding:2px 8px;cursor:pointer" onclick="event.stopPropagation();openHoldingModal('${esc(h.ticker)}')">Edit</button></div>
+      </div>
+    </div>`;
+  }
+
+  function renderCashRow(h) {
+    const val = h.manualValue || 0;
+    const rateStr = h.interestRate ? ` · ${h.interestRate}% p.a.` : '';
+    return `<div class="portfolio-row" onclick="openHoldingModal('${esc(h.ticker)}')">
+      <div class="portfolio-row-left">
+        <div class="portfolio-ticker">${esc(h.ticker)}</div>
+        <div class="portfolio-name">${esc(h.note || 'Cash')}</div>
+        <div class="portfolio-sub">Manual value${rateStr}</div>
+      </div>
+      <div class="portfolio-row-right">
+        <div class="portfolio-value muted">$${val.toLocaleString('en', {maximumFractionDigits:0})}</div>
+      </div>
+    </div>`;
+  }
+
+  let html = '';
+  if (stocks.length) {
+    html += `<div class="portfolio-group-title">Stocks (${stocks.length})</div>`;
+    html += stocks.map(renderStockRow).join('');
+  }
+  if (funds.length) {
+    html += `<div class="portfolio-group-title">Funds &amp; ETCs (${funds.length})</div>`;
+    html += funds.map(renderFundRow).join('');
+  }
+  if (cash.length) {
+    html += `<div class="portfolio-group-title">Cash (${cash.length})</div>`;
+    html += cash.map(renderCashRow).join('');
+  }
+  return html || '';
+}
+
+function renderAllocationBar() {
+  if (!holdings.length) return '';
+  const stocks = holdings.filter(h => !h.type || h.type === 'stock');
+  const funds  = holdings.filter(h => h.type === 'fund' || h.type === 'etf' || h.type === 'etc');
+  const cash   = holdings.filter(h => h.type === 'cash');
+
+  function val(h) {
+    if (h.type === 'cash') return h.manualValue || 0;
+    const cached = holdingsCache.stocks[h.ticker];
+    if (h.amountInvested && h.entryPrice && cached?.price) return h.amountInvested * (cached.price / h.entryPrice);
+    if (h.shares && cached?.price) return h.shares * cached.price;
+    return h.amountInvested || (h.shares && h.entryPrice ? h.shares * h.entryPrice : 0);
+  }
+
+  const sVal = stocks.reduce((t, h) => t + val(h), 0);
+  const fVal = funds.reduce((t, h) => t + val(h), 0);
+  const cVal = cash.reduce((t, h) => t + val(h), 0);
+  const total = sVal + fVal + cVal;
+  if (!total) return '';
+
+  const sp = (sVal / total * 100).toFixed(1);
+  const fp = (fVal / total * 100).toFixed(1);
+  const cp = (cVal / total * 100).toFixed(1);
+
+  const segs = [
+    { pct: sp, color: 'var(--accent)', label: `Stocks ${sp}%` },
+    { pct: fp, color: '#8B5CF6', label: `Funds ${fp}%` },
+    { pct: cp, color: '#64748B', label: `Cash ${cp}%` },
+  ].filter(s => parseFloat(s.pct) > 0);
+
+  const bars = segs.map(s => `<div class="alloc-seg" style="flex:${s.pct};background:${s.color}">${parseFloat(s.pct) > 10 ? s.label : ''}</div>`).join('');
+  const labels = segs.map(s => `<span><span class="alloc-dot" style="background:${s.color}"></span>${s.label}</span>`).join('');
+
+  return `<div class="alloc-bar-wrap">
+    <div style="font-size:11px;font-weight:600;letter-spacing:0.5px;text-transform:uppercase;color:var(--text-2);margin-bottom:8px">Allocation</div>
+    <div class="alloc-bar">${bars}</div>
+    <div class="alloc-labels">${labels}</div>
+  </div>`;
+}
+
+function renderDisciplineFooter(daysSince) {
+  const lastReviewed = daysSince != null ? `${daysSince} day${daysSince === 1 ? '' : 's'} ago` : 'Not yet';
+  return `<div class="discipline-footer">
+    <div class="discipline-text">Last reviewed: <strong>${lastReviewed}</strong><br>Next scheduled review: monthly</div>
+    <button class="btn btn-sm btn-filter" onclick="refreshHoldings()">&#8635; Refresh now</button>
   </div>`;
 }
 
@@ -2646,11 +3321,14 @@ async function refreshHoldings() {
   renderHoldingsView();
 }
 
-// ── Add / Edit holding modal ──────────────────────────────────────────────────
+// ── V9: Add / Edit holding modal — 5 types ───────────────────────────────────
+let _tickerSearchTimer = null;
+
 function openHoldingModal(ticker) {
   _hEditTicker = ticker;
-  const existing = ticker ? holdings.find(h=>h.ticker===ticker) : null;
-  _hTrackBy = existing ? (existing.shares!=null?'shares':'amount') : 'amount';
+  const existing = ticker ? holdings.find(h => h.ticker === ticker) : null;
+  _hTrackBy = existing ? (existing.shares != null ? 'shares' : 'amount') : 'amount';
+  _hType    = existing?.type || 'stock';
   document.getElementById('holdingModalTitle').textContent = existing ? `Edit — ${ticker}` : 'Add Holding';
   renderHoldingForm(existing);
   document.getElementById('holdingModal').classList.add('visible');
@@ -2658,34 +3336,76 @@ function openHoldingModal(ticker) {
 function closeHoldingModal() {
   document.getElementById('holdingModal').classList.remove('visible');
 }
-function renderHoldingForm(existing) {
-  const ep      = existing?.entryPrice!=null  ? (+existing.entryPrice).toFixed(2)  : '';
-  const ed      = existing?.entryDate         || new Date().toISOString().slice(0,10);
-  const note    = existing?.note              || '';
-  const shares  = existing?.shares!=null      ? existing.shares  : '';
-  const amount  = existing?.amountInvested!=null ? (+existing.amountInvested).toFixed(2) : '';
-  const isEdit  = !!existing;
 
-  const amtActive = _hTrackBy==='amount'?' active':'';
-  const shrActive = _hTrackBy==='shares'?' active':'';
-  const inputField = _hTrackBy==='amount'
-    ? `<div class="hf-group"><div class="hf-label">Amount Invested (USD $)</div><input class="hf-input" id="hf-amount" type="number" min="0" step="0.01" placeholder="e.g. 1500.00" value="${esc(String(amount))}"></div>`
-    : `<div class="hf-group"><div class="hf-label">Number of Shares</div><input class="hf-input" id="hf-shares" type="number" min="0" step="0.01" placeholder="e.g. 10" value="${esc(String(shares))}"></div>`;
+function hfSetType(t) {
+  _hType = t;
+  renderHoldingForm(_hEditTicker ? holdings.find(h => h.ticker === _hEditTicker) : null);
+}
+
+function renderHoldingForm(existing) {
+  const ep     = existing?.entryPrice != null   ? (+existing.entryPrice).toFixed(2) : '';
+  const ed     = existing?.entryDate            || new Date().toISOString().slice(0, 10);
+  const note   = existing?.note                 || '';
+  const shares = existing?.shares != null       ? existing.shares : '';
+  const amount = existing?.amountInvested != null ? (+existing.amountInvested).toFixed(2) : '';
+  const manVal = existing?.manualValue != null  ? (+existing.manualValue).toFixed(2) : '';
+  const rate   = existing?.interestRate         || '';
+  const isEdit = !!existing;
+  const isCash = _hType === 'cash';
+  const isStock = _hType === 'stock';
+  const isFundType = _hType === 'fund' || _hType === 'etf' || _hType === 'etc';
+
+  const types = ['stock', 'fund', 'etf', 'etc', 'cash'];
+  const typeLabels = { stock: 'Stock', fund: 'Fund', etf: 'ETF', etc: 'ETC', cash: 'Cash' };
+  const typeCtrl = `<div class="type-seg-control">
+    ${types.map(t => `<button class="type-seg-btn${_hType === t ? ' active' : ''}" onclick="hfSetType('${t}')">${typeLabels[t]}</button>`).join('')}
+  </div>`;
+
+  const amtActive = _hTrackBy === 'amount' ? ' active' : '';
+  const shrActive = _hTrackBy === 'shares' ? ' active' : '';
+  const trackToggle = !isCash ? `<div class="hf-toggle">
+    <button class="hf-toggle-btn${amtActive}" onclick="hfSetTrackBy('amount')">By Amount ($)</button>
+    <button class="hf-toggle-btn${shrActive}" onclick="hfSetTrackBy('shares')">By Shares</button>
+  </div>` : '';
+  const inputField = isCash
+    ? `<div class="hf-group"><div class="hf-label">Manual value ($)</div><input class="hf-input" id="hf-manualValue" type="number" min="0" step="0.01" placeholder="e.g. 5000.00" value="${esc(String(manVal))}"></div>
+       <div class="hf-group"><div class="hf-label">Interest rate % (optional)</div><input class="hf-input" id="hf-rate" type="number" min="0" step="0.01" placeholder="e.g. 4.5" value="${esc(String(rate))}"></div>`
+    : (_hTrackBy === 'amount'
+      ? `<div class="hf-group"><div class="hf-label">Amount Invested ($)</div><input class="hf-input" id="hf-amount" type="number" min="0" step="0.01" placeholder="e.g. 1500.00" value="${esc(String(amount))}"></div>`
+      : `<div class="hf-group"><div class="hf-label">Number of Shares</div><input class="hf-input" id="hf-shares" type="number" min="0" step="0.01" placeholder="e.g. 10" value="${esc(String(shares))}"></div>`);
+
+  const entryScore = isStock && existing?.entryScore != null
+    ? `<div class="hf-group"><div class="hf-label">Score at Entry</div><div style="font-size:14px;color:var(--accent);padding:11px 14px;background:var(--bg-2);border-radius:var(--r-sm)">${existing.entryScore}/7</div></div>` : '';
+
+  const fundNote = isFundType
+    ? `<div style="font-size:11px;color:var(--text-2);margin-bottom:12px">For LSE-listed funds, use the exchange suffix, e.g. VWRL.L</div>` : '';
+
+  const tickerRow = !isEdit
+    ? `<div class="hf-group">
+        <div class="hf-label">Ticker Symbol${isCash ? ' (optional)' : ''}</div>
+        <div class="ticker-autocomplete">
+          <input class="hf-input" id="hf-ticker" type="text" placeholder="${isCash ? 'e.g. SAVINGS' : 'e.g. AAPL'}" autocapitalize="characters" autocomplete="off" oninput="hfTickerSearch(this.value)">
+          <div id="tickerDropdown" class="ticker-dropdown" style="display:none"></div>
+        </div>
+        ${fundNote}
+      </div>`
+    : `<div style="font-size:12px;color:var(--text-2);margin-bottom:16px">Editing <strong style="color:var(--accent)">${esc(existing.ticker)}</strong></div>`;
+
+  const priceRow = !isCash
+    ? `<div class="hf-row">
+        <div class="hf-group"><div class="hf-label">Entry Price ($)</div><input class="hf-input" id="hf-entryPrice" type="number" min="0" step="0.01" placeholder="e.g. 150.00" value="${esc(String(ep))}"></div>
+        <div class="hf-group"><div class="hf-label">Entry Date</div><input class="hf-input" id="hf-entryDate" type="date" value="${esc(ed)}"></div>
+      </div>` : '';
+
   const removeBtn = isEdit ? `<button class="hf-remove" onclick="removeHolding('${esc(existing.ticker)}')">Remove</button>` : '';
 
   document.getElementById('holdingModalBody').innerHTML = `
-    ${!isEdit
-      ? `<div class="hf-group"><div class="hf-label">Ticker Symbol</div><input class="hf-input" id="hf-ticker" type="text" placeholder="e.g. AAPL" autocapitalize="characters" autocomplete="off"></div>`
-      : `<div style="font-size:12px;color:var(--text-2);margin-bottom:16px">Editing <strong style="color:var(--accent)">${esc(existing.ticker)}</strong></div>`}
-    <div class="hf-toggle">
-      <button class="hf-toggle-btn${amtActive}" onclick="hfSetTrackBy('amount')">By Amount ($)</button>
-      <button class="hf-toggle-btn${shrActive}"  onclick="hfSetTrackBy('shares')">By Shares</button>
-    </div>
+    ${typeCtrl}
+    ${tickerRow}
+    ${trackToggle}
     ${inputField}
-    <div class="hf-row">
-      <div class="hf-group"><div class="hf-label">Entry Price (USD $)</div><input class="hf-input" id="hf-entryPrice" type="number" min="0" step="0.01" placeholder="e.g. 150.00" value="${esc(String(ep))}"></div>
-      <div class="hf-group"><div class="hf-label">Entry Date</div><input class="hf-input" id="hf-entryDate" type="date" value="${esc(ed)}"></div>
-    </div>
+    ${entryScore}
+    ${priceRow}
     <div class="hf-group"><div class="hf-label">Note (optional)</div><input class="hf-input" id="hf-note" type="text" placeholder="e.g. Long-term hold" maxlength="100" value="${esc(note)}"></div>
     <div class="hf-buttons">
       <button class="hf-cancel" onclick="closeHoldingModal()">Cancel</button>
@@ -2693,45 +3413,100 @@ function renderHoldingForm(existing) {
       <button class="hf-save" onclick="saveHolding()">Save</button>
     </div>`;
 }
+
 function hfSetTrackBy(v) {
   _hTrackBy = v;
-  renderHoldingForm(_hEditTicker ? holdings.find(h=>h.ticker===_hEditTicker) : null);
+  renderHoldingForm(_hEditTicker ? holdings.find(h => h.ticker === _hEditTicker) : null);
 }
+
+// V9: Ticker autocomplete
+async function hfTickerSearch(q) {
+  clearTimeout(_tickerSearchTimer);
+  const dropdown = document.getElementById('tickerDropdown');
+  if (!q || q.length < 2) { if (dropdown) dropdown.style.display = 'none'; return; }
+  _tickerSearchTimer = setTimeout(async () => {
+    const key = document.getElementById('apiKey').value.trim();
+    if (!key) return;
+    try {
+      const res = await fwt(`${BASE}/search?query=${encodeURIComponent(q)}&limit=8&apikey=${key}`);
+      const items = Array.isArray(res) ? res : [];
+      if (!items.length) { if (dropdown) dropdown.style.display = 'none'; return; }
+      if (dropdown) {
+        dropdown.style.display = 'block';
+        dropdown.innerHTML = items.map(r =>
+          `<div class="ticker-option" onclick="hfSelectTicker('${esc(r.symbol)}')">
+            <strong>${esc(r.symbol)}</strong> &mdash; ${esc(r.name || '')} <span style="color:var(--text-2);font-size:10px">${esc(r.stockExchange || '')}</span>
+          </div>`
+        ).join('');
+      }
+    } catch(_) { if (dropdown) dropdown.style.display = 'none'; }
+  }, 400);
+}
+
+function hfSelectTicker(symbol) {
+  const input = document.getElementById('hf-ticker');
+  if (input) input.value = symbol;
+  const dropdown = document.getElementById('tickerDropdown');
+  if (dropdown) dropdown.style.display = 'none';
+}
+
 function saveHolding() {
   const isEdit = !!_hEditTicker;
-  const ticker = isEdit ? _hEditTicker : (document.getElementById('hf-ticker')?.value||'').trim().toUpperCase();
-  if (!ticker) { alert('Enter a ticker symbol.'); return; }
+  const isCash = _hType === 'cash';
+  const rawTicker = isEdit ? _hEditTicker : (document.getElementById('hf-ticker')?.value || '').trim().toUpperCase();
+  const ticker = rawTicker || (isCash ? 'CASH' : '');
+  if (!ticker && !isCash) { alert('Enter a ticker symbol.'); return; }
 
-  const entryPrice = parseFloat(document.getElementById('hf-entryPrice')?.value||'');
-  const entryDate  = (document.getElementById('hf-entryDate')?.value||'').trim();
-  const note       = (document.getElementById('hf-note')?.value||'').trim();
+  const note     = (document.getElementById('hf-note')?.value || '').trim();
+  const entryDate = (document.getElementById('hf-entryDate')?.value || '').trim();
+
+  if (isCash) {
+    const manualValue = parseFloat(document.getElementById('hf-manualValue')?.value || '') || 0;
+    const interestRate = parseFloat(document.getElementById('hf-rate')?.value || '') || null;
+    const finalTicker = ticker || ('CASH_' + Date.now());
+    const idx = holdings.findIndex(h => h.ticker === finalTicker);
+    const holdingData = { ticker: finalTicker, type: 'cash', manualValue, interestRate, note, entryDate: entryDate || new Date().toISOString().slice(0,10) };
+    if (idx >= 0) holdings[idx] = holdingData; else holdings.push(holdingData);
+    saveHoldings(); closeHoldingModal(); renderHoldingsView();
+    return;
+  }
+
+  const entryPrice = parseFloat(document.getElementById('hf-entryPrice')?.value || '');
   const amountEl   = document.getElementById('hf-amount');
   const sharesEl   = document.getElementById('hf-shares');
   const amountInvested = amountEl ? parseFloat(amountEl.value) : NaN;
   const shares         = sharesEl ? parseFloat(sharesEl.value) : NaN;
 
-  if (_hTrackBy==='amount'&&(isNaN(amountInvested)||amountInvested<=0)) { alert('Enter the amount invested.'); return; }
-  if (_hTrackBy==='shares'&&(isNaN(shares)||shares<=0))                 { alert('Enter the number of shares.'); return; }
-  if (isNaN(entryPrice)||entryPrice<=0) { alert('Enter the entry price (USD).'); return; }
+  if (_hTrackBy === 'amount' && (isNaN(amountInvested) || amountInvested <= 0)) { alert('Enter the amount invested.'); return; }
+  if (_hTrackBy === 'shares' && (isNaN(shares) || shares <= 0))                 { alert('Enter the number of shares.'); return; }
+  if (isNaN(entryPrice) || entryPrice <= 0) { alert('Enter the entry price ($).'); return; }
   if (!entryDate) { alert('Select the entry date.'); return; }
 
-  const idx = holdings.findIndex(h=>h.ticker===ticker);
-  if (!isEdit && idx>=0) { alert(`${ticker} is already in your holdings.`); return; }
+  const idx = holdings.findIndex(h => h.ticker === ticker);
+  if (!isEdit && idx >= 0) { alert(`${ticker} is already in your holdings.`); return; }
 
   const holdingData = {
-    ticker, entryPrice, entryDate, note,
-    amountInvested: _hTrackBy==='amount' ? amountInvested : null,
-    shares:         _hTrackBy==='shares' ? shares : null,
-    entryScore: idx>=0 ? holdings[idx].entryScore : null,
-    entryRag:   idx>=0 ? holdings[idx].entryRag   : null,
+    ticker, type: _hType, entryPrice, entryDate, note,
+    amountInvested: _hTrackBy === 'amount' ? amountInvested : null,
+    shares:         _hTrackBy === 'shares' ? shares : null,
+    entryScore: idx >= 0 ? holdings[idx].entryScore : null,
+    entryRag:   idx >= 0 ? holdings[idx].entryRag   : null,
   };
   // Seed entry score from cache if available (and not yet set)
   if (!holdingData.entryRag && holdingsCache.stocks[ticker]) {
     holdingData.entryScore = holdingsCache.stocks[ticker].score;
     holdingData.entryRag   = holdingsCache.stocks[ticker].rag;
   }
+  // Also try to get from screener results
+  if (!holdingData.entryRag) {
+    const fromResults = results.find(r => r.ticker === ticker);
+    if (fromResults) {
+      holdingData.entryScore = fromResults.score;
+      holdingData.entryRag   = fromResults.rag;
+    }
+  }
 
-  if (idx>=0) holdings[idx] = holdingData; else holdings.push(holdingData);
+  if (idx >= 0) holdings[idx] = holdingData; else holdings.push(holdingData);
   saveHoldings();
   closeHoldingModal();
   renderHoldingsView();
