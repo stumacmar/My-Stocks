@@ -3060,17 +3060,7 @@ function openPortfolioMenu(portfolioId, btnEl) {
 function renamePortfolio(id) {
   const p = portfolios.find(p => p.id === id);
   if (!p) return;
-  const el = document.getElementById('holdingsView');
-  // Render a tiny inline rename form over the chip
-  // Simple approach: prompt via inline custom input in a modal-like overlay
-  const name = window._simplePrompt ? window._simplePrompt('Rename portfolio:', p.name) : null;
-  if (name !== null && name !== undefined) {
-    const trimmed = String(name).trim();
-    if (trimmed) { p.name = trimmed; savePortfolios(); renderHoldingsView(); }
-  } else {
-    // Fallback: use a dedicated rename modal
-    openRenameModal(id, p.name);
-  }
+  openRenameModal(id, p.name);
 }
 
 function openRenameModal(id, currentName) {
@@ -3722,6 +3712,11 @@ let _tickerSearchTimer = null;
 let _hEditPortfolioId  = null; // V10: portfolio the holding belongs to
 
 function openHoldingModal(ticker, portfolioId) {
+  // Ensure at least one portfolio exists
+  if (!portfolios.length) {
+    portfolios = [{ id: 'default', name: 'My Portfolio', holdings: [] }];
+    savePortfolios();
+  }
   _hEditTicker     = ticker;
   _hEditPortfolioId = portfolioId || null;
   // Find existing holding across all portfolios
