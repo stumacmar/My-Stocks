@@ -3,13 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>Stuart's Stock Screener V10</title>
+  <title>Stuart's Stock Compass — V11</title>
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="Stock Screener">
+  <meta name="apple-mobile-web-app-title" content="Stock Compass">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="theme-color" content="#0E1117">
-  <meta name="description" content="Stuart's Bloomberg-style stock screener — CROCI, PEG, Sortino and more.">
+  <meta name="description" content="Stuart's Stock Compass — quality, value &amp; momentum screening for the S&amp;P 500.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -678,6 +678,97 @@
     }
     .carousel-dot.active { background: #F5C518; width: 18px; border-radius: 3px; }
     .carousel-hint { font-size: 11px; color: rgba(255,255,255,0.25); padding-bottom: 28px; }
+    /* ── Welcome Splash ──────────────────────────────────────────────────── */
+    .splash-overlay {
+      position: fixed; inset: 0; z-index: 500;
+      background: var(--bg-0);
+      display: flex; align-items: center; justify-content: center;
+      padding: 24px;
+    }
+    .splash-panel {
+      width: 100%; max-width: 420px;
+      display: flex; flex-direction: column;
+      height: 100%; max-height: 700px;
+    }
+    .splash-skip {
+      align-self: flex-end; background: none; border: none;
+      color: var(--text-2); font-family: 'Inter', sans-serif;
+      font-size: 13px; cursor: pointer; padding: 0 0 12px;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .splash-skip:hover { color: var(--text-1); }
+    .splash-slides { flex: 1; position: relative; overflow: hidden; }
+    .splash-slide {
+      position: absolute; inset: 0;
+      display: flex; flex-direction: column;
+      opacity: 0; transition: opacity 0.3s ease;
+      pointer-events: none; overflow-y: auto;
+      padding-bottom: 8px;
+    }
+    .splash-slide.active { opacity: 1; pointer-events: auto; }
+    .splash-title {
+      font-family: 'Fraunces', serif; font-size: 28px; font-weight: 700;
+      color: var(--accent); letter-spacing: -0.5px; margin-bottom: 6px; line-height: 1.15;
+    }
+    .splash-sub { font-size: 12px; color: var(--text-2); margin-bottom: 20px; letter-spacing: 0.3px; }
+    .splash-body { font-size: 14px; color: var(--text-1); line-height: 1.75; }
+    .splash-body p { margin: 0 0 12px; }
+    .splash-body ul { margin: 8px 0; padding-left: 18px; }
+    .splash-body li { margin-bottom: 6px; }
+    .splash-toggle-demo {
+      display: flex; border: 1px solid var(--line); border-radius: 99px;
+      overflow: hidden; margin: 16px auto; max-width: 220px;
+    }
+    .splash-toggle-demo span {
+      flex: 1; text-align: center; padding: 8px 16px;
+      font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 500;
+      color: var(--text-2); background: transparent;
+    }
+    .splash-toggle-demo span.active { background: var(--accent); color: var(--bg-0); font-weight: 600; }
+    .splash-tier-key { margin: 14px 0; display: flex; flex-direction: column; gap: 7px; }
+    .splash-tier-row { display: flex; align-items: center; gap: 10px; font-size: 13px; }
+    .splash-tier-badge {
+      min-width: 68px; text-align: center; padding: 3px 10px;
+      border-radius: 99px; font-size: 11px; font-weight: 600; letter-spacing: 0.3px;
+    }
+    .splash-tier-badge.elite  { background: rgba(246,201,14,0.15); color: #f6c90e; border: 1px solid rgba(246,201,14,0.3); }
+    .splash-tier-badge.strong { background: rgba(46,204,113,0.12); color: var(--green); border: 1px solid rgba(46,204,113,0.25); }
+    .splash-tier-badge.watch  { background: rgba(240,180,40,0.12); color: var(--amber); border: 1px solid rgba(240,180,40,0.25); }
+    .splash-tier-badge.avoid  { background: rgba(231,76,60,0.12); color: var(--red); border: 1px solid rgba(231,76,60,0.25); }
+    .splash-tier-desc { color: var(--text-2); font-size: 12px; }
+    .splash-card-demo {
+      margin: 14px 0; background: var(--bg-1); border-radius: var(--r-md);
+      padding: 12px 14px; border: 1px solid var(--line);
+    }
+    .splash-card-demo-ticker { font-weight: 700; font-size: 15px; color: var(--text-0); }
+    .splash-card-demo-chips { display: flex; gap: 6px; margin-top: 8px; flex-wrap: wrap; }
+    .splash-principle { display: flex; gap: 12px; margin-bottom: 16px; }
+    .splash-principle-icon { font-size: 20px; min-width: 26px; text-align: center; margin-top: 1px; }
+    .splash-principle-text { font-size: 13px; color: var(--text-1); line-height: 1.65; }
+    .splash-principle-text strong { color: var(--text-0); display: block; margin-bottom: 2px; }
+    .splash-footer-note {
+      font-size: 11px; color: var(--text-2); text-align: center;
+      padding: 10px 0 4px; line-height: 1.5;
+    }
+    .splash-footer-line {
+      display: flex; align-items: center; justify-content: center;
+      padding-top: 10px;
+    }
+    .splash-dots { display: flex; gap: 8px; align-items: center; }
+    .splash-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--line); cursor: pointer;
+      transition: background 0.2s, transform 0.2s;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .splash-dot.active { background: var(--accent); transform: scale(1.4); }
+    .splash-cta {
+      margin-top: 20px; padding: 14px; background: var(--accent); color: var(--bg-0);
+      border: none; border-radius: 99px; font-family: 'Inter', sans-serif;
+      font-size: 15px; font-weight: 600; cursor: pointer; width: 100%;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .splash-cta:active { opacity: 0.85; }
   </style>
 </head>
 <body>
@@ -690,7 +781,7 @@
 
 <!-- Header -->
 <div class="header">
-  <div class="header-title">Stuart's Stock Screener V10</div>
+  <div class="header-title">Stuart's Stock Compass — V11</div>
   <div class="header-sub">
     Quality · Value · Momentum
     <span class="info-icon" onclick="openInfoModal()" title="Methodology">ⓘ</span>
@@ -746,11 +837,11 @@
   <button class="btn btn-pause"   id="btnPause" onclick="togglePause()"  style="display:none">&#9646;&#9646; Pause</button>
   <button class="btn btn-stop"    id="btnStop"  onclick="stopScreener()" style="display:none">&#9632; Stop</button>
   <div class="controls-sep"></div>
-  <button class="btn btn-filter" data-filter="perfect"   onclick="setFilter('perfect',this)">&#9733; 7/7</button>
+  <button class="btn btn-filter" data-filter="perfect"   onclick="setFilter('perfect',this)">&#9733; Hot</button>
   <button class="btn btn-filter active" data-filter="all"       onclick="setFilter('all',this)">All</button>
-  <button class="btn btn-filter"        data-filter="strong"    onclick="setFilter('strong',this)">High score</button>
-  <button class="btn btn-filter"        data-filter="watch"     onclick="setFilter('watch',this)">Mid score</button>
-  <button class="btn btn-filter"        data-filter="avoid"     onclick="setFilter('avoid',this)">Low score</button>
+  <button class="btn btn-filter"        data-filter="strong"    onclick="setFilter('strong',this)">Strong</button>
+  <button class="btn btn-filter"        data-filter="watch"     onclick="setFilter('watch',this)">Watch</button>
+  <button class="btn btn-filter"        data-filter="avoid"     onclick="setFilter('avoid',this)">Avoid</button>
   <button class="btn btn-filter"        data-filter="favorites" onclick="setFilter('favorites',this)">&#9733; Starred</button>
   <button class="btn btn-filter btn-view-toggle" id="btnMapToggle" onclick="toggleViewMode()" title="Toggle heat map view">&#9783; Map</button>
   <div class="controls-sep"></div>
@@ -843,6 +934,12 @@
       <button onclick="document.getElementById('importCacheInput').click()">&#8593; Import cache</button>
     </div>
     <input type="file" id="importCacheInput" accept=".json" style="display:none" onchange="importCache(this)">
+
+    <div class="settings-section-title">Welcome guide</div>
+    <p class="settings-note">Show the welcome guide again to review how the app works.</p>
+    <div class="settings-cache-btns">
+      <button onclick="closeSettings();localStorage.removeItem('compass_welcomed_v1');showWelcomeSplash()">Show welcome again</button>
+    </div>
   </div>
 </div>
 
@@ -877,6 +974,9 @@
   </div>
 </div>
 
+<!-- Welcome Splash -->
+<div id="welcomeSplash" class="splash-overlay" style="display:none"></div>
+
 <!-- Onboarding -->
 <div class="onboard-overlay hidden" id="onboardOverlay"></div>
 
@@ -904,7 +1004,7 @@
       6. 6M% &gt; 0<br>
       7. Analyst consensus = Buy or Strong Buy
       <h4>RAG Rating</h4>
-      High score ≥ 6 pts · Mid score 4–5 pts · Low score &lt; 4 pts
+      Strong ≥ 6 pts · Watch 4–5 pts · Avoid &lt; 4 pts
       <h4>Data Source</h4>
       All data from Financial Modeling Prep (FMP) API. No values are fabricated.
     </div>
@@ -936,7 +1036,7 @@
 <div id="carouselOverlay" class="carousel-overlay" style="display:none">
   <div class="carousel-bg-glow"></div>
   <div class="carousel-header">
-    <div class="carousel-title">&#9733; 7 of 7</div>
+    <div class="carousel-title">&#9733; Hot Picks</div>
     <button class="carousel-close" onclick="closeCarousel()">&#10005;</button>
   </div>
   <div class="carousel-stage" id="carouselStage">
@@ -969,13 +1069,13 @@ setTimeout(function _regressionGuard() {
 }, 200);
 // ─────────────────────────────────────────────────────────────────────────────
 
-function ragLabel(r) { return r === 'strong' ? 'High score' : r === 'watch' ? 'Mid score' : 'Low score'; }
+function ragLabel(r) { return r === 'strong' ? 'Strong' : r === 'watch' ? 'Watch' : 'Avoid'; }
 
 // ── Metric explanations ───────────────────────────────────────────────────────
 const METRIC_INFO = {
   score: {
     title: 'Quality Score',
-    body: 'Composite score from 0–7. Each of the seven metrics below adds 1 point when it passes its threshold. <strong>6–7 = High score</strong>, 4–5 = Mid score, 0–3 = Low score. A 7/7 earns the gold ★ 7 of 7 badge.',
+    body: 'Composite score from 0–7. Each of the seven metrics below adds 1 point when it passes its threshold. <strong>6–7 = Strong</strong>, 4–5 = Watch, 0–3 = Avoid. A 7/7 earns the gold ★ Hot badge.',
     threshold: null,
   },
   croci: {
@@ -1205,6 +1305,7 @@ let _mapMode        = false;
 let _scoreDist      = null;  // single source of truth for all classification counts
 let _wakeLock       = null;  // V9: Screen Wake Lock API
 let _tapListenerOk  = false; // set true once delegated tap listener is attached
+let _splashSlide    = 0;
 // ── V10: Multiple portfolios ──────────────────────────────────────────────────
 let portfolios           = [];          // [{ id, name, holdings:[] }]
 let currentPortfolioId   = 'all';       // 'all' = household roll-up
@@ -1317,6 +1418,7 @@ const BUILTIN_TABS = [
   updateStats();
   renderDeltaPanel();
   checkOnboarding();
+  if (!localStorage.getItem('compass_welcomed_v1')) showWelcomeSplash();
 
   // V9: Start trickle refresh after 500ms (only if there's cached data)
   if (results.length > 0) {
@@ -2419,7 +2521,7 @@ function _renderVirtual() {
       <td class="cell-industry" title="${esc(s.industry)}">${esc(s.industry) || '&mdash;'}</td>
       <td class="muted">${fmtPrice(s.price)}</td>
       <td class="cell-score ${isElite ? 'elite' : s.rag}"><div class="score-cell-wrap"><div class="crit-dots">${dots}</div>${s.score}/${s.maxScore}</div></td>
-      <td><span class="rag-badge ${isElite ? 'elite' : s.rag}">${isElite ? '★ 7 of 7' : ragLabel(s.rag)}</span></td>
+      <td><span class="rag-badge ${isElite ? 'elite' : s.rag}">${isElite ? '★ Hot' : ragLabel(s.rag)}</span></td>
       ${metricTD(s.croci,   v => v > 10,           1, '%')}
       ${metricTD(s.peg,     v => v > 0 && v < 1.5, 2, '')}
       ${metricTD(s.sortino, v => v > 0.5,          2, '')}
@@ -2511,7 +2613,7 @@ async function openStockSheet(ticker) {
 
   // Build header
   const isElite  = s.score === 7 && s.maxScore === 7;
-  const ragBadge = `<span class="rag-badge ${isElite ? 'elite' : s.rag}" style="margin-left:8px">${isElite ? '★ 7 of 7' : ragLabel(s.rag)}</span>`;
+  const ragBadge = `<span class="rag-badge ${isElite ? 'elite' : s.rag}" style="margin-left:8px">${isElite ? '★ Hot' : ragLabel(s.rag)}</span>`;
   let headerHTML = `
     <div class="sheet-header">
       <div>
@@ -3374,7 +3476,7 @@ function renderPortfolioSummary(stats) {
     <div class="h-summary-card">
       <div class="h-summary-label">Avg Score</div>
       <div class="h-summary-val muted">${avgScore}<span style="font-size:12px;color:var(--text-2)">/7</span></div>
-      <div class="h-summary-sub">${stats.countStrong} <span class="pass">High score</span> · ${stats.countWatch} <span class="warn">Mid score</span> · ${stats.countAvoid} <span class="fail">Low score</span></div>
+      <div class="h-summary-sub">${stats.countStrong} <span class="pass">Strong</span> · ${stats.countWatch} <span class="warn">Watch</span> · ${stats.countAvoid} <span class="fail">Avoid</span></div>
     </div>
   </div>`;
 }
@@ -3496,8 +3598,8 @@ function renderPortfolioGroups() {
       scoreInfo = `Now: <span class="cell-score ${elite?'elite':cached.rag}" style="font-size:11px">${cached.score}/${cached.maxScore}</span>`;
       if (h.entryRag && cached.rag) {
         const el2 = ragOrder[h.entryRag] ?? 1, cl2 = ragOrder[cached.rag] ?? 1;
-        if (cached.rag === 'avoid' && el2 > 0)        chipHTML = `<span class="portfolio-chip chip-review">Was ${ragLabel(h.entryRag)}, now Low — review</span>`;
-        else if (cached.rag === 'watch' && el2 === 2)  chipHTML = `<span class="portfolio-chip chip-watch">Was High score, now Mid — review</span>`;
+        if (cached.rag === 'avoid' && el2 > 0)        chipHTML = `<span class="portfolio-chip chip-review">Was ${ragLabel(h.entryRag)}, now Avoid — review</span>`;
+        else if (cached.rag === 'watch' && el2 === 2)  chipHTML = `<span class="portfolio-chip chip-watch">Was Strong, now Watch — review</span>`;
         else if (cl2 >= el2)                           chipHTML = `<span class="portfolio-chip chip-ok">Quality maintained</span>`;
       }
     }
@@ -4342,7 +4444,7 @@ function renderDistBar(dist) {
 
   // All 6 bands always rendered; zero-count collapses to thin sliver (label only)
   const BANDS = [
-    { score: 7,  label: '7/7 ★', cls: 'dist-seg-7',   filter: 'perfect'  },
+    { score: 7,  label: '★ Hot', cls: 'dist-seg-7',   filter: 'perfect'  },
     { score: 6,  label: '6/7',   cls: 'dist-seg-6',   filter: 'score6'   },
     { score: 5,  label: '5/7',   cls: 'dist-seg-5',   filter: 'score5'   },
     { score: 4,  label: '4/7',   cls: 'dist-seg-4',   filter: 'score4'   },
@@ -4378,7 +4480,7 @@ function renderDistBar(dist) {
 
   // Single derived summary row — lightweight, no boxes
   if (ragEl) ragEl.innerHTML =
-    `<span>★ <strong style="color:#f6c90e">${perfect}</strong> perfect</span>` +
+    `<span>★ <strong style="color:#f6c90e">${perfect}</strong> hot</span>` +
     `<span>· <strong style="color:var(--green)">${strong}</strong> strong</span>` +
     `<span>· <strong style="color:var(--amber)">${watch}</strong> watch</span>` +
     `<span>· <strong style="color:var(--red)">${avoid}</strong> avoid</span>`;
@@ -4477,10 +4579,10 @@ function renderDeltaPanel() {
   }
 
   const sections = [
-    d.newPerfect.length  ? `<div class="delta-group-title">★ New 7 of 7</div>${makeItems(d.newPerfect, 'NEW ★', 'delta-new')}` : '',
-    d.fellPerfect.length ? `<div class="delta-group-title">Fell from 7 of 7</div>${makeItems(d.fellPerfect, 'FELL', 'delta-fell')}` : '',
-    d.newStrong.length   ? `<div class="delta-group-title">New to High score</div>${makeItems(d.newStrong, 'NEW', 'delta-new')}` : '',
-    d.fellStrong.length  ? `<div class="delta-group-title">Fell from High score</div>${makeItems(d.fellStrong, 'FELL', 'delta-fell')}` : '',
+    d.newPerfect.length  ? `<div class="delta-group-title">★ New ★ Hot</div>${makeItems(d.newPerfect, 'NEW ★', 'delta-new')}` : '',
+    d.fellPerfect.length ? `<div class="delta-group-title">Fell from ★ Hot</div>${makeItems(d.fellPerfect, 'FELL', 'delta-fell')}` : '',
+    d.newStrong.length   ? `<div class="delta-group-title">New to Strong</div>${makeItems(d.newStrong, 'NEW', 'delta-new')}` : '',
+    d.fellStrong.length  ? `<div class="delta-group-title">Fell from Strong</div>${makeItems(d.fellStrong, 'FELL', 'delta-fell')}` : '',
     d.topClimbers.length ? `<div class="delta-group-title">Biggest climbers</div>${makeMovers(d.topClimbers, 'delta-up')}` : '',
     d.topFallers.length  ? `<div class="delta-group-title">Biggest fallers</div>${makeMovers(d.topFallers, 'delta-fell')}` : '',
   ].filter(Boolean).join('');
@@ -4573,13 +4675,13 @@ function showOnboarding() {
 function renderOnboardStep() {
   const steps = [
     {
-      title: 'Stuart\'s Stock Screener',
+      title: 'Stuart\'s Stock Compass',
       body: 'A systematic screening tool built on 7 proven financial criteria — CROCI, PEG, Sortino, Beta, Alpha, 6-month momentum, and analyst consensus.\n\nRun it once, see what the data says. Review monthly, not daily.',
       cta: 'How does it score?',
     },
     {
       title: 'The 7-point score',
-      body: '① CROCI > 10%  — business quality\n② PEG 0–1.5  — growth value\n③ Sortino > 0.5  — downside risk\n④ Beta < 1.5  — stability\n⑤ Alpha > 0  — market outperformance\n⑥ 6M return > 0  — momentum\n⑦ Analyst Buy/Strong Buy\n\n7/7 = ★ 7 of 7. 6–7 = High score. 4–5 = Mid score. Below 4 = Low score.',
+      body: '① CROCI > 10%  — business quality\n② PEG 0–1.5  — growth value\n③ Sortino > 0.5  — downside risk\n④ Beta < 1.5  — stability\n⑤ Alpha > 0  — market outperformance\n⑥ 6M return > 0  — momentum\n⑦ Analyst Buy/Strong Buy\n\n7/7 = ★ Hot. 6–7 = Strong. 4–5 = Watch. Below 4 = Avoid.',
       cta: 'Add your API key',
     },
     {
@@ -4668,7 +4770,7 @@ function renderCarousel() {
   const cur = _carouselIdx;
 
   if (!stocks.length) {
-    stage.innerHTML = `<div style="text-align:center;padding:48px 24px;color:#8B949E;font-size:15px;line-height:1.7">No perfect scorers right now —<br>the bar is high.<br><span style="color:#4A5568;font-size:13px">Check back after the next run.</span></div>`;
+    stage.innerHTML = `<div style="text-align:center;padding:48px 24px;color:#8B949E;font-size:15px;line-height:1.7">No ★ Hot stocks right now —<br>the bar is high.<br><span style="color:#4A5568;font-size:13px">Check back after the next run.</span></div>`;
     dots.innerHTML = '';
     return;
   }
@@ -4732,7 +4834,7 @@ function renderCarousel() {
       <div class="carousel-card${isCenter ? ' is-center' : ''}">
         <div class="cc-ticker">${esc(s.ticker)}</div>
         <div class="cc-company">${esc(s.company)}</div>
-        <div class="cc-badge">&#9733; 7 of 7</div>
+        <div class="cc-badge">&#9733; Hot</div>
         <div class="cc-price">${fmtPrice(s.price)}</div>
         <div class="cc-criteria">${critChips}</div>
         ${chartSVG ? `<div class="cc-chart">${chartSVG}</div>` : ''}
@@ -4751,6 +4853,123 @@ function carouselGoTo(idx) {
   _carouselIdx = idx;
   renderCarousel();
 }
+
+// ── Welcome Splash ────────────────────────────────────────────────────────────
+function showWelcomeSplash() {
+  const overlay = document.getElementById('welcomeSplash');
+  if (!overlay) return;
+  _splashSlide = 0;
+  overlay.innerHTML = `
+    <div class="splash-panel">
+      <button class="splash-skip" onclick="dismissWelcomeSplash()">Skip</button>
+      <div class="splash-slides" id="splashSlides">
+
+        <div class="splash-slide active" id="splashSlide0">
+          <div class="splash-title">Stuart's Stock Compass</div>
+          <div class="splash-sub">Quality · Value · Momentum</div>
+          <div class="splash-body">
+            <p>Two tools in one.</p>
+            <p>Screen the market for stocks worth a closer look. Track your own holdings against the same signals so you know when to review.</p>
+            <p>Switch between them at the top:</p>
+            <div class="splash-toggle-demo">
+              <span class="active">Screen</span><span>Portfolio</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="splash-slide" id="splashSlide1">
+          <div class="splash-title">Screen the market</div>
+          <div class="splash-body">
+            <p>We score every S&amp;P 500 stock against 7 criteria covering quality, value and momentum. The fewer flaws a stock has, the higher its score (out of 7).</p>
+            <p>Tap Refresh to score the full universe — about 30 minutes, keep the tab open. Your progress is saved if you're interrupted.</p>
+            <div class="splash-tier-key">
+              <div class="splash-tier-row"><span class="splash-tier-badge elite">★ HOT</span><span class="splash-tier-desc">7 of 7 criteria met</span></div>
+              <div class="splash-tier-row"><span class="splash-tier-badge strong">STRONG</span><span class="splash-tier-desc">6 of 7</span></div>
+              <div class="splash-tier-row"><span class="splash-tier-badge watch">WATCH</span><span class="splash-tier-desc">4–5 of 7</span></div>
+              <div class="splash-tier-row"><span class="splash-tier-badge avoid">AVOID</span><span class="splash-tier-desc">0–3 of 7</span></div>
+            </div>
+            <p style="font-size:12px;color:var(--text-2)">Tap any segment of the score bar to filter the list. Tap a stock for its chart, MACD and full breakdown.</p>
+          </div>
+        </div>
+
+        <div class="splash-slide" id="splashSlide2">
+          <div class="splash-title">Track your own holdings</div>
+          <div class="splash-body">
+            <p>Add the stocks and funds you actually own — across as many accounts as you like (ISAs, SIPPs, anyone's). The app tracks them live alongside the same signals from the screener.</p>
+            <ul>
+              <li>Stocks show their score at entry vs now — an amber 'review' flag appears if it slips. A prompt to re-check, not a sell signal.</li>
+              <li>Funds &amp; ETCs show return, volatility and drawdown.</li>
+              <li>Roll up multiple portfolios into a household view.</li>
+            </ul>
+            <div class="splash-card-demo">
+              <div class="splash-card-demo-ticker">AAPL</div>
+              <div style="font-size:12px;color:var(--text-2);margin-top:2px">Apple Inc.</div>
+              <div class="splash-card-demo-chips">
+                <span class="portfolio-chip chip-ok">Entered ★ Hot · Still Strong</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="splash-slide" id="splashSlide3">
+          <div class="splash-title">How to use it well</div>
+          <div class="splash-body">
+            <div class="splash-principle">
+              <div class="splash-principle-icon">◷</div>
+              <div class="splash-principle-text"><strong>Review monthly, not daily.</strong> Quality signals work over months. Short-term price moves are noise.</div>
+            </div>
+            <div class="splash-principle">
+              <div class="splash-principle-icon">◉</div>
+              <div class="splash-principle-text"><strong>Score changes are a prompt to look, not to act.</strong> A stock dropping from Hot to Strong is a question, not an instruction to sell.</div>
+            </div>
+            <div class="splash-principle">
+              <div class="splash-principle-icon">⌖</div>
+              <div class="splash-principle-text"><strong>The screener finds candidates.</strong> You decide whether they fit your goals, your timescale and your risk.</div>
+            </div>
+          </div>
+          <button class="splash-cta" onclick="dismissWelcomeSplash()">Got it &#8594;</button>
+        </div>
+
+      </div>
+      <div class="splash-footer-note">Information and education only. Not financial advice. Capital at risk. Do your own research.</div>
+      <div class="splash-footer-line">
+        <div class="splash-dots" id="splashDots">
+          <div class="splash-dot active"  onclick="goToSlide(0)"></div>
+          <div class="splash-dot"         onclick="goToSlide(1)"></div>
+          <div class="splash-dot"         onclick="goToSlide(2)"></div>
+          <div class="splash-dot"         onclick="goToSlide(3)"></div>
+        </div>
+      </div>
+    </div>`;
+  overlay.style.display = 'flex';
+
+  // Swipe to change slide
+  let _sx = 0, _sy = 0;
+  overlay.addEventListener('touchstart', e => { _sx = e.touches[0].clientX; _sy = e.touches[0].clientY; }, { passive: true });
+  overlay.addEventListener('touchend', e => {
+    const dx = e.changedTouches[0].clientX - _sx;
+    const dy = e.changedTouches[0].clientY - _sy;
+    if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) {
+      dx < 0 ? goToSlide(_splashSlide + 1) : goToSlide(_splashSlide - 1);
+    }
+  }, { passive: true });
+}
+
+function goToSlide(n) {
+  if (n < 0 || n > 3) return;
+  document.getElementById('splashSlide' + _splashSlide)?.classList.remove('active');
+  _splashSlide = n;
+  document.getElementById('splashSlide' + _splashSlide)?.classList.add('active');
+  const dots = document.getElementById('splashDots');
+  if (dots) dots.querySelectorAll('.splash-dot').forEach((d, i) => d.classList.toggle('active', i === _splashSlide));
+}
+
+function dismissWelcomeSplash() {
+  try { localStorage.setItem('compass_welcomed_v1', '1'); } catch(_) {}
+  const overlay = document.getElementById('welcomeSplash');
+  if (overlay) overlay.style.display = 'none';
+}
+// ─────────────────────────────────────────────────────────────────────────────
 </script>
 <div class="footer-note">Information and education only. Not financial advice or a personal recommendation. Capital at risk. Do your own research.</div>
 </body>
