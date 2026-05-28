@@ -949,18 +949,24 @@
 <script>
 'use strict';
 
-// ── DIAGNOSTIC LOGGING (temporary) ───────────────────────────────────────────
-document.addEventListener('click', e => {
-  console.log('[DIAG-A] click fired — target:', e.target.tagName,
-    '| class:', e.target.className,
-    '| closest tr[data-ticker]:', e.target.closest('tr[data-ticker]') ? e.target.closest('tr[data-ticker]').dataset.ticker : 'NONE');
-});
-document.addEventListener('touchend', e => {
-  console.log('[DIAG-A] touchend fired — target:', e.target.tagName,
-    '| class:', e.target.className,
-    '| closest tr[data-ticker]:', e.target.closest('tr[data-ticker]') ? e.target.closest('tr[data-ticker]').dataset.ticker : 'NONE',
-    '| closest [data-ticker]:', e.target.closest('[data-ticker]') ? e.target.closest('[data-ticker]').dataset.ticker : 'NONE');
-}, {passive: true});
+// ── Regression self-test (runs 200 ms after load) ────────────────────────────
+// Catches the recurring "init aborts → tap listeners never attached" pattern
+// and the "setView guard blocks Portfolio" pattern before the user hits them.
+setTimeout(function _regressionGuard() {
+  if (!_tapListenerOk)
+    console.warn('REGRESSION DETECTED: tap listener was not attached — init likely aborted (TDZ or uncaught error). Check loadHoldingsCache/loadPortfolios and any const declared after line 1229.');
+  const mS = document.getElementById('modeScreener');
+  const mP = document.getElementById('modePortfolio');
+  if (!mS || !mP)
+    console.warn('REGRESSION DETECTED: mode toggle buttons missing from DOM — something removed or renamed #modeScreener / #modePortfolio.');
+  if (mS?.disabled || mP?.disabled)
+    console.warn('REGRESSION DETECTED: mode toggle is disabled — nothing should ever disable the Screen/Portfolio buttons.');
+  if (results.length > 0) {
+    const firstRow = document.querySelector('tr[data-ticker]');
+    if (!firstRow)
+      console.warn('REGRESSION DETECTED: results loaded but no tr[data-ticker] found — rows are not being rendered with data-ticker attribute.');
+  }
+}, 200);
 // ─────────────────────────────────────────────────────────────────────────────
 
 function ragLabel(r) { return r === 'strong' ? 'High score' : r === 'watch' ? 'Mid score' : 'Low score'; }
@@ -1146,9 +1152,13 @@ const UNIVERSE_DOW30 = [
 // ── Constants ─────────────────────────────────────────────────────────────────
 const BASE          = 'https://financialmodelingprep.com/stable';
 const DEFAULT_KEY   = 'Uq0TKcRxFVhqq4CvmOk2EStbeyTsONCi';
-const RUN_CACHE_KEY  = 'fmp_run_cache_v5';
-const PREV_RUN_KEY   = 'fmp_prev_run_v5';
-const PER_STOCK_CACHE_KEY = 'fmp_per_stock_v1'; // { [ticker]: { ...stockData, ts, slowTs } }
+const RUN_CACHE_KEY        = 'fmp_run_cache_v5';
+const PREV_RUN_KEY         = 'fmp_prev_run_v5';
+const PER_STOCK_CACHE_KEY  = 'fmp_per_stock_v1';
+const HOLDINGS_KEY         = 'fmp_holdings_v1';        // read-only migration source
+const HOLDINGS_CACHE_KEY   = 'fmp_holdings_cache_v1';  // backwards compat read
+const PORTFOLIOS_CACHE_KEY = 'fmp_portfolios_cache_v2';
+const PORTFOLIOS_KEY       = 'fmp_portfolios_v2';
 const SLOW_CACHE_MS  = 7 * 24 * 3600 * 1000;    // 7 days for profile/fundamental data
 const CRIT_LABELS    = ['CROCI','PEG','Sortino','Beta','Alpha','6M','Analyst'];
 const CRIT_THRESHOLDS= ['>10%','0–1.5','> 0.5','< 1.5','> 0','> 0%','Buy/SB'];
@@ -1194,6 +1204,7 @@ let _deltaData      = null;
 let _mapMode        = false;
 let _scoreDist      = null;  // single source of truth for all classification counts
 let _wakeLock       = null;  // V9: Screen Wake Lock API
+let _tapListenerOk  = false; // set true once delegated tap listener is attached
 // ── V10: Multiple portfolios ──────────────────────────────────────────────────
 let portfolios           = [];          // [{ id, name, holdings:[] }]
 let currentPortfolioId   = 'all';       // 'all' = household roll-up
@@ -1329,9 +1340,10 @@ const BUILTIN_TABS = [
   const _tw = document.getElementById('tableWrap');
   _tw.addEventListener('scroll', _onTableScroll);
 
-  // Tap-through: primary handler uses touchend (fires before click, works inside
-  // -webkit-overflow-scrolling:touch without the 300ms delay or UIScrollView suppression).
-  // Scroll detection prevents accidental opens during scroll gestures.
+  // DO NOT MOVE — delegated handler on stable parent. Per-element listeners break on every
+  // restyle. See regression history (TDZ in init → listeners never attached twice already).
+  // Primary path uses touchend (before click, no 300ms delay). Scroll detection prevents
+  // accidental opens during scroll gestures.
   let _twTouchY = 0, _twDidScroll = false;
   _tw.addEventListener('touchstart', e => {
     _twTouchY = e.touches[0].clientY;
@@ -1352,6 +1364,7 @@ const BUILTIN_TABS = [
     const row = e.target.closest('tr[data-ticker]');
     if (row) openStockSheet(row.dataset.ticker);
   });
+  _tapListenerOk = true; // proof that init completed past the tap-listener block
 })();
 
 function saveFavorites() {
@@ -2949,10 +2962,7 @@ function copyDiagnostics() {
 }
 
 // ── Holdings storage — V10: Multiple Portfolios ───────────────────────────────
-const HOLDINGS_KEY         = 'fmp_holdings_v1';        // read-only migration source
-const HOLDINGS_CACHE_KEY   = 'fmp_holdings_cache_v1';  // kept for backwards compat read
-const PORTFOLIOS_KEY       = 'fmp_portfolios_v2';
-const PORTFOLIOS_CACHE_KEY = 'fmp_portfolios_cache_v2';
+// (Keys declared in early constants block to avoid TDZ when called from init)
 
 function loadPortfolios() {
   try {
@@ -3180,7 +3190,8 @@ function removeHoldingFromPortfolio(portfolioId, ticker) {
 function setView(v) {
   // V9: 'portfolio' is the new canonical name; 'holdings' is kept for backward compat
   if (v === 'holdings') v = 'portfolio';
-  if (running && v === 'portfolio') return;
+  // Refresh must never block navigation — screener runs async in the background.
+  // DO NOT add a `running` guard here — it was the root cause of Regression 2.
   currentView = v;
   const isH = v === 'portfolio';
   // Persist mode
