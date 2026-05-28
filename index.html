@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>Stuart's Stock Screener V9</title>
+  <title>Stuart's Stock Screener V10</title>
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Stock Screener">
@@ -521,6 +521,40 @@
     .cash-field { display: none; }
     .fund-note { font-size: 11px; color: var(--text-2); margin-top: 4px; display: none; }
 
+    /* ── V10: Portfolio selector chips ──────────────────────────────────── */
+    .portfolio-selector { display:flex; gap:6px; padding:8px 16px; flex-wrap:wrap; border-bottom:1px solid var(--line); align-items:center; }
+    .port-chip { background:var(--bg-2); border:1px solid var(--line); color:var(--text-1); font-size:12px; font-weight:500; padding:5px 12px; border-radius:99px; cursor:pointer; white-space:nowrap; -webkit-tap-highlight-color:transparent; transition:background 0.15s,color 0.15s,border-color 0.15s; }
+    .port-chip.active { background:var(--accent-dim); border-color:var(--accent); color:var(--accent); }
+    .port-add-btn { color:var(--accent); border-color:var(--accent-dim); }
+    .port-menu-wrap { position:relative; display:inline-flex; align-items:center; }
+    .port-menu-btn { background:none; border:none; color:var(--text-2); font-size:12px; cursor:pointer; padding:2px 4px; line-height:1; -webkit-tap-highlight-color:transparent; }
+    .port-menu-btn:hover { color:var(--text-0); }
+    .port-dropdown { position:absolute; top:100%; left:0; background:var(--bg-2); border:1px solid var(--line); border-radius:var(--r-sm); z-index:50; min-width:120px; box-shadow:var(--shadow-md); }
+    .port-dropdown-item { padding:9px 14px; font-size:13px; color:var(--text-1); cursor:pointer; -webkit-tap-highlight-color:transparent; white-space:nowrap; }
+    .port-dropdown-item:hover { background:rgba(94,234,212,0.08); color:var(--text-0); }
+    .port-dropdown-item.danger { color:var(--red); }
+
+    /* ── V10: Currency toggle ────────────────────────────────────────────── */
+    .currency-toggle { display:flex; gap:0; border:1px solid var(--line); border-radius:6px; overflow:hidden; margin-left:auto; flex-shrink:0; }
+    .curr-btn { background:var(--bg-2); color:var(--text-1); border:none; padding:4px 10px; font-size:13px; cursor:pointer; -webkit-tap-highlight-color:transparent; transition:background 0.15s,color 0.15s; }
+    .curr-btn.active { background:var(--accent); color:#fff; font-weight:600; }
+
+    /* ── V10: FX note / rate ─────────────────────────────────────────────── */
+    .fx-note { font-size:9px; color:var(--text-2); border:1px solid var(--line); border-radius:3px; padding:1px 4px; margin-left:4px; }
+    .fx-rate-note { font-size:10px; color:var(--text-2); margin-top:4px; }
+
+    /* ── V10: New portfolio form ─────────────────────────────────────────── */
+    .new-port-form { display:flex; gap:8px; padding:8px 16px; align-items:center; border-bottom:1px solid var(--line); }
+    .new-port-input { flex:1; background:var(--bg-2); border:1px solid var(--line); color:var(--text-0); border-radius:8px; padding:6px 10px; font-size:13px; outline:none; transition:border-color 0.15s; }
+    .new-port-input:focus { border-color:var(--accent); }
+
+    /* ── V10: Entry currency mini-toggle ─────────────────────────────────── */
+    .hf-curr-toggle { display:flex; border:1px solid var(--line); border-radius:6px; overflow:hidden; }
+    .hf-curr-btn { background:var(--bg-2); color:var(--text-1); border:none; padding:4px 10px; font-size:12px; cursor:pointer; -webkit-tap-highlight-color:transparent; transition:background 0.15s,color 0.15s; }
+    .hf-curr-btn.active { background:var(--accent); color:#fff; font-weight:600; }
+    .hf-price-row { display:flex; gap:8px; align-items:center; }
+    .hf-price-row .hf-input { flex:1; }
+
     /* ── Motion ──────────────────────────────────────────────────────────── */
     @keyframes rowIn { from { opacity:0; transform:translateY(-3px); } to { opacity:1; transform:none; } }
     @keyframes cardIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:none; } }
@@ -656,7 +690,7 @@
 
 <!-- Header -->
 <div class="header">
-  <div class="header-title">Stuart's Stock Screener V9</div>
+  <div class="header-title">Stuart's Stock Screener V10</div>
   <div class="header-sub">
     Quality · Value · Momentum
     <span class="info-icon" onclick="openInfoModal()" title="Methodology">ⓘ</span>
@@ -1160,6 +1194,21 @@ let _deltaData      = null;
 let _mapMode        = false;
 let _scoreDist      = null;  // single source of truth for all classification counts
 let _wakeLock       = null;  // V9: Screen Wake Lock API
+// ── V10: Multiple portfolios ──────────────────────────────────────────────────
+let portfolios           = [];          // [{ id, name, holdings:[] }]
+let currentPortfolioId   = 'all';       // 'all' = household roll-up
+// ── V10: Currency ─────────────────────────────────────────────────────────────
+let _fxRate          = null;   // USD per 1 GBP (e.g. 1.264 means £1 = $1.264)
+let _fxTimestamp     = null;
+let _displayCurrency = 'GBP';
+let _hEntryCurrency  = 'GBP'; // form state
+// Load persisted display currency and cached FX rate
+try { _displayCurrency = localStorage.getItem('fmp_display_currency') || 'GBP'; } catch(_) {}
+try {
+  const _fxCached = JSON.parse(localStorage.getItem('fmp_fx_gbpusd') || 'null');
+  if (_fxCached) { _fxRate = _fxCached.rate; _fxTimestamp = _fxCached.ts + ' (cached)'; }
+} catch(_) {}
+
 const delay = ms => new Promise(r => setTimeout(r, ms));
 
 // ── Built-in tabs ─────────────────────────────────────────────────────────────
@@ -1200,8 +1249,10 @@ const BUILTIN_TABS = [
 
   // Load custom tabs
   try { customTabs = JSON.parse(localStorage.getItem('fmp_custom_tabs') || '[]'); } catch(_) {}
-  loadHoldings();
+  loadPortfolios();
   loadHoldingsCache();
+  // V10: restore last selected portfolio
+  try { currentPortfolioId = localStorage.getItem('fmp_portfolio_id') || 'all'; } catch(_) {}
 
   // Cache-first: render last run instantly
   try {
@@ -2603,8 +2654,8 @@ function openStockSheet(ticker) {
   const verdictHTML = `<div class="verdict-box">${generateVerdict(s)}</div>`;
   const criteriaHTML = `<div class="sheet-section-title">Score Breakdown — ${s.score}/${s.maxScore}</div>${renderCriteriaList(s)}`;
 
-  // V9: Portfolio strip — show if this stock is in holdings
-  const portfolioHolding = holdings.find(h => h.ticker === ticker && (!h.type || h.type === 'stock'));
+  // V9: Portfolio strip — show if this stock is in holdings (V10: search all portfolios)
+  const portfolioHolding = getAllHoldings().find(h => h.ticker === ticker && (!h.type || h.type === 'stock'));
   let portfolioStripHTML = '';
   if (portfolioHolding) {
     const entryScore = portfolioHolding.entryScore != null ? portfolioHolding.entryScore : '?';
@@ -2635,7 +2686,7 @@ async function openFundSheet(ticker) {
   const overlay = document.getElementById('sheetOverlay');
   const content = document.getElementById('sheetContent');
 
-  const holding = holdings.find(h => h.ticker === ticker);
+  const holding = getAllHoldings().find(h => h.ticker === ticker);
   const cached  = holdingsCache.stocks[ticker] || null;
 
   // Show loading state
@@ -2853,24 +2904,232 @@ function copyDiagnostics() {
   }
 }
 
-// ── Holdings storage ──────────────────────────────────────────────────────────
-const HOLDINGS_KEY       = 'fmp_holdings_v1';
-const HOLDINGS_CACHE_KEY = 'fmp_holdings_cache_v1';
+// ── Holdings storage — V10: Multiple Portfolios ───────────────────────────────
+const HOLDINGS_KEY         = 'fmp_holdings_v1';        // read-only migration source
+const HOLDINGS_CACHE_KEY   = 'fmp_holdings_cache_v1';  // kept for backwards compat read
+const PORTFOLIOS_KEY       = 'fmp_portfolios_v2';
+const PORTFOLIOS_CACHE_KEY = 'fmp_portfolios_cache_v2';
 
-function loadHoldings() {
-  try { holdings = JSON.parse(localStorage.getItem(HOLDINGS_KEY) || '[]'); } catch(_) { holdings = []; }
-}
-function saveHoldings() {
-  localStorage.setItem(HOLDINGS_KEY, JSON.stringify(holdings));
-}
-function loadHoldingsCache() {
+function loadPortfolios() {
   try {
-    const raw = JSON.parse(localStorage.getItem(HOLDINGS_CACHE_KEY) || '{}');
+    const raw = localStorage.getItem(PORTFOLIOS_KEY);
+    if (raw) {
+      portfolios = JSON.parse(raw);
+      return;
+    }
+  } catch(_) {}
+  // No V10 data — attempt migration from V9 flat holdings
+  portfolios = [];
+  try {
+    const old = JSON.parse(localStorage.getItem(HOLDINGS_KEY) || '[]');
+    if (old.length) {
+      portfolios = [{ id: 'default', name: 'My Portfolio', holdings: old }];
+      savePortfolios();
+      return;
+    }
+  } catch(_) {}
+}
+
+function savePortfolios() {
+  localStorage.setItem(PORTFOLIOS_KEY, JSON.stringify(portfolios));
+}
+
+// Back-compat shims: loadHoldings/saveHoldings used in a few places; redirect to portfolios
+function loadHoldings() { loadPortfolios(); }
+function saveHoldings() { savePortfolios(); }
+
+function loadHoldingsCache() {
+  // Try V2 cache key first, fall back to V1
+  const key = localStorage.getItem(PORTFOLIOS_CACHE_KEY) ? PORTFOLIOS_CACHE_KEY : HOLDINGS_CACHE_KEY;
+  try {
+    const raw = JSON.parse(localStorage.getItem(key) || '{}');
     holdingsCache = { lastRefresh: raw.lastRefresh||null, stocks: raw.stocks||{}, spyHistory: raw.spyHistory||[] };
   } catch(_) { holdingsCache = { lastRefresh:null, stocks:{}, spyHistory:[] }; }
 }
 function saveHoldingsCache() {
-  localStorage.setItem(HOLDINGS_CACHE_KEY, JSON.stringify(holdingsCache));
+  localStorage.setItem(PORTFOLIOS_CACHE_KEY, JSON.stringify(holdingsCache));
+}
+
+// ── V10: Flat helpers ─────────────────────────────────────────────────────────
+function getAllHoldings() {
+  return portfolios.flatMap(p => p.holdings.map(h => ({...h, _portfolioId: p.id, _portfolioName: p.name})));
+}
+function getActiveHoldings() {
+  if (currentPortfolioId === 'all') return getAllHoldings();
+  const p = portfolios.find(p => p.id === currentPortfolioId);
+  return p ? p.holdings.map(h => ({...h, _portfolioId: p.id, _portfolioName: p.name})) : [];
+}
+// Back-compat: code that read `holdings` now goes through getActiveHoldings()
+// We keep `holdings` as a legacy alias pointing at the active flat list.
+// IMPORTANT: do not write to `holdings` directly — use portfolio-aware save functions.
+
+function lookupHoldingCache(h) {
+  return holdingsCache.stocks[h.ticker] || null;
+}
+
+// ── V10: Currency helpers ─────────────────────────────────────────────────────
+// _fxRate = USD per 1 GBP (e.g. 1.264 means £1 = $1.264)
+function toDisplay(amount, nativeCur) {
+  if (amount == null) return null;
+  if (nativeCur === _displayCurrency) return amount;
+  if (!_fxRate) return amount; // can't convert, return as-is
+  if (_displayCurrency === 'GBP' && nativeCur === 'USD') return amount / _fxRate;
+  if (_displayCurrency === 'USD' && nativeCur === 'GBP') return amount * _fxRate;
+  return amount;
+}
+
+function fmtDisplay(amount, nativeCur) {
+  const converted = toDisplay(amount, nativeCur);
+  if (converted == null) return '—';
+  const sym = _displayCurrency === 'GBP' ? '£' : '$';
+  return sym + Math.abs(converted).toLocaleString('en-GB', {minimumFractionDigits:2, maximumFractionDigits:2});
+}
+
+function setDisplayCurrency(c) {
+  _displayCurrency = c;
+  try { localStorage.setItem('fmp_display_currency', c); } catch(_) {}
+  renderHoldingsView();
+}
+
+// ── V10: Live FX fetch ────────────────────────────────────────────────────────
+async function fetchFXRate(apiKey) {
+  try {
+    const res = await fwt(`${BASE}/quote?symbol=GBPUSD&apikey=${apiKey}`);
+    const q = Array.isArray(res) ? res[0] : res;
+    if (q && q.price) {
+      _fxRate = q.price; // how many USD per 1 GBP
+      _fxTimestamp = new Date().toLocaleTimeString('en-GB', {hour:'2-digit',minute:'2-digit'});
+      localStorage.setItem('fmp_fx_gbpusd', JSON.stringify({rate: _fxRate, ts: _fxTimestamp, epoch: Date.now()}));
+      return;
+    }
+  } catch(_) {}
+  // Fall back to cached
+  try {
+    const cached = JSON.parse(localStorage.getItem('fmp_fx_gbpusd') || 'null');
+    if (cached) { _fxRate = cached.rate; _fxTimestamp = cached.ts + ' (cached)'; }
+  } catch(_) {}
+}
+
+// ── V10: Portfolio management ─────────────────────────────────────────────────
+function selectPortfolio(id) {
+  currentPortfolioId = id;
+  try { localStorage.setItem('fmp_portfolio_id', id); } catch(_) {}
+  renderHoldingsView();
+}
+
+function newPortfolio() {
+  // Render inline form inside the portfolio selector — handled in renderHoldingsView
+  const el = document.getElementById('newPortForm');
+  if (el) { el.style.display = 'flex'; const inp = document.getElementById('newPortName'); if (inp) inp.focus(); }
+}
+
+function confirmNewPortfolio() {
+  const inp = document.getElementById('newPortName');
+  const name = (inp?.value || '').trim();
+  if (!name) { inp?.focus(); return; }
+  const id = 'p' + Date.now();
+  portfolios.push({ id, name, holdings: [] });
+  savePortfolios();
+  if (inp) inp.value = '';
+  const el = document.getElementById('newPortForm'); if (el) el.style.display = 'none';
+  selectPortfolio(id);
+}
+
+function cancelNewPortfolio() {
+  const el = document.getElementById('newPortForm'); if (el) el.style.display = 'none';
+}
+
+function openPortfolioMenu(portfolioId, btnEl) {
+  // Close any open dropdown first
+  document.querySelectorAll('.port-dropdown').forEach(d => d.remove());
+  const wrap = btnEl.closest('.port-menu-wrap');
+  if (!wrap) return;
+  const p = portfolios.find(p => p.id === portfolioId);
+  if (!p) return;
+  const dd = document.createElement('div');
+  dd.className = 'port-dropdown';
+  dd.innerHTML = `
+    <div class="port-dropdown-item" onclick="renamePortfolio('${esc(portfolioId)}');this.closest('.port-dropdown').remove()">Rename</div>
+    <div class="port-dropdown-item danger" onclick="deletePortfolio('${esc(portfolioId)}');this.closest('.port-dropdown').remove()">Delete</div>`;
+  wrap.appendChild(dd);
+  // Close when clicking elsewhere
+  const close = e => { if (!wrap.contains(e.target)) { dd.remove(); document.removeEventListener('click', close); } };
+  setTimeout(() => document.addEventListener('click', close), 0);
+}
+
+function renamePortfolio(id) {
+  const p = portfolios.find(p => p.id === id);
+  if (!p) return;
+  openRenameModal(id, p.name);
+}
+
+function openRenameModal(id, currentName) {
+  let modal = document.getElementById('renamePortModal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'renamePortModal';
+    modal.className = 'modal-overlay';
+    modal.style.cssText = 'opacity:1;pointer-events:auto;';
+    modal.innerHTML = `<div class="modal-box" style="max-width:340px">
+      <div class="modal-title">Rename Portfolio</div>
+      <div class="hf-group"><div class="hf-label">Name</div><input class="hf-input" id="renamePortInput" type="text" maxlength="40"></div>
+      <div class="hf-buttons">
+        <button class="hf-cancel" onclick="document.getElementById('renamePortModal').classList.remove('visible')">Cancel</button>
+        <button class="hf-save" onclick="confirmRenamePortfolio()">Save</button>
+      </div>
+    </div>`;
+    document.body.appendChild(modal);
+  }
+  modal.dataset.targetId = id;
+  const inp = document.getElementById('renamePortInput');
+  if (inp) { inp.value = currentName; }
+  modal.classList.add('visible');
+  setTimeout(() => inp?.focus(), 100);
+}
+
+function confirmRenamePortfolio() {
+  const modal = document.getElementById('renamePortModal');
+  if (!modal) return;
+  const id = modal.dataset.targetId;
+  const inp = document.getElementById('renamePortInput');
+  const name = (inp?.value || '').trim();
+  if (!name) return;
+  const p = portfolios.find(p => p.id === id);
+  if (p) { p.name = name; savePortfolios(); }
+  modal.classList.remove('visible');
+  renderHoldingsView();
+}
+
+function deletePortfolio(id) {
+  const p = portfolios.find(p => p.id === id);
+  if (!p) return;
+  if (!confirm(`This will remove all holdings in "${p.name}". Continue?`)) return;
+  portfolios = portfolios.filter(p => p.id !== id);
+  if (currentPortfolioId === id) currentPortfolioId = 'all';
+  savePortfolios();
+  renderHoldingsView();
+}
+
+// Save a holding to a specific portfolio
+function saveHoldingToPortfolio(portfolioId, holdingData) {
+  let p = portfolios.find(p => p.id === portfolioId);
+  if (!p) {
+    // Create if not found (defensive)
+    p = { id: portfolioId, name: 'My Portfolio', holdings: [] };
+    portfolios.push(p);
+  }
+  const idx = p.holdings.findIndex(h => h.ticker === holdingData.ticker);
+  if (idx >= 0) p.holdings[idx] = holdingData; else p.holdings.push(holdingData);
+  savePortfolios();
+}
+
+// Remove a holding from a specific portfolio by ticker
+function removeHoldingFromPortfolio(portfolioId, ticker) {
+  const p = portfolios.find(p => p.id === portfolioId);
+  if (p) {
+    p.holdings = p.holdings.filter(h => h.ticker !== ticker);
+    savePortfolios();
+  }
 }
 
 // ── View switching ────────────────────────────────────────────────────────────
@@ -2917,10 +3176,14 @@ function setView(v) {
   if (isH) renderHoldingsView();
 }
 
-// ── Render holdings view — V9 improved ───────────────────────────────────────
+// ── Render holdings view — V10 with portfolio selector + currency toggle ──────
 function renderHoldingsView() {
   const el = document.getElementById('holdingsView');
   if (!el) return;
+
+  const activeHoldings = getActiveHoldings();
+  // Sync legacy `holdings` var so older code paths still work
+  holdings = activeHoldings;
 
   const daysSince = holdingsCache.lastRefresh
     ? Math.floor((Date.now() - new Date(holdingsCache.lastRefresh).getTime()) / 86400000) : null;
@@ -2938,8 +3201,33 @@ function renderHoldingsView() {
 
   const stats = calcPortfolioStats();
 
+  // Portfolio selector chips
+  const portfolioChips = portfolios.map(p => {
+    const isActive = currentPortfolioId === p.id;
+    return `<span class="port-menu-wrap">
+      <button class="port-chip${isActive ? ' active' : ''}" onclick="selectPortfolio('${esc(p.id)}')">${esc(p.name)}</button>
+      <button class="port-menu-btn" title="Portfolio options" onclick="openPortfolioMenu('${esc(p.id)}',this)">⋯</button>
+    </span>`;
+  }).join('');
+
+  const allActive = currentPortfolioId === 'all';
+  const selectorBar = `<div class="portfolio-selector">
+    <button class="port-chip${allActive ? ' active' : ''}" onclick="selectPortfolio('all')">All (household)</button>
+    ${portfolioChips}
+    <button class="port-chip port-add-btn" onclick="newPortfolio()">+ New</button>
+    <div class="currency-toggle">
+      <button class="curr-btn${_displayCurrency==='GBP'?' active':''}" onclick="setDisplayCurrency('GBP')">£</button>
+      <button class="curr-btn${_displayCurrency==='USD'?' active':''}" onclick="setDisplayCurrency('USD')">$</button>
+    </div>
+  </div>
+  <div class="new-port-form" id="newPortForm" style="display:none">
+    <input class="new-port-input" id="newPortName" type="text" placeholder="Portfolio name…" maxlength="40" onkeydown="if(event.key==='Enter')confirmNewPortfolio();if(event.key==='Escape')cancelNewPortfolio()">
+    <button class="btn btn-sm btn-primary" onclick="confirmNewPortfolio()">Create</button>
+    <button class="btn btn-sm btn-filter" onclick="cancelNewPortfolio()">Cancel</button>
+  </div>`;
+
   let bodyHTML = '';
-  if (!holdings.length) {
+  if (!activeHoldings.length) {
     bodyHTML = renderHoldingsEmpty();
   } else {
     bodyHTML = `
@@ -2954,15 +3242,16 @@ function renderHoldingsView() {
   el.innerHTML = `
     <div class="h-header">
       <div>
-        <div class="h-title">My Portfolio</div>
+        <div class="h-title">${currentPortfolioId === 'all' ? 'All Portfolios' : (portfolios.find(p=>p.id===currentPortfolioId)?.name || 'My Portfolio')}</div>
         <div class="h-tagline">Review monthly · Not daily</div>
       </div>
       <div class="h-actions">
-        <button class="btn btn-sm btn-filter" onclick="openHoldingModal(null)">+ Add</button>
+        <button class="btn btn-sm btn-filter" onclick="openHoldingModal(null, null)">+ Add</button>
         <button class="btn btn-sm btn-filter" onclick="exportHoldings()" title="Export holdings as JSON">&#8595; Export</button>
         <button class="btn btn-sm btn-primary" id="btnHoldingsRefresh" onclick="refreshHoldings()">&#8635; Refresh</button>
       </div>
     </div>
+    ${selectorBar}
     ${refreshBar}
     <div class="h-progress" id="holdingsProgress"></div>
     <div class="h-errors"   id="holdingsErrors"></div>
@@ -2973,28 +3262,59 @@ function renderHoldingsEmpty() {
   return `<div class="h-empty">
     <div class="h-empty-title">No holdings yet</div>
     <div style="margin-bottom:20px;font-size:12px;line-height:1.7;color:var(--text-2)">Add the stocks you own to track P&amp;L,<br>monitor quality scores, and compare to the market.</div>
-    <button class="btn btn-primary" onclick="openHoldingModal(null)">+ Add Your First Holding</button>
+    <button class="btn btn-primary" onclick="openHoldingModal(null, null)">+ Add Your First Holding</button>
   </div>`;
 }
 
 function renderPortfolioSummary(stats) {
+  const sym = _displayCurrency === 'GBP' ? '£' : '$';
+  const fmt = v => v != null ? sym + Math.abs(v).toLocaleString('en-GB',{maximumFractionDigits:0}) : '—';
   const pnlCls  = (stats.totalPnl||0) >= 0 ? 'pass' : 'fail';
   const pnlSign = (stats.totalPnl||0) >= 0 ? '+' : '';
   const pnlPctStr = stats.totalPnlPct != null ? `${pnlSign}${stats.totalPnlPct.toFixed(1)}%` : '—';
-  const pnlStr    = stats.totalPnl    != null ? `${pnlSign}$${Math.abs(stats.totalPnl).toLocaleString('en',{maximumFractionDigits:0})}` : '—';
-  const invStr    = `$${(stats.totalInvested||0).toLocaleString('en',{maximumFractionDigits:0})}`;
-  const curStr    = stats.totalCurrent != null ? `$${stats.totalCurrent.toLocaleString('en',{maximumFractionDigits:0})}` : '—';
+  const pnlStr    = stats.totalPnl != null ? `${pnlSign}${fmt(stats.totalPnl)}` : '—';
+  const invStr    = fmt(stats.totalInvested||0);
+  const curStr    = stats.totalCurrent != null ? fmt(stats.totalCurrent) : '—';
   const avgScore  = stats.avgScore != null ? stats.avgScore.toFixed(1) : '—';
+  const activeH   = getActiveHoldings();
+  const holdCount = activeH.length;
+
+  // FX rate note — show when displaying GBP and there are USD holdings
+  const hasUSD = activeH.some(h => (h.nativeCurrency || 'USD') === 'USD' && h.type !== 'cash');
+  const fxNote = (hasUSD && _fxRate)
+    ? `<div class="fx-rate-note">FX: £1 = $${_fxRate.toFixed(4)} · as of ${_fxTimestamp || '—'}</div>` : '';
+
+  // Per-portfolio sub-lines (only in "all" view)
+  let portSubLines = '';
+  if (currentPortfolioId === 'all' && portfolios.length > 1) {
+    const lines = portfolios.map(p => {
+      let pTotal = 0;
+      for (const h of p.holdings) {
+        const nativeCur = h.nativeCurrency || 'USD';
+        if (h.type === 'cash') { pTotal += toDisplay(h.manualValue||0, 'GBP'); continue; }
+        const cached = holdingsCache.stocks[h.ticker];
+        const cp = cached?.price;
+        if (h.amountInvested && h.entryPrice && cp) pTotal += toDisplay(h.amountInvested*(cp/h.entryPrice), nativeCur);
+        else if (h.shares && cp) pTotal += toDisplay(h.shares*cp, nativeCur);
+        else if (h.amountInvested) pTotal += toDisplay(h.amountInvested, h.entryCurrency||'GBP');
+      }
+      return `${esc(p.name)}: ${sym}${pTotal.toLocaleString('en-GB',{maximumFractionDigits:0})}`;
+    }).join(' · ');
+    portSubLines = `<div style="font-size:11px;color:var(--text-2);margin-top:6px;line-height:1.7">${lines}</div>`;
+  }
+
   return `<div class="h-summary-grid">
     <div class="h-summary-card">
       <div class="h-summary-label">Invested</div>
       <div class="h-summary-val muted">${invStr}</div>
-      <div class="h-summary-sub">${holdings.length} holding${holdings.length!==1?'s':''}</div>
+      <div class="h-summary-sub">${holdCount} holding${holdCount!==1?'s':''}</div>
     </div>
     <div class="h-summary-card">
       <div class="h-summary-label">Current Value</div>
       <div class="h-summary-val ${pnlCls}">${curStr}</div>
       <div class="h-summary-sub ${pnlCls}">${pnlStr} &nbsp;(${pnlPctStr})</div>
+      ${fxNote}
+      ${portSubLines}
     </div>
     <div class="h-summary-card">
       <div class="h-summary-label">Avg Score</div>
@@ -3063,31 +3383,56 @@ function renderBenchmarkBars(portfolioReturn, spyReturn) {
   </svg>`;
 }
 
-// V9 portfolio grouping — Stocks / Funds & ETCs / Cash
+// V10 portfolio grouping — Stocks / Funds & ETCs / Cash, currency-aware
 function renderPortfolioGroups() {
   const ragOrder = { strong:2, watch:1, avoid:0 };
-  const stocks  = holdings.filter(h => !h.type || h.type === 'stock');
-  const funds   = holdings.filter(h => h.type === 'fund' || h.type === 'etf' || h.type === 'etc');
-  const cash    = holdings.filter(h => h.type === 'cash');
+  const activeH = getActiveHoldings();
+  const stocks  = activeH.filter(h => !h.type || h.type === 'stock');
+  const funds   = activeH.filter(h => h.type === 'fund' || h.type === 'etf' || h.type === 'etc');
+  const cash    = activeH.filter(h => h.type === 'cash');
+  const sym     = _displayCurrency === 'GBP' ? '£' : '$';
+
+  function fmtVal(v) { return v != null ? sym + Math.abs(v).toLocaleString('en-GB',{maximumFractionDigits:0}) : '—'; }
+  function fmtPnl(v) { return v != null ? (v>=0?'+':'-') + sym + Math.abs(v).toLocaleString('en-GB',{maximumFractionDigits:0}) : '—'; }
 
   function getHoldingValue(h) {
-    const cached = holdingsCache.stocks[h.ticker];
-    const invested = h.amountInvested || (h.shares && h.entryPrice ? h.shares * h.entryPrice : null);
+    const nativeCur = h.nativeCurrency || 'USD';
+    const entryCur  = h.entryCurrency  || 'GBP';
+    const cached = lookupHoldingCache(h);
+    if (h.type === 'cash') {
+      const v = toDisplay(h.manualValue||0, 'GBP');
+      return { invested: v, currentVal: v };
+    }
+    const invested = h.amountInvested
+      ? toDisplay(h.amountInvested, entryCur)
+      : (h.shares && h.entryPrice ? toDisplay(h.shares * h.entryPrice, entryCur) : null);
     let currentVal = null;
-    if (h.type === 'cash') return { invested: h.manualValue || 0, currentVal: h.manualValue || 0 };
-    if (h.amountInvested && h.entryPrice && cached?.price) currentVal = h.amountInvested * (cached.price / h.entryPrice);
-    else if (h.shares && cached?.price) currentVal = h.shares * cached.price;
+    if (h.amountInvested && h.entryPrice && cached?.price) currentVal = toDisplay(h.amountInvested * (cached.price / h.entryPrice), nativeCur);
+    else if (h.shares && cached?.price) currentVal = toDisplay(h.shares * cached.price, nativeCur);
     return { invested, currentVal };
   }
 
+  // Show portfolio name badge in "all" view
+  function portBadge(h) {
+    if (currentPortfolioId !== 'all') return '';
+    return `<span style="font-size:9px;color:var(--text-2);background:var(--bg-2);border:1px solid var(--line);border-radius:3px;padding:1px 5px;margin-left:4px">${esc(h._portfolioName||'')}</span>`;
+  }
+
+  function fxBadge(h) {
+    if ((h.nativeCurrency||'USD') === 'USD' && _displayCurrency === 'GBP') {
+      return `<span class="fx-note" title="Includes currency movement">incl. FX</span>`;
+    }
+    return '';
+  }
+
   function renderStockRow(h) {
-    const cached = holdingsCache.stocks[h.ticker];
+    const cached = lookupHoldingCache(h);
     const { invested, currentVal } = getHoldingValue(h);
     const pnlPct = (invested && currentVal != null) ? (currentVal - invested) / invested * 100 : null;
     const pnl    = (invested && currentVal != null) ? currentVal - invested : null;
     const pCls   = pnlPct == null ? 'muted' : pnlPct >= 0 ? 'pass' : 'fail';
     const pPctStr = pnlPct != null ? `${pnlPct >= 0 ? '+' : ''}${pnlPct.toFixed(1)}%` : '—';
-    const valStr  = currentVal != null ? `$${currentVal.toLocaleString('en', {maximumFractionDigits:0})}` : '—';
+    const valStr  = fmtVal(currentVal);
 
     let scoreInfo = '';
     let chipHTML = '';
@@ -3095,65 +3440,68 @@ function renderPortfolioGroups() {
       const elite = cached.score === 7 && cached.maxScore === 7;
       scoreInfo = `Now: <span class="cell-score ${elite?'elite':cached.rag}" style="font-size:11px">${cached.score}/${cached.maxScore}</span>`;
       if (h.entryRag && cached.rag) {
-        const el = ragOrder[h.entryRag] ?? 1, cl = ragOrder[cached.rag] ?? 1;
-        if (cached.rag === 'avoid' && el > 0)       chipHTML = `<span class="portfolio-chip chip-review">Was ${ragLabel(h.entryRag)}, now Low — review</span>`;
-        else if (cached.rag === 'watch' && el === 2) chipHTML = `<span class="portfolio-chip chip-watch">Was High score, now Mid — review</span>`;
-        else if (cl >= el)                           chipHTML = `<span class="portfolio-chip chip-ok">Quality maintained</span>`;
+        const el2 = ragOrder[h.entryRag] ?? 1, cl2 = ragOrder[cached.rag] ?? 1;
+        if (cached.rag === 'avoid' && el2 > 0)        chipHTML = `<span class="portfolio-chip chip-review">Was ${ragLabel(h.entryRag)}, now Low — review</span>`;
+        else if (cached.rag === 'watch' && el2 === 2)  chipHTML = `<span class="portfolio-chip chip-watch">Was High score, now Mid — review</span>`;
+        else if (cl2 >= el2)                           chipHTML = `<span class="portfolio-chip chip-ok">Quality maintained</span>`;
       }
     }
     const entryScore = h.entryScore != null ? ` · Entry: ${h.entryScore}/7` : '';
     const subLine = `Entered ${esc(h.entryDate || '?')} at ${fmtPrice(h.entryPrice)}${entryScore}${scoreInfo ? ' · ' + scoreInfo : ''}`;
+    const pId = esc(h._portfolioId || 'default');
 
     return `<div class="portfolio-row" onclick="openStockSheet('${esc(h.ticker)}')">
       <div class="portfolio-row-left">
-        <div class="portfolio-ticker">${esc(h.ticker)}</div>
+        <div class="portfolio-ticker">${esc(h.ticker)}${portBadge(h)}</div>
         <div class="portfolio-name">${esc(cached?.company || h.ticker)}</div>
         <div class="portfolio-sub">${subLine}</div>
         ${chipHTML}
       </div>
       <div class="portfolio-row-right">
         <div class="portfolio-value ${pCls}">${valStr}</div>
-        <div class="portfolio-pnl ${pCls}">${pPctStr} (${pnl != null ? (pnl >= 0 ? '+$' : '-$') + Math.abs(pnl).toFixed(0) : '—'})</div>
-        <div style="font-size:11px;color:var(--text-2);margin-top:4px"><button style="font-size:10px;color:var(--text-2);background:none;border:1px solid var(--line);border-radius:99px;padding:2px 8px;cursor:pointer" onclick="event.stopPropagation();openHoldingModal('${esc(h.ticker)}')">Edit</button></div>
+        <div class="portfolio-pnl ${pCls}">${pPctStr} (${fmtPnl(pnl)})${fxBadge(h)}</div>
+        <div style="font-size:11px;color:var(--text-2);margin-top:4px"><button style="font-size:10px;color:var(--text-2);background:none;border:1px solid var(--line);border-radius:99px;padding:2px 8px;cursor:pointer" onclick="event.stopPropagation();openHoldingModal('${esc(h.ticker)}','${pId}')">Edit</button></div>
       </div>
     </div>`;
   }
 
   function renderFundRow(h) {
-    const cached = holdingsCache.stocks[h.ticker];
+    const cached = lookupHoldingCache(h);
     const { invested, currentVal } = getHoldingValue(h);
     const pnlPct = (invested && currentVal != null) ? (currentVal - invested) / invested * 100 : null;
     const pnl    = (invested && currentVal != null) ? currentVal - invested : null;
     const pCls   = pnlPct == null ? 'muted' : pnlPct >= 0 ? 'pass' : 'fail';
     const pPctStr = pnlPct != null ? `${pnlPct >= 0 ? '+' : ''}${pnlPct.toFixed(1)}%` : '—';
-    const valStr  = currentVal != null ? `$${currentVal.toLocaleString('en', {maximumFractionDigits:0})}` : '—';
+    const valStr  = fmtVal(currentVal);
     const typeLabel = (h.type || 'fund').toUpperCase();
+    const pId = esc(h._portfolioId || 'default');
 
     return `<div class="portfolio-row" onclick="openFundSheet('${esc(h.ticker)}')">
       <div class="portfolio-row-left">
-        <div class="portfolio-ticker">${esc(h.ticker)} <span style="font-size:10px;color:var(--text-2);font-weight:400">${typeLabel}</span></div>
+        <div class="portfolio-ticker">${esc(h.ticker)} <span style="font-size:10px;color:var(--text-2);font-weight:400">${typeLabel}</span>${portBadge(h)}</div>
         <div class="portfolio-name">${esc(cached?.company || h.ticker)}</div>
         <div class="portfolio-sub">Entered ${esc(h.entryDate || '?')} at ${fmtPrice(h.entryPrice)}</div>
       </div>
       <div class="portfolio-row-right">
         <div class="portfolio-value ${pCls}">${valStr}</div>
-        <div class="portfolio-pnl ${pCls}">${pPctStr} (${pnl != null ? (pnl >= 0 ? '+$' : '-$') + Math.abs(pnl).toFixed(0) : '—'})</div>
-        <div style="font-size:11px;color:var(--text-2);margin-top:4px"><button style="font-size:10px;color:var(--text-2);background:none;border:1px solid var(--line);border-radius:99px;padding:2px 8px;cursor:pointer" onclick="event.stopPropagation();openHoldingModal('${esc(h.ticker)}')">Edit</button></div>
+        <div class="portfolio-pnl ${pCls}">${pPctStr} (${fmtPnl(pnl)})${fxBadge(h)}</div>
+        <div style="font-size:11px;color:var(--text-2);margin-top:4px"><button style="font-size:10px;color:var(--text-2);background:none;border:1px solid var(--line);border-radius:99px;padding:2px 8px;cursor:pointer" onclick="event.stopPropagation();openHoldingModal('${esc(h.ticker)}','${pId}')">Edit</button></div>
       </div>
     </div>`;
   }
 
   function renderCashRow(h) {
-    const val = h.manualValue || 0;
+    const val = toDisplay(h.manualValue||0, 'GBP');
     const rateStr = h.interestRate ? ` · ${h.interestRate}% p.a.` : '';
-    return `<div class="portfolio-row" onclick="openHoldingModal('${esc(h.ticker)}')">
+    const pId = esc(h._portfolioId || 'default');
+    return `<div class="portfolio-row" onclick="openHoldingModal('${esc(h.ticker)}','${pId}')">
       <div class="portfolio-row-left">
-        <div class="portfolio-ticker">${esc(h.ticker)}</div>
+        <div class="portfolio-ticker">${esc(h.ticker)}${portBadge(h)}</div>
         <div class="portfolio-name">${esc(h.note || 'Cash')}</div>
         <div class="portfolio-sub">Manual value${rateStr}</div>
       </div>
       <div class="portfolio-row-right">
-        <div class="portfolio-value muted">$${val.toLocaleString('en', {maximumFractionDigits:0})}</div>
+        <div class="portfolio-value muted">${sym}${val.toLocaleString('en-GB',{maximumFractionDigits:0})}</div>
       </div>
     </div>`;
   }
@@ -3175,17 +3523,21 @@ function renderPortfolioGroups() {
 }
 
 function renderAllocationBar() {
-  if (!holdings.length) return '';
-  const stocks = holdings.filter(h => !h.type || h.type === 'stock');
-  const funds  = holdings.filter(h => h.type === 'fund' || h.type === 'etf' || h.type === 'etc');
-  const cash   = holdings.filter(h => h.type === 'cash');
+  const activeH = getActiveHoldings();
+  if (!activeH.length) return '';
+  const stocks = activeH.filter(h => !h.type || h.type === 'stock');
+  const funds  = activeH.filter(h => h.type === 'fund' || h.type === 'etf' || h.type === 'etc');
+  const cash   = activeH.filter(h => h.type === 'cash');
 
   function val(h) {
-    if (h.type === 'cash') return h.manualValue || 0;
-    const cached = holdingsCache.stocks[h.ticker];
-    if (h.amountInvested && h.entryPrice && cached?.price) return h.amountInvested * (cached.price / h.entryPrice);
-    if (h.shares && cached?.price) return h.shares * cached.price;
-    return h.amountInvested || (h.shares && h.entryPrice ? h.shares * h.entryPrice : 0);
+    const nativeCur = h.nativeCurrency || 'USD';
+    const entryCur  = h.entryCurrency  || 'GBP';
+    if (h.type === 'cash') return toDisplay(h.manualValue||0, 'GBP');
+    const cached = lookupHoldingCache(h);
+    if (h.amountInvested && h.entryPrice && cached?.price) return toDisplay(h.amountInvested * (cached.price / h.entryPrice), nativeCur);
+    if (h.shares && cached?.price) return toDisplay(h.shares * cached.price, nativeCur);
+    if (h.amountInvested) return toDisplay(h.amountInvested, entryCur);
+    return h.shares && h.entryPrice ? toDisplay(h.shares * h.entryPrice, entryCur) : 0;
   }
 
   const sVal = stocks.reduce((t, h) => t + val(h), 0);
@@ -3222,30 +3574,36 @@ function renderDisciplineFooter(daysSince) {
   </div>`;
 }
 
-// ── Portfolio stats ───────────────────────────────────────────────────────────
+// ── Portfolio stats — V10: multi-portfolio + display-currency aware ───────────
 function calcPortfolioStats() {
-  if (!holdings.length) return null;
+  const activeHoldings = getActiveHoldings();
+  if (!activeHoldings.length) return null;
+  // All sums accumulated in DISPLAY currency
   let totalInvested=0, totalCurrent=0, hasLive=false;
   let scoreSum=0, scoreWt=0, countStrong=0, countWatch=0, countAvoid=0;
 
-  for (const h of holdings) {
-    // V9: handle cash holdings specially
+  for (const h of activeHoldings) {
+    const nativeCur = h.nativeCurrency || 'USD'; // default USD for stocks
+    const entryCur  = h.entryCurrency  || 'GBP'; // default GBP for entry
+
+    // Cash holdings
     if (h.type === 'cash') {
-      const cashVal = h.manualValue || 0;
-      totalInvested += cashVal;
-      totalCurrent  += cashVal;
+      totalInvested += toDisplay(h.manualValue||0, 'GBP');
+      totalCurrent  += toDisplay(h.manualValue||0, 'GBP');
       hasLive = true;
       continue;
     }
-    const cached = holdingsCache.stocks[h.ticker];
-    const cp     = cached?.price;
-    const invested = h.amountInvested || (h.shares&&h.entryPrice ? h.shares*h.entryPrice : 0);
+    const cached = lookupHoldingCache(h);
+    const cp = cached?.price; // in nativeCur
+    const invested = h.amountInvested
+      ? toDisplay(h.amountInvested, entryCur)
+      : (h.shares && h.entryPrice ? toDisplay(h.shares * h.entryPrice, entryCur) : 0);
     let cur = null;
-    if (h.amountInvested&&h.entryPrice&&cp) cur = h.amountInvested*(cp/h.entryPrice);
-    else if (h.shares&&cp)                  cur = h.shares*cp;
+    if (h.amountInvested && h.entryPrice && cp) cur = toDisplay(h.amountInvested * (cp / h.entryPrice), nativeCur);
+    else if (h.shares && cp)                    cur = toDisplay(h.shares * cp, nativeCur);
 
     if (invested)    totalInvested += invested;
-    if (cur!=null) { totalCurrent  += cur; hasLive = true; }
+    if (cur != null) { totalCurrent += cur; hasLive = true; }
 
     if (cached) {
       const w = cur||invested||1;
@@ -3260,7 +3618,7 @@ function calcPortfolioStats() {
   const totalPnlPct = (totalInvested>0&&totalPnl!=null) ? totalPnl/totalInvested*100 : null;
   const avgScore    = scoreWt>0 ? scoreSum/scoreWt : null;
 
-  const earliestEntry = holdings.reduce((m,h) => (!h.entryDate?m:(!m||h.entryDate<m?h.entryDate:m)), null);
+  const earliestEntry = activeHoldings.reduce((m,h) => (!h.entryDate?m:(!m||h.entryDate<m?h.entryDate:m)), null);
   let spyReturn=null, spyPeriodDays=null;
   if (earliestEntry&&holdingsCache.spyHistory.length) {
     const chron = [...holdingsCache.spyHistory].sort((a,b)=>a.date.localeCompare(b.date));
@@ -3277,9 +3635,10 @@ function calcPortfolioStats() {
     portfolioReturn: totalPnlPct, spyReturn, spyPeriodDays, earliestEntry };
 }
 
-// ── Refresh holdings ──────────────────────────────────────────────────────────
+// ── Refresh holdings — V10 ────────────────────────────────────────────────────
 async function refreshHoldings() {
-  if (!holdings.length) return;
+  const allH = getAllHoldings();
+  if (!allH.length) return;
   const apiKey = document.getElementById('apiKey').value.trim();
   const progress = document.getElementById('holdingsProgress');
   const errEl    = document.getElementById('holdingsErrors');
@@ -3289,42 +3648,58 @@ async function refreshHoldings() {
   }
   const btn = document.getElementById('btnHoldingsRefresh');
   if (btn) btn.disabled = true;
-  if (progress) { progress.textContent='Fetching SPY benchmark…'; progress.style.display='block'; }
+  if (progress) { progress.textContent='Fetching FX rate…'; progress.style.display='block'; }
   if (errEl)    errEl.style.display = 'none';
 
+  // V10: Fetch live FX rate first
+  await fetchFXRate(apiKey);
+
+  if (progress) progress.textContent = 'Fetching SPY benchmark…';
   try {
     const raw = await fwt(`${BASE}/historical-price-eod/full?symbol=SPY&apikey=${apiKey}`);
     holdingsCache.spyHistory = Array.isArray(raw)
       ? raw.filter(d=>d.date&&d.close).map(d=>({date:d.date, close:+d.close})) : [];
   } catch(_) { holdingsCache.spyHistory=[]; }
 
+  // Deduplicate tickers across all portfolios
+  const seenTickers = new Set();
+  const uniqueH = allH.filter(h => { if (seenTickers.has(h.ticker)) return false; seenTickers.add(h.ticker); return true; });
   const errors=[];
-  for (let i=0; i<holdings.length; i++) {
-    const h = holdings[i];
-    // V9: skip cash holdings — they have no FMP price
+  for (let i=0; i<uniqueH.length; i++) {
+    const h = uniqueH[i];
     if (h.type === 'cash') continue;
-    if (progress) progress.textContent=`Fetching ${h.ticker} (${i+1} / ${holdings.length})…`;
+    if (progress) progress.textContent=`Fetching ${h.ticker} (${i+1} / ${uniqueH.length})…`;
     try {
       const s = await fetchStock(h.ticker, apiKey);
+      // V10: detect nativeCurrency from FMP profile
+      let nativeCurrency = 'USD';
+      if (s.currency === 'GBp') { nativeCurrency = 'GBP'; if (s.price) s.price = s.price / 100; }
+      else if (s.currency === 'GBP') { nativeCurrency = 'GBP'; }
       holdingsCache.stocks[h.ticker] = {
         price:s.price, score:s.score, maxScore:s.maxScore, rag:s.rag, company:s.company,
         croci:s.croci, peg:s.peg, sortino:s.sortino, alpha:s.alpha, beta:s.beta,
         vol:s.vol, corr:s.corr, chg6m:s.chg6m, chg1m:s.chg1m,
         analyst: s.analyst?.consensus||null,
-        history: (s.history||[]).slice(0,500), // V9: store history for fund charts
+        history: (s.history||[]).slice(0,500),
+        nativeCurrency,
       };
-      // Set entryRag/entryScore on first refresh only (becomes the baseline for alerts)
-      const idx = holdings.findIndex(x=>x.ticker===h.ticker);
-      if (idx>=0 && holdings[idx].entryRag==null) {
-        holdings[idx].entryScore = s.score;
-        holdings[idx].entryRag   = s.rag;
+      // Set entryRag/entryScore + nativeCurrency on all matching holdings across portfolios
+      for (const p of portfolios) {
+        const idx = p.holdings.findIndex(x=>x.ticker===h.ticker);
+        if (idx>=0) {
+          if (p.holdings[idx].entryRag==null) {
+            p.holdings[idx].entryScore = s.score;
+            p.holdings[idx].entryRag   = s.rag;
+          }
+          p.holdings[idx].nativeCurrency = nativeCurrency;
+        }
       }
     } catch(e) { errors.push(`${h.ticker}: ${e.message}`); }
-    if (i<holdings.length-1) await delay(STOCK_DELAY);
+    if (i<uniqueH.length-1) await delay(STOCK_DELAY);
   }
 
   holdingsCache.lastRefresh = new Date().toISOString();
-  saveHoldings();
+  savePortfolios();
   saveHoldingsCache();
   if (progress) progress.style.display='none';
   if (btn) btn.disabled=false;
@@ -3332,14 +3707,35 @@ async function refreshHoldings() {
   renderHoldingsView();
 }
 
-// ── V9: Add / Edit holding modal — 5 types ───────────────────────────────────
+// ── V10: Add / Edit holding modal ─────────────────────────────────────────────
 let _tickerSearchTimer = null;
+let _hEditPortfolioId  = null; // V10: portfolio the holding belongs to
 
-function openHoldingModal(ticker) {
-  _hEditTicker = ticker;
-  const existing = ticker ? holdings.find(h => h.ticker === ticker) : null;
+function openHoldingModal(ticker, portfolioId) {
+  // Ensure at least one portfolio exists
+  if (!portfolios.length) {
+    portfolios = [{ id: 'default', name: 'My Portfolio', holdings: [] }];
+    savePortfolios();
+  }
+  _hEditTicker     = ticker;
+  _hEditPortfolioId = portfolioId || null;
+  // Find existing holding across all portfolios
+  let existing = null;
+  if (ticker) {
+    if (portfolioId) {
+      const p = portfolios.find(p => p.id === portfolioId);
+      existing = p ? p.holdings.find(h => h.ticker === ticker) : null;
+    } else {
+      // Search all portfolios
+      for (const p of portfolios) {
+        const h = p.holdings.find(h => h.ticker === ticker);
+        if (h) { existing = h; _hEditPortfolioId = p.id; break; }
+      }
+    }
+  }
   _hTrackBy = existing ? (existing.shares != null ? 'shares' : 'amount') : 'amount';
   _hType    = existing?.type || 'stock';
+  _hEntryCurrency = existing?.entryCurrency || 'GBP';
   document.getElementById('holdingModalTitle').textContent = existing ? `Edit — ${ticker}` : 'Add Holding';
   renderHoldingForm(existing);
   document.getElementById('holdingModal').classList.add('visible');
@@ -3350,7 +3746,18 @@ function closeHoldingModal() {
 
 function hfSetType(t) {
   _hType = t;
-  renderHoldingForm(_hEditTicker ? holdings.find(h => h.ticker === _hEditTicker) : null);
+  const existing = _hEditTicker && _hEditPortfolioId
+    ? portfolios.find(p=>p.id===_hEditPortfolioId)?.holdings.find(h=>h.ticker===_hEditTicker) || null
+    : null;
+  renderHoldingForm(existing);
+}
+
+function hfSetEntryCurrency(c) {
+  _hEntryCurrency = c;
+  const existing = _hEditTicker && _hEditPortfolioId
+    ? portfolios.find(p=>p.id===_hEditPortfolioId)?.holdings.find(h=>h.ticker===_hEditTicker) || null
+    : null;
+  renderHoldingForm(existing);
 }
 
 function renderHoldingForm(existing) {
@@ -3372,17 +3779,27 @@ function renderHoldingForm(existing) {
     ${types.map(t => `<button class="type-seg-btn${_hType === t ? ' active' : ''}" onclick="hfSetType('${t}')">${typeLabels[t]}</button>`).join('')}
   </div>`;
 
+  // V10: Portfolio selector
+  const defaultPortId = _hEditPortfolioId || (currentPortfolioId !== 'all' ? currentPortfolioId : (portfolios[0]?.id || 'default'));
+  const portOptions = portfolios.length
+    ? `<div class="hf-group">
+        <div class="hf-label">Portfolio</div>
+        <select class="hf-input" id="hf-portfolio">
+          ${portfolios.map(p => `<option value="${esc(p.id)}"${p.id===defaultPortId?' selected':''}>${esc(p.name)}</option>`).join('')}
+        </select>
+      </div>` : '';
+
   const amtActive = _hTrackBy === 'amount' ? ' active' : '';
   const shrActive = _hTrackBy === 'shares' ? ' active' : '';
   const trackToggle = !isCash ? `<div class="hf-toggle">
-    <button class="hf-toggle-btn${amtActive}" onclick="hfSetTrackBy('amount')">By Amount ($)</button>
+    <button class="hf-toggle-btn${amtActive}" onclick="hfSetTrackBy('amount')">By Amount</button>
     <button class="hf-toggle-btn${shrActive}" onclick="hfSetTrackBy('shares')">By Shares</button>
   </div>` : '';
   const inputField = isCash
-    ? `<div class="hf-group"><div class="hf-label">Manual value ($)</div><input class="hf-input" id="hf-manualValue" type="number" min="0" step="0.01" placeholder="e.g. 5000.00" value="${esc(String(manVal))}"></div>
+    ? `<div class="hf-group"><div class="hf-label">Manual value (£)</div><input class="hf-input" id="hf-manualValue" type="number" min="0" step="0.01" placeholder="e.g. 5000.00" value="${esc(String(manVal))}"></div>
        <div class="hf-group"><div class="hf-label">Interest rate % (optional)</div><input class="hf-input" id="hf-rate" type="number" min="0" step="0.01" placeholder="e.g. 4.5" value="${esc(String(rate))}"></div>`
     : (_hTrackBy === 'amount'
-      ? `<div class="hf-group"><div class="hf-label">Amount Invested ($)</div><input class="hf-input" id="hf-amount" type="number" min="0" step="0.01" placeholder="e.g. 1500.00" value="${esc(String(amount))}"></div>`
+      ? `<div class="hf-group"><div class="hf-label">Amount Invested</div><input class="hf-input" id="hf-amount" type="number" min="0" step="0.01" placeholder="e.g. 1500.00" value="${esc(String(amount))}"></div>`
       : `<div class="hf-group"><div class="hf-label">Number of Shares</div><input class="hf-input" id="hf-shares" type="number" min="0" step="0.01" placeholder="e.g. 10" value="${esc(String(shares))}"></div>`);
 
   const entryScore = isStock && existing?.entryScore != null
@@ -3391,33 +3808,44 @@ function renderHoldingForm(existing) {
   const fundNote = isFundType
     ? `<div style="font-size:11px;color:var(--text-2);margin-bottom:12px">For LSE-listed funds, use the exchange suffix, e.g. VWRL.L</div>` : '';
 
-  const tickerRow = !isEdit
-    ? `<div class="hf-group">
-        <div class="hf-label">Ticker Symbol${isCash ? ' (optional)' : ''}</div>
-        <div class="ticker-autocomplete">
-          <input class="hf-input" id="hf-ticker" type="text" placeholder="${isCash ? 'e.g. SAVINGS' : 'e.g. AAPL'}" autocapitalize="characters" autocomplete="off" oninput="hfTickerSearch(this.value)">
-          <div id="tickerDropdown" class="ticker-dropdown" style="display:none"></div>
-        </div>
-        ${fundNote}
-      </div>`
-    : `<div style="font-size:12px;color:var(--text-2);margin-bottom:16px">Editing <strong style="color:var(--accent)">${esc(existing.ticker)}</strong></div>`;
+  // V10: In edit mode, ticker is now EDITABLE (pre-filled, not locked)
+  const tickerRow = `<div class="hf-group">
+      <div class="hf-label">Ticker Symbol${isCash ? ' (optional)' : ''}</div>
+      <div class="ticker-autocomplete">
+        <input class="hf-input" id="hf-ticker" type="text" placeholder="${isCash ? 'e.g. SAVINGS' : 'e.g. AAPL'}" autocapitalize="characters" autocomplete="off" value="${esc(isEdit ? existing.ticker : '')}" oninput="hfTickerSearch(this.value)">
+        <div id="tickerDropdown" class="ticker-dropdown" style="display:none"></div>
+      </div>
+      ${fundNote}
+    </div>`;
+
+  // V10: Entry currency toggle
+  const currToggle = !isCash ? `<div class="hf-curr-toggle" style="margin-bottom:4px">
+    <button class="hf-curr-btn${_hEntryCurrency==='GBP'?' active':''}" onclick="hfSetEntryCurrency('GBP')">£ GBP</button>
+    <button class="hf-curr-btn${_hEntryCurrency==='USD'?' active':''}" onclick="hfSetEntryCurrency('USD')">$ USD</button>
+  </div>` : '';
 
   const priceRow = !isCash
     ? `<div class="hf-row">
-        <div class="hf-group"><div class="hf-label">Entry Price ($)</div><input class="hf-input" id="hf-entryPrice" type="number" min="0" step="0.01" placeholder="e.g. 150.00" value="${esc(String(ep))}"></div>
+        <div class="hf-group">
+          <div class="hf-label">Entry Price</div>
+          ${currToggle}
+          <input class="hf-input" id="hf-entryPrice" type="number" min="0" step="0.01" placeholder="e.g. 150.00" value="${esc(String(ep))}">
+        </div>
         <div class="hf-group"><div class="hf-label">Entry Date</div><input class="hf-input" id="hf-entryDate" type="date" value="${esc(ed)}"></div>
       </div>` : '';
 
-  const removeBtn = isEdit ? `<button class="hf-remove" onclick="removeHolding('${esc(existing.ticker)}')">Remove</button>` : '';
+  const removeBtn = isEdit ? `<button class="hf-remove" onclick="removeHolding('${esc(existing.ticker)}','${esc(_hEditPortfolioId||'')}')">Remove</button>` : '';
 
   document.getElementById('holdingModalBody').innerHTML = `
     ${typeCtrl}
+    ${portOptions}
     ${tickerRow}
     ${trackToggle}
     ${inputField}
     ${entryScore}
     ${priceRow}
     <div class="hf-group"><div class="hf-label">Note (optional)</div><input class="hf-input" id="hf-note" type="text" placeholder="e.g. Long-term hold" maxlength="100" value="${esc(note)}"></div>
+    <div id="hf-ticker-error" style="display:none;color:var(--red);font-size:12px;margin-bottom:8px"></div>
     <div class="hf-buttons">
       <button class="hf-cancel" onclick="closeHoldingModal()">Cancel</button>
       ${removeBtn}
@@ -3427,7 +3855,10 @@ function renderHoldingForm(existing) {
 
 function hfSetTrackBy(v) {
   _hTrackBy = v;
-  renderHoldingForm(_hEditTicker ? holdings.find(h => h.ticker === _hEditTicker) : null);
+  const existing = _hEditTicker && _hEditPortfolioId
+    ? portfolios.find(p=>p.id===_hEditPortfolioId)?.holdings.find(h=>h.ticker===_hEditTicker) || null
+    : null;
+  renderHoldingForm(existing);
 }
 
 // V9: Ticker autocomplete
@@ -3461,78 +3892,124 @@ function hfSelectTicker(symbol) {
   if (dropdown) dropdown.style.display = 'none';
 }
 
-function saveHolding() {
+async function saveHolding() {
   const isEdit = !!_hEditTicker;
   const isCash = _hType === 'cash';
-  const rawTicker = isEdit ? _hEditTicker : (document.getElementById('hf-ticker')?.value || '').trim().toUpperCase();
+  const rawTickerInput = (document.getElementById('hf-ticker')?.value || '').trim().toUpperCase();
+  const rawTicker = rawTickerInput || (isCash ? 'CASH' : '');
   const ticker = rawTicker || (isCash ? 'CASH' : '');
   if (!ticker && !isCash) { alert('Enter a ticker symbol.'); return; }
 
-  const note     = (document.getElementById('hf-note')?.value || '').trim();
+  const note      = (document.getElementById('hf-note')?.value || '').trim();
   const entryDate = (document.getElementById('hf-entryDate')?.value || '').trim();
+  const targetPortId = document.getElementById('hf-portfolio')?.value || portfolios[0]?.id || 'default';
 
+  // V10: In edit mode detect ticker change
+  const tickerChanged = isEdit && rawTickerInput && rawTickerInput !== _hEditTicker;
+
+  // Cash holding
   if (isCash) {
-    const manualValue = parseFloat(document.getElementById('hf-manualValue')?.value || '') || 0;
+    const manualValue  = parseFloat(document.getElementById('hf-manualValue')?.value || '') || 0;
     const interestRate = parseFloat(document.getElementById('hf-rate')?.value || '') || null;
-    const finalTicker = ticker || ('CASH_' + Date.now());
-    const idx = holdings.findIndex(h => h.ticker === finalTicker);
-    const holdingData = { ticker: finalTicker, type: 'cash', manualValue, interestRate, note, entryDate: entryDate || new Date().toISOString().slice(0,10) };
-    if (idx >= 0) holdings[idx] = holdingData; else holdings.push(holdingData);
-    saveHoldings(); closeHoldingModal(); renderHoldingsView();
+    const finalTicker  = ticker || ('CASH_' + Date.now());
+    const holdingData  = { ticker: finalTicker, type: 'cash', manualValue, interestRate, note, entryDate: entryDate || new Date().toISOString().slice(0,10), entryCurrency: 'GBP', nativeCurrency: 'GBP' };
+    // Remove from old portfolio if moved
+    if (isEdit && _hEditPortfolioId && _hEditPortfolioId !== targetPortId) {
+      removeHoldingFromPortfolio(_hEditPortfolioId, _hEditTicker);
+    }
+    saveHoldingToPortfolio(targetPortId, holdingData);
+    savePortfolios(); closeHoldingModal(); renderHoldingsView();
     return;
   }
 
-  const entryPrice = parseFloat(document.getElementById('hf-entryPrice')?.value || '');
-  const amountEl   = document.getElementById('hf-amount');
-  const sharesEl   = document.getElementById('hf-shares');
+  const entryPrice     = parseFloat(document.getElementById('hf-entryPrice')?.value || '');
+  const amountEl       = document.getElementById('hf-amount');
+  const sharesEl       = document.getElementById('hf-shares');
   const amountInvested = amountEl ? parseFloat(amountEl.value) : NaN;
   const shares         = sharesEl ? parseFloat(sharesEl.value) : NaN;
 
   if (_hTrackBy === 'amount' && (isNaN(amountInvested) || amountInvested <= 0)) { alert('Enter the amount invested.'); return; }
   if (_hTrackBy === 'shares' && (isNaN(shares) || shares <= 0))                 { alert('Enter the number of shares.'); return; }
-  if (isNaN(entryPrice) || entryPrice <= 0) { alert('Enter the entry price ($).'); return; }
+  if (isNaN(entryPrice) || entryPrice <= 0) { alert('Enter the entry price.'); return; }
   if (!entryDate) { alert('Select the entry date.'); return; }
 
-  const idx = holdings.findIndex(h => h.ticker === ticker);
-  if (!isEdit && idx >= 0) { alert(`${ticker} is already in your holdings.`); return; }
+  // V10: If ticker changed in edit mode, validate new ticker against FMP
+  const errEl = document.getElementById('hf-ticker-error');
+  if (tickerChanged) {
+    if (errEl) { errEl.textContent = `Validating ${rawTickerInput}…`; errEl.style.display = 'block'; }
+    const apiKey = document.getElementById('apiKey').value.trim();
+    if (apiKey) {
+      try {
+        const qr = await fwt(`${BASE}/quote-short?symbol=${rawTickerInput}&apikey=${apiKey}`);
+        const q = Array.isArray(qr) ? qr[0] : qr;
+        if (!q || !q.price) throw new Error('not found');
+        if (errEl) errEl.style.display = 'none';
+      } catch(_) {
+        if (errEl) { errEl.textContent = `We couldn't find ${rawTickerInput} on FMP. Check the ticker and exchange.`; errEl.style.display = 'block'; }
+        return;
+      }
+    }
+    // Remove old holding from its portfolio
+    if (_hEditPortfolioId) removeHoldingFromPortfolio(_hEditPortfolioId, _hEditTicker);
+    delete holdingsCache.stocks[_hEditTicker];
+  }
+
+  // Check duplicate only when adding new (not editing, not changing ticker which was already removed)
+  const targetP = portfolios.find(p => p.id === targetPortId);
+  const existingInTarget = targetP ? targetP.holdings.find(h => h.ticker === ticker) : null;
+  if (!isEdit && existingInTarget) { alert(`${ticker} is already in that portfolio.`); return; }
+
+  // Build holding data
+  const oldCached = holdingsCache.stocks[ticker];
+  const fromResults = results.find(r => r.ticker === ticker);
+  // Preserve entryScore/entryRag from original if not changed
+  let existingEntryScore = null, existingEntryRag = null;
+  if (isEdit && !tickerChanged && _hEditPortfolioId) {
+    const op = portfolios.find(p => p.id === _hEditPortfolioId);
+    const oh = op ? op.holdings.find(h => h.ticker === _hEditTicker) : null;
+    existingEntryScore = oh?.entryScore ?? null;
+    existingEntryRag   = oh?.entryRag   ?? null;
+  }
 
   const holdingData = {
     ticker, type: _hType, entryPrice, entryDate, note,
+    entryCurrency:  _hEntryCurrency,
+    nativeCurrency: oldCached?.nativeCurrency || 'USD',
     amountInvested: _hTrackBy === 'amount' ? amountInvested : null,
     shares:         _hTrackBy === 'shares' ? shares : null,
-    entryScore: idx >= 0 ? holdings[idx].entryScore : null,
-    entryRag:   idx >= 0 ? holdings[idx].entryRag   : null,
+    entryScore: existingEntryScore ?? (oldCached?.score ?? (fromResults?.score ?? null)),
+    entryRag:   existingEntryRag   ?? (oldCached?.rag   ?? (fromResults?.rag   ?? null)),
   };
-  // Seed entry score from cache if available (and not yet set)
-  if (!holdingData.entryRag && holdingsCache.stocks[ticker]) {
-    holdingData.entryScore = holdingsCache.stocks[ticker].score;
-    holdingData.entryRag   = holdingsCache.stocks[ticker].rag;
-  }
-  // Also try to get from screener results
-  if (!holdingData.entryRag) {
-    const fromResults = results.find(r => r.ticker === ticker);
-    if (fromResults) {
-      holdingData.entryScore = fromResults.score;
-      holdingData.entryRag   = fromResults.rag;
-    }
+
+  // Remove from old portfolio if portfolio changed
+  if (isEdit && !tickerChanged && _hEditPortfolioId && _hEditPortfolioId !== targetPortId) {
+    removeHoldingFromPortfolio(_hEditPortfolioId, _hEditTicker);
   }
 
-  if (idx >= 0) holdings[idx] = holdingData; else holdings.push(holdingData);
-  saveHoldings();
+  saveHoldingToPortfolio(targetPortId, holdingData);
+  savePortfolios();
   closeHoldingModal();
   renderHoldingsView();
 }
-function removeHolding(ticker) {
+
+function removeHolding(ticker, portfolioId) {
   if (!confirm(`Remove ${ticker} from your holdings?`)) return;
-  holdings = holdings.filter(h=>h.ticker!==ticker);
+  const pId = portfolioId || _hEditPortfolioId;
+  if (pId) {
+    removeHoldingFromPortfolio(pId, ticker);
+  } else {
+    // Remove from all portfolios that contain it
+    for (const p of portfolios) p.holdings = p.holdings.filter(h => h.ticker !== ticker);
+  }
   delete holdingsCache.stocks[ticker];
-  saveHoldings();
+  savePortfolios();
   saveHoldingsCache();
   closeHoldingModal();
   renderHoldingsView();
 }
+
 function exportHoldings() {
-  const data = JSON.stringify({holdings, cache:holdingsCache}, null, 2);
+  const data = JSON.stringify({portfolios, cache:holdingsCache}, null, 2);
   const blob = new Blob([data], {type:'application/json'});
   const url  = URL.createObjectURL(blob);
   const a    = document.createElement('a');
