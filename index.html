@@ -1366,6 +1366,10 @@ function loadPerStockCache() {
 }
 
 function writePerStockCache(ticker, stock) {
+  // Store score/metric fields only — NO history/MACD/seasonality.
+  // Full OHLC history (~40 KB per stock) would exceed the 5 MB localStorage
+  // quota across a 500-stock universe. History is fetched fresh when the
+  // detail panel opens (see openStockSheet).
   try {
     const cache = loadPerStockCache();
     const existing = cache[ticker] || {};
@@ -1386,12 +1390,7 @@ function writePerStockCache(ticker, stock) {
       vol: stock.vol,
       corr: stock.corr,
       analyst: stock.analyst,
-      history: (stock.history || []).slice(0, 500), // truncate to 500 days
-      macd: stock.macd,
-      signal: stock.signal,
-      macdHist: stock.macdHist,
       season: stock.season,
-      seasonality: stock.seasonality,
       score: stock.score,
       maxScore: stock.maxScore,
       rag: stock.rag,
@@ -1406,8 +1405,15 @@ function writePerStockCache(ticker, stock) {
 
 function saveFullRunCache() {
   try {
+    // Strip history/MACD/seasonality before saving — they are re-fetched on
+    // detail-panel open. Keeping them would push the payload past localStorage's
+    // 5 MB quota for a 500-stock universe (~40 KB history × 500 = 20 MB).
+    const slim = results.map(s => {
+      const { history, macd, signal, macdHist, seasonality, ...rest } = s;
+      return rest;
+    });
     localStorage.setItem(RUN_CACHE_KEY, JSON.stringify({
-      results, failures, timestamp: new Date().toISOString(), universe: currentUniverse,
+      results: slim, failures, timestamp: new Date().toISOString(), universe: currentUniverse,
     }));
     _cacheTimestamp = new Date().toISOString();
   } catch(e) { console.warn('[Cache] full run cache write failed:', e.message); }
@@ -2476,10 +2482,11 @@ function updateStats() {
 }
 
 // ── Bottom Sheet ──────────────────────────────────────────────────────────────
-function openStockSheet(ticker) {
-  console.log('[DIAG-B] HANDLER FIRED', ticker, '| results.length:', results.length);
+// History is NOT stored in the cache (too large for localStorage).
+// If s.history is absent we open the sheet immediately with score/metrics data
+// and fetch the history from FMP async, then fill in chart + MACD in-place.
+async function openStockSheet(ticker) {
   const s = results.find(r => r.ticker === ticker);
-  console.log('[DIAG-B] stock found:', s ? 'YES — ' + s.ticker : 'NO — ticker not in results');
   if (!s) { showMessage('Data for ' + ticker + ' not yet loaded.', 'error'); setTimeout(hideMessage, 3000); return; }
 
   const sheet   = document.getElementById('bottomSheet');
@@ -2502,40 +2509,39 @@ function openStockSheet(ticker) {
       <button class="sheet-close" onclick="closeStockSheet()">✕</button>
     </div>`;
 
-  // V9: Build candlestick price chart (up to 365 days → auto weekly aggregation)
-  const chartData = (s.history || []).slice(0, 365).reverse(); // chronological oldest→newest
-  let chartHTML = '';
-  if (chartData.length >= 2) {
+  // Build candlestick price chart — or loading placeholder if history not in memory
+  const hasHistory = s.history && s.history.length >= 2;
+  const chartData  = hasHistory ? s.history.slice(0, 365).reverse() : [];
+  let chartHTML = `<div id="sheet-chart-area">`;
+  if (hasHistory) {
     const candleSVG = renderCandlestickChart(chartData, 400, 110, 10, favData);
-    const isFirstExplainer = !localStorage.getItem('candle_explained_v1');
-    chartHTML = `
+    chartHTML += `
       <div class="sheet-section-title" style="display:flex;align-items:center;gap:8px">
         Price chart
         <button class="chart-info-btn" onclick="openCandleExplainer()" title="How to read this chart">ⓘ</button>
       </div>
       ${candleSVG}`;
-  }
-
-  // MACD section — prices252 = last 252 days, oldest-first for EMA
-  const allPricesChron = (s.history || []).slice().reverse().map(d => d.close).filter(Boolean);
-  const prices252 = allPricesChron.slice(-252);
-  let macdHTML = '';
-  if (prices252.length < 30) {
-    macdHTML = `<div class="sheet-section-title">MACD</div><div style="color:var(--text-2);font-size:12px">Insufficient data</div>`;
   } else {
-    const ema12 = emaArray(prices252, 12);
-    const ema26 = emaArray(prices252, 26);
+    chartHTML += `
+      <div class="sheet-section-title">Price chart</div>
+      <div style="height:110px;display:flex;align-items:center;justify-content:center;color:var(--text-2);font-size:12px;background:var(--bg-2);border-radius:8px">Loading chart…</div>`;
+  }
+  chartHTML += `</div>`;
+
+  // MACD section — extracted helper so it can be called again after async history load
+  function buildMacdInner(hist) {
+    const prices = hist.slice().reverse().map(d => d.close).filter(Boolean).slice(-252);
+    if (prices.length < 30) return `<div class="sheet-section-title">MACD</div><div style="color:var(--text-2);font-size:12px">Insufficient data</div>`;
+    const ema12 = emaArray(prices, 12);
+    const ema26 = emaArray(prices, 26);
     const macdLine   = ema12.map((v, i) => v - ema26[i]);
     const signalLine = emaArray(macdLine, 9);
     const histogram  = macdLine.map((v, i) => v - signalLine[i]);
-
     const currentMacd   = macdLine[macdLine.length - 1];
     const currentSignal = signalLine[signalLine.length - 1];
     const currentHist   = histogram[histogram.length - 1];
-
     const last60macd   = macdLine.slice(-60);
     const last60signal = signalLine.slice(-60);
-
     const allVals = [...last60macd, ...last60signal];
     const minV = Math.min(...allVals), maxV = Math.max(...allVals);
     const rangeV = maxV - minV || 1;
@@ -2550,9 +2556,8 @@ function openStockSheet(ticker) {
       const y = mPad + (1-(v-minV)/rangeV)*(MH-mPad*2);
       return `${x.toFixed(1)},${y.toFixed(1)}`;
     }).join(' ');
-
     const histCol = currentHist >= 0 ? 'var(--green)' : 'var(--red)';
-    macdHTML = `
+    return `
       <div class="macd-header">
         <div class="sheet-section-title" style="margin:0">MACD (12 / 26 / 9)</div>
         <div class="macd-key">
@@ -2570,6 +2575,7 @@ function openStockSheet(ticker) {
         <span>Hist <strong style="color:${histCol}">${currentHist>=0?'+':''}${currentHist.toFixed(2)}</strong></span>
       </div>`;
   }
+  const macdHTML = `<div id="sheet-macd-area">${hasHistory ? buildMacdInner(s.history) : '<div style="height:60px;display:flex;align-items:center;justify-content:center;color:var(--text-2);font-size:12px;background:var(--bg-2);border-radius:8px">Loading MACD…</div>'}</div>`;
 
   // Metrics grid
   const monthNames2 = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
@@ -2668,10 +2674,48 @@ function openStockSheet(ticker) {
   overlay.classList.add('visible');
   sheet.classList.add('open');
 
-  // V9: Auto-open candle explainer on first visit
-  if (!localStorage.getItem('candle_explained_v1') && chartData.length >= 2) {
+  // First-open candle explainer — only when history was already in memory
+  if (hasHistory && !localStorage.getItem('candle_explained_v1') && chartData.length >= 2) {
     localStorage.setItem('candle_explained_v1', '1');
     setTimeout(() => openCandleExplainer(), 400);
+  }
+
+  // Async: if history wasn't cached, fetch it now and update chart + MACD in-place
+  if (!hasHistory) {
+    const key = document.getElementById('apiKey').value.trim();
+    try {
+      const raw = await fwt(`${BASE}/historical-price-eod/full?symbol=${ticker}&apikey=${key}`);
+      const parsed = Array.isArray(raw) ? raw : (raw?.historical || []);
+      s.history = parsed
+        .filter(d => d.date && d.close)
+        .map(d => ({ date: d.date, open: d.open || d.close, high: d.high || d.close, low: d.low || d.close, close: d.close }))
+        .slice(0, 500);
+
+      const newChartData = s.history.slice(0, 365).reverse();
+      const chartArea = document.getElementById('sheet-chart-area');
+      if (chartArea && newChartData.length >= 2) {
+        const candleSVG = renderCandlestickChart(newChartData, 400, 110, 10, favData);
+        chartArea.innerHTML = `
+          <div class="sheet-section-title" style="display:flex;align-items:center;gap:8px">
+            Price chart
+            <button class="chart-info-btn" onclick="openCandleExplainer()" title="How to read this chart">ⓘ</button>
+          </div>
+          ${candleSVG}`;
+      }
+
+      const macdArea = document.getElementById('sheet-macd-area');
+      if (macdArea && s.history.length >= 2) {
+        macdArea.innerHTML = buildMacdInner(s.history);
+      }
+
+      if (!localStorage.getItem('candle_explained_v1') && s.history.length >= 2) {
+        localStorage.setItem('candle_explained_v1', '1');
+        setTimeout(() => openCandleExplainer(), 400);
+      }
+    } catch(e) {
+      const chartArea = document.getElementById('sheet-chart-area');
+      if (chartArea) chartArea.innerHTML = `<div class="sheet-section-title">Price chart</div><div style="color:var(--text-2);font-size:12px;padding:8px">Could not load chart data</div>`;
+    }
   }
 }
 
