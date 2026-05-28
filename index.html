@@ -3229,6 +3229,14 @@ function calcPortfolioStats() {
   let scoreSum=0, scoreWt=0, countStrong=0, countWatch=0, countAvoid=0;
 
   for (const h of holdings) {
+    // V9: handle cash holdings specially
+    if (h.type === 'cash') {
+      const cashVal = h.manualValue || 0;
+      totalInvested += cashVal;
+      totalCurrent  += cashVal;
+      hasLive = true;
+      continue;
+    }
     const cached = holdingsCache.stocks[h.ticker];
     const cp     = cached?.price;
     const invested = h.amountInvested || (h.shares&&h.entryPrice ? h.shares*h.entryPrice : 0);
@@ -3293,6 +3301,8 @@ async function refreshHoldings() {
   const errors=[];
   for (let i=0; i<holdings.length; i++) {
     const h = holdings[i];
+    // V9: skip cash holdings — they have no FMP price
+    if (h.type === 'cash') continue;
     if (progress) progress.textContent=`Fetching ${h.ticker} (${i+1} / ${holdings.length})…`;
     try {
       const s = await fetchStock(h.ticker, apiKey);
@@ -3301,6 +3311,7 @@ async function refreshHoldings() {
         croci:s.croci, peg:s.peg, sortino:s.sortino, alpha:s.alpha, beta:s.beta,
         vol:s.vol, corr:s.corr, chg6m:s.chg6m, chg1m:s.chg1m,
         analyst: s.analyst?.consensus||null,
+        history: (s.history||[]).slice(0,500), // V9: store history for fund charts
       };
       // Set entryRag/entryScore on first refresh only (becomes the baseline for alerts)
       const idx = holdings.findIndex(x=>x.ticker===h.ticker);
