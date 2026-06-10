@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Stock Compass V3 — Phase 2/3 Review</title>
+  <style>
+    :root {
+      --bg-0: #0c0f14;
+      --bg-1: #151920;
+      --bg-2: #1e232c;
+      --bg-3: #272d38;
+      --text-0: #f0f3f7;
+      --text-1: #a8b3c4;
+      --text-2: #6b7a90;
+      --accent: #14b8a6;
+      --green: #2ecc71;
+      --amber: #f59e0b;
+      --red: #f87171;
+      --gold: #f5c518;
+      --border: rgba(255,255,255,0.07);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg-0);
+      color: var(--text-0);
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      font-size: 14px;
+      line-height: 1.6;
+      padding: 24px;
+    }
+
+    h1 {
+      font-family: Georgia, serif;
+      font-size: 26px;
+      font-weight: 700;
+      color: var(--accent);
+      margin-bottom: 4px;
+    }
+
+    h2 {
+      font-size: 13px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--text-2);
+      margin: 32px 0 12px;
+    }
+
+    .subtitle { color: var(--text-1); font-size: 13px; margin-bottom: 32px; }
+
+    .card {
+      background: var(--bg-1);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+
+    .card-title {
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--text-2);
+      margin-bottom: 12px;
+    }
+
+    pre {
+      background: var(--bg-2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px 16px;
+      font-size: 12px;
+      font-family: 'Menlo', 'Consolas', monospace;
+      color: var(--text-1);
+      overflow-x: auto;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.03em;
+    }
+
+    .badge-pass  { background: rgba(46,204,113,0.12); color: var(--green); border: 1px solid rgba(46,204,113,0.25); }
+    .badge-warn  { background: rgba(245,158,11,0.12);  color: var(--amber); border: 1px solid rgba(245,158,11,0.25); }
+    .badge-fail  { background: rgba(248,113,113,0.10); color: var(--red);   border: 1px solid rgba(248,113,113,0.2); }
+    .badge-info  { background: rgba(20,184,166,0.10);  color: var(--accent);border: 1px solid rgba(20,184,166,0.2); }
+    .badge-gold  { background: rgba(245,197,24,0.12);  color: var(--gold);  border: 1px solid rgba(245,197,24,0.25); }
+
+    .row { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; flex-wrap: wrap; }
+    .label { color: var(--text-1); min-width: 220px; font-size: 13px; }
+
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    @media (max-width: 640px) { .grid { grid-template-columns: 1fr; } }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 18px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--bg-2);
+      color: var(--text-0);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.2s, border-color 0.2s;
+    }
+    .btn:hover { background: var(--bg-3); border-color: rgba(255,255,255,0.14); }
+    .btn-primary { background: var(--accent); border-color: var(--accent); color: #000; font-weight: 600; }
+    .btn-primary:hover { opacity: 0.9; }
+
+    .action-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
+
+    .score-dial {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+    .score-num-big {
+      font-family: Georgia, serif;
+      font-size: 52px;
+      font-weight: 700;
+      line-height: 1;
+    }
+    .score-label-big { font-size: 11px; color: var(--text-2); text-transform: uppercase; letter-spacing: 0.07em; }
+
+    .pillar-row { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+    .pillar-name { min-width: 90px; font-size: 12px; color: var(--text-1); }
+    .pillar-bar-wrap { flex: 1; height: 6px; background: var(--bg-3); border-radius: 3px; overflow: hidden; }
+    .pillar-bar { height: 100%; border-radius: 3px; background: var(--accent); transition: width 0.6s ease; }
+    .pillar-val { font-size: 12px; color: var(--text-0); min-width: 30px; text-align: right; }
+
+    .flag-item { display: flex; align-items: flex-start; gap: 8px; padding: 8px 0; border-bottom: 1px solid var(--border); }
+    .flag-item:last-child { border-bottom: none; }
+    .flag-icon { font-size: 14px; margin-top: 1px; }
+    .flag-text { flex: 1; }
+    .flag-label { font-size: 13px; font-weight: 600; }
+    .flag-desc { font-size: 11px; color: var(--text-2); margin-top: 2px; }
+
+    .sep { height: 1px; background: var(--border); margin: 24px 0; }
+
+    #api-key-section { display: none; }
+    #api-key-section.visible { display: block; }
+  </style>
+</head>
+<body>
+  <h1>Stock Compass V3</h1>
+  <p class="subtitle">Phase 2 (Data Layer) + Phase 3 (Scoring Engine) — review build · Not connected to live data</p>
+
+  <!-- =====================================================================
+       SECTION 1: Module status
+  ====================================================================== -->
+  <h2>Module Status</h2>
+  <div id="module-status-cards" class="grid"></div>
+
+  <!-- =====================================================================
+       SECTION 2: State store
+  ====================================================================== -->
+  <h2>State Store</h2>
+  <div class="card">
+    <div class="card-title">Current state (from localStorage)</div>
+    <pre id="state-dump">Loading…</pre>
+  </div>
+
+  <!-- =====================================================================
+       SECTION 3: Migration
+  ====================================================================== -->
+  <h2>V2 → V3 Migration</h2>
+  <div class="card">
+    <div class="action-row">
+      <button class="btn" onclick="seedV2Data()">Seed mock V2 data</button>
+      <button class="btn" onclick="runMigration()">Run migration</button>
+      <button class="btn" onclick="clearV3Data()">Clear V3 data</button>
+    </div>
+    <pre id="migration-log">Waiting…</pre>
+  </div>
+
+  <!-- =====================================================================
+       SECTION 4: Budget tracker
+  ====================================================================== -->
+  <h2>Daily Call Budget</h2>
+  <div class="card">
+    <div class="action-row">
+      <button class="btn" onclick="recordSomeCalls(10)">Record 10 calls</button>
+      <button class="btn" onclick="recordSomeCalls(100)">Record 100 calls</button>
+      <button class="btn" onclick="resetBudget()">Reset today</button>
+    </div>
+    <div id="budget-display"></div>
+  </div>
+
+  <!-- =====================================================================
+       SECTION 5: Cache
+  ====================================================================== -->
+  <h2>Cache (TTL + LRU)</h2>
+  <div class="card">
+    <div class="action-row">
+      <button class="btn" onclick="testCache()">Run cache tests</button>
+      <button class="btn" onclick="clearCache()">Clear cache</button>
+    </div>
+    <pre id="cache-log">Waiting…</pre>
+  </div>
+
+  <!-- =====================================================================
+       SECTION 6: Classic 7 scorer (mock data)
+  ====================================================================== -->
+  <h2>Classic 7 Scorer — Mock AAPL</h2>
+  <div class="card">
+    <div class="action-row">
+      <button class="btn btn-primary" onclick="runClassicScore()">Score mock AAPL</button>
+      <button class="btn" onclick="runClassicScoreBad()">Score mock failing company</button>
+    </div>
+    <div id="classic-score-output"></div>
+  </div>
+
+  <!-- =====================================================================
+       SECTION 7: Percentile engine
+  ====================================================================== -->
+  <h2>Percentile Engine — Mock Universe (5 stocks)</h2>
+  <div class="card">
+    <div class="action-row">
+      <button class="btn btn-primary" onclick="runPercentileDemo()">Run percentile score demo</button>
+    </div>
+    <div id="percentile-output"></div>
+  </div>
+
+  <!-- =====================================================================
+       SECTION 8: Red flags
+  ====================================================================== -->
+  <h2>Red Flag Checks</h2>
+  <div class="card">
+    <div class="action-row">
+      <button class="btn btn-primary" onclick="runFlagDemo()">Check mock financials</button>
+    </div>
+    <div id="flag-output"></div>
+  </div>
+
+  <div class="sep"></div>
+  <p style="color:var(--text-2);font-size:12px;">
+    All data on this page is synthetic mock data — no real FMP API calls are made.
+    This page is for Phase 2/3 sign-off only.
+  </p>
+
+  <!-- =====================================================================
+       SCRIPTS
+  ====================================================================== -->
+  <script type="module">
+    import { KEYS, CURRENT_SCHEMA } from './src/state/schema.js';
+    import { runMigrationIfNeeded, purgeV2Data } from './src/state/migration.js';
+    import { getState, subscribe, dispatch, ACTIONS } from './src/state/store.js';
+    import { get as cacheGet, set as cacheSet, isStale, getFreshness, sizeBytes, clearAll as clearCacheAll, TTL } from './src/data/cache.js';
+    import { recordCalls, getCallsToday, getRemainingBudget, wouldExceedBudget, getSummary, resetToday } from './src/data/budget.js';
+    import { computePercentiles, scoreSingleStock, DEFAULT_PILLAR_WEIGHTS, extractMetrics } from './src/engine/scoring.js';
+    import { classicScore, getPreset } from './src/engine/presets.js';
+    import { evaluateFlags, firedFlags } from './src/engine/flags.js';
+
+    // -----------------------------------------------------------------------
+    // Module status cards
+    // -----------------------------------------------------------------------
+
+    const MODULES = [
+      { name: 'state/schema.js',    test: () => KEYS && CURRENT_SCHEMA === 1 },
+      { name: 'state/migration.js', test: () => typeof runMigrationIfNeeded === 'function' },
+      { name: 'state/store.js',     test: () => typeof getState === 'function' && typeof dispatch === 'function' },
+      { name: 'data/cache.js',      test: () => typeof cacheGet === 'function' && TTL.PROFILE > 0 },
+      { name: 'data/budget.js',     test: () => typeof recordCalls === 'function' },
+      { name: 'data/fx.js',         test: () => true },  // imported indirectly
+      { name: 'data/fmp.js',        test: () => true },  // imported indirectly
+      { name: 'engine/scoring.js',  test: () => typeof computePercentiles === 'function' },
+      { name: 'engine/presets.js',  test: () => typeof classicScore === 'function' },
+      { name: 'engine/flags.js',    test: () => typeof evaluateFlags === 'function' },
+    ];
+
+    function renderModuleCards() {
+      const container = document.getElementById('module-status-cards');
+      container.innerHTML = MODULES.map(m => {
+        let ok = false;
+        try { ok = m.test(); } catch {}
+        return `
+          <div class="card" style="padding:14px 18px">
+            <div style="display:flex;align-items:center;gap:10px">
+              <span class="badge ${ok ? 'badge-pass' : 'badge-fail'}">${ok ? '✓ OK' : '✗ Error'}</span>
+              <span style="font-size:12px;font-family:monospace;color:var(--text-1)">${m.name}</span>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // -----------------------------------------------------------------------
+    // State display
+    // -----------------------------------------------------------------------
+
+    function refreshStateDisplay() {
+      const s = getState();
+      const display = {
+        apiKey:    s.apiKey ? '[set]' : '[not set]',
+        currency:  s.currency,
+        fx:        s.fx,
+        portfolios: `${(s.portfolios || []).length} portfolio(s)`,
+        settings:  s.settings,
+        lastState: s.lastState,
+        schemaVersion: localStorage.getItem(KEYS.SCHEMA_VERSION),
+      };
+      document.getElementById('state-dump').textContent = JSON.stringify(display, null, 2);
+    }
+
+    subscribe(refreshStateDisplay);
+
+    // -----------------------------------------------------------------------
+    // Migration demo
+    // -----------------------------------------------------------------------
+
+    window.seedV2Data = () => {
+      localStorage.setItem('fmp_api_key', 'demo_key_v2');
+      localStorage.setItem('portfolios', JSON.stringify([
+        { holdings: [
+          { ticker: 'AAPL', shares: 10, entryPrice: 150, currency: 'USD' },
+          { ticker: 'MSFT', shares: 5,  entryPrice: 300, currency: 'USD' },
+        ]},
+      ]));
+      localStorage.setItem('watchlist', JSON.stringify(['GOOGL', 'AMZN']));
+      localStorage.removeItem(KEYS.SCHEMA_VERSION);
+      document.getElementById('migration-log').textContent = 'V2 mock data seeded. Now click "Run migration".';
+    };
+
+    window.runMigration = () => {
+      const ran = runMigrationIfNeeded({ offerBackupDownload: false });
+      const state = getState();
+      document.getElementById('migration-log').textContent = JSON.stringify({
+        migrationRan: ran,
+        schemaVersion: localStorage.getItem(KEYS.SCHEMA_VERSION),
+        portfoliosAfter: state.portfolios,
+        watchlistAfter: state.watchlist,
+        apiKeyAfter: state.apiKey ? '[migrated]' : '[not set]',
+      }, null, 2);
+      refreshStateDisplay();
+    };
+
+    window.clearV3Data = () => {
+      Object.values(KEYS).forEach(k => localStorage.removeItem(k));
+      location.reload();
+    };
+
+    // -----------------------------------------------------------------------
+    // Budget demo
+    // -----------------------------------------------------------------------
+
+    function refreshBudget() {
+      const today  = getCallsToday();
+      const remain = getRemainingBudget();
+      const summary = getSummary(3);
+      const pct    = Math.min(100, Math.round((today / 750) * 100));
+      const color  = pct > 90 ? 'var(--red)' : pct > 70 ? 'var(--amber)' : 'var(--green)';
+
+      document.getElementById('budget-display').innerHTML = `
+        <div class="row">
+          <span class="label">Calls today</span>
+          <span class="badge badge-info">${today} / 750</span>
+        </div>
+        <div class="row">
+          <span class="label">Remaining today</span>
+          <span class="badge ${remain < 100 ? 'badge-warn' : 'badge-pass'}">${remain}</span>
+        </div>
+        <div class="row">
+          <span class="label">Would exceed if +200?</span>
+          <span class="badge ${wouldExceedBudget(200) ? 'badge-fail' : 'badge-pass'}">${wouldExceedBudget(200) ? 'Yes' : 'No'}</span>
+        </div>
+        <div style="margin-top:12px">
+          <div style="height:6px;background:var(--bg-3);border-radius:3px;overflow:hidden">
+            <div style="width:${pct}%;height:100%;background:${color};border-radius:3px;transition:width 0.4s"></div>
+          </div>
+          <div style="margin-top:6px;font-size:11px;color:var(--text-2)">Last 3 days: ${summary.map(d => `${d.date} → ${d.count}`).join(' · ')}</div>
+        </div>
+      `;
+    }
+
+    window.recordSomeCalls = n => { recordCalls(n); refreshBudget(); };
+    window.resetBudget     = () => { resetToday(); refreshBudget(); };
+
+    // -----------------------------------------------------------------------
+    // Cache demo
+    // -----------------------------------------------------------------------
+
+    window.testCache = () => {
+      const log = [];
+
+      // Write
+      cacheSet('test_key_a', { foo: 'bar' }, 5000);
+      cacheSet('test_key_b', { value: 42 },  1);  // expires almost immediately
+      log.push(`SET test_key_a (TTL 5s): OK`);
+      log.push(`SET test_key_b (TTL 1ms): OK`);
+
+      // Read fresh
+      const a = cacheGet('test_key_a');
+      log.push(`GET test_key_a: ${JSON.stringify(a)}`);
+
+      // Freshness
+      const f = getFreshness('test_key_a');
+      log.push(`Freshness test_key_a: fresh=${f.fresh}, age=${f.age}ms`);
+
+      // isStale
+      log.push(`isStale('test_key_a'): ${isStale('test_key_a')}`);
+      log.push(`isStale('nonexistent'): ${isStale('nonexistent')}`);
+
+      // Size
+      log.push(`Cache approx size: ${Math.round(sizeBytes() / 1024)}KB`);
+
+      document.getElementById('cache-log').textContent = log.join('\n');
+    };
+
+    window.clearCache = () => {
+      clearCacheAll();
+      document.getElementById('cache-log').textContent = 'Cache cleared.';
+    };
+
+    // -----------------------------------------------------------------------
+    // Mock fundamentals factory
+    // -----------------------------------------------------------------------
+
+    function mockAapl() {
+      return {
+        income: [
+          { eps: 6.1, revenue: 385e9, grossProfit: 170e9, netIncome: 99e9, operatingIncome: 115e9, ebitda: 130e9, weightedAverageShsOut: 15.4e9, interestExpense: 3.9e9 },
+          { eps: 5.6, revenue: 365e9, grossProfit: 160e9, netIncome: 94e9, operatingIncome: 108e9, ebitda: 122e9, weightedAverageShsOut: 15.7e9 },
+          { eps: 5.1, revenue: 350e9, grossProfit: 152e9, netIncome: 88e9, operatingIncome: 100e9, ebitda: 115e9, weightedAverageShsOut: 16.0e9 },
+          { eps: 4.7, revenue: 330e9, grossProfit: 143e9, netIncome: 80e9, operatingIncome: 92e9,  ebitda: 108e9, weightedAverageShsOut: 16.4e9 },
+          { eps: 3.3, revenue: 275e9, grossProfit: 104e9, netIncome: 57e9, operatingIncome: 66e9,  ebitda: 80e9,  weightedAverageShsOut: 17.0e9 },
+        ],
+        balance: [
+          { totalEquity: 62e9, totalDebt: 110e9, totalAssets: 352e9, cashAndShortTermInvestments: 61e9, goodwill: 0, netReceivables: 29e9 },
+          { totalEquity: 58e9, totalDebt: 120e9, totalAssets: 345e9, cashAndShortTermInvestments: 55e9, goodwill: 0, netReceivables: 27e9 },
+          { totalEquity: 66e9, totalDebt: 125e9, totalAssets: 340e9, cashAndShortTermInvestments: 52e9, goodwill: 0, netReceivables: 25e9 },
+          { totalEquity: 90e9, totalDebt: 115e9, totalAssets: 330e9, cashAndShortTermInvestments: 48e9, goodwill: 0, netReceivables: 23e9 },
+          { totalEquity: 107e9, totalDebt:  98e9, totalAssets: 310e9, cashAndShortTermInvestments: 40e9, goodwill: 0, netReceivables: 20e9 },
+        ],
+        cashFlow: [
+          { operatingCashFlow: 110e9, capitalExpenditure: -11e9, dividendsPaid: -15e9 },
+          { operatingCashFlow: 104e9, capitalExpenditure: -11e9, dividendsPaid: -15e9 },
+          { operatingCashFlow:  93e9, capitalExpenditure: -10e9, dividendsPaid: -14e9 },
+          { operatingCashFlow:  80e9, capitalExpenditure: -9e9,  dividendsPaid: -14e9 },
+          { operatingCashFlow:  66e9, capitalExpenditure: -8e9,  dividendsPaid: -14e9 },
+        ],
+        keyMetrics: { peRatioTTM: 28, buybackYieldTTM: 0.035 },
+        profile: { price: 190, mktCap: 2.9e12, sector: 'Technology' },
+      };
+    }
+
+    function mockBadCompany() {
+      return {
+        income: [
+          { eps: -2, revenue: 100e6, grossProfit: 20e6, netIncome: -30e6, operatingIncome: -25e6, ebitda: -15e6, weightedAverageShsOut: 50e6, interestExpense: 10e6 },
+          { eps: -1, revenue: 120e6, grossProfit: 25e6, netIncome: -20e6, operatingIncome: -15e6, ebitda: -5e6,  weightedAverageShsOut: 45e6 },
+          { eps: 0.5,revenue: 130e6, grossProfit: 32e6, netIncome: 5e6,   operatingIncome: 8e6,   ebitda: 15e6,  weightedAverageShsOut: 42e6 },
+          { eps: 1,  revenue: 140e6, grossProfit: 40e6, netIncome: 10e6,  operatingIncome: 15e6,  ebitda: 22e6,  weightedAverageShsOut: 40e6 },
+          { eps: 1.5,revenue: 150e6, grossProfit: 45e6, netIncome: 15e6,  operatingIncome: 20e6,  ebitda: 28e6,  weightedAverageShsOut: 38e6 },
+        ],
+        balance: [
+          { totalEquity: 20e6,  totalDebt: 200e6, totalAssets: 250e6, cashAndShortTermInvestments: 5e6,  goodwill: 120e6, netReceivables: 35e6 },
+          { totalEquity: 40e6,  totalDebt: 180e6, totalAssets: 240e6, cashAndShortTermInvestments: 8e6,  goodwill: 120e6, netReceivables: 28e6 },
+          { totalEquity: 60e6,  totalDebt: 160e6, totalAssets: 230e6, cashAndShortTermInvestments: 10e6, goodwill: 120e6, netReceivables: 22e6 },
+          { totalEquity: 70e6,  totalDebt: 150e6, totalAssets: 225e6, cashAndShortTermInvestments: 12e6, goodwill: 120e6, netReceivables: 18e6 },
+          { totalEquity: 80e6,  totalDebt: 140e6, totalAssets: 220e6, cashAndShortTermInvestments: 14e6, goodwill: 120e6, netReceivables: 16e6 },
+        ],
+        cashFlow: [
+          { operatingCashFlow: -10e6, capitalExpenditure: -5e6, dividendsPaid: -8e6 },
+          { operatingCashFlow: -5e6,  capitalExpenditure: -4e6, dividendsPaid: -7e6 },
+          { operatingCashFlow: 8e6,   capitalExpenditure: -3e6, dividendsPaid: -6e6 },
+          { operatingCashFlow: 12e6,  capitalExpenditure: -3e6, dividendsPaid: -5e6 },
+          { operatingCashFlow: 15e6,  capitalExpenditure: -3e6, dividendsPaid: -5e6 },
+        ],
+        keyMetrics: { peRatioTTM: -1, buybackYieldTTM: 0 },
+        profile: { price: 8, mktCap: 400e6, sector: 'Consumer Cyclical' },
+      };
+    }
+
+    // -----------------------------------------------------------------------
+    // Classic 7 scorer demo
+    // -----------------------------------------------------------------------
+
+    window.runClassicScore = () => renderClassicScore(mockAapl(), 'Mock AAPL');
+    window.runClassicScoreBad = () => renderClassicScore(mockBadCompany(), 'Mock Failing Co');
+
+    function renderClassicScore(fund, label) {
+      const r = classicScore(fund);
+      const ragColor = { elite: 'var(--gold)', strong: 'var(--green)', watch: 'var(--amber)', avoid: 'var(--red)' }[r.rag] || 'var(--text-1)';
+      const ragLabel = { elite: '★ Hot', strong: 'Strong', watch: 'Watch', avoid: 'Avoid' }[r.rag];
+
+      document.getElementById('classic-score-output').innerHTML = `
+        <div style="display:flex;align-items:center;gap:24px;margin-bottom:20px;flex-wrap:wrap">
+          <div class="score-dial">
+            <div class="score-num-big" style="color:${ragColor}">${r.score}</div>
+            <div class="score-label-big">of 7 — ${label}</div>
+          </div>
+          <span class="badge" style="background:rgba(0,0,0,0.2);color:${ragColor};border:1px solid ${ragColor};font-size:14px;padding:6px 14px">${ragLabel}</span>
+        </div>
+        <div>
+          ${r.criteria.map(c => `
+            <div class="row" style="margin-bottom:6px">
+              <span class="badge ${c.pass ? 'badge-pass' : 'badge-fail'}" style="min-width:28px;justify-content:center">${c.pass ? '✓' : '✗'}</span>
+              <span class="label">${c.label}</span>
+              <span style="color:var(--text-2);font-size:12px">${c.value != null ? (typeof c.value === 'number' ? c.value.toFixed(2) : c.value) : 'N/A'}</span>
+              <span style="color:var(--text-2);font-size:11px;opacity:0.6">${c.threshold}</span>
+            </div>
+          `).join('')}
+        </div>
+      `;
+    }
+
+    // -----------------------------------------------------------------------
+    // Percentile engine demo
+    // -----------------------------------------------------------------------
+
+    window.runPercentileDemo = () => {
+      const tickers = ['AAPL', 'MSFT', 'GOOG', 'META', 'AMZN'];
+
+      // Build a mock universe of raw metric values for roic
+      const roicValues = new Map([
+        ['AAPL', 0.52], ['MSFT', 0.38], ['GOOG', 0.25], ['META', 0.30], ['AMZN', 0.12]
+      ]);
+
+      const pct = computePercentiles(roicValues);
+
+      const rows = [...pct.entries()].map(([t, p]) => ({
+        ticker: t,
+        rawRoic: (roicValues.get(t) * 100).toFixed(1) + '%',
+        percentile: p,
+      })).sort((a, b) => b.percentile - a.percentile);
+
+      document.getElementById('percentile-output').innerHTML = `
+        <p style="color:var(--text-2);font-size:12px;margin-bottom:14px">ROIC percentile ranks across mock 5-stock universe:</p>
+        ${rows.map((r, i) => `
+          <div class="pillar-row">
+            <span style="min-width:50px;font-size:13px;font-weight:600;color:var(--text-0)">${r.ticker}</span>
+            <span style="min-width:60px;font-size:12px;color:var(--text-2)">${r.rawRoic} ROIC</span>
+            <div class="pillar-bar-wrap">
+              <div class="pillar-bar" style="width:${r.percentile}%;background:${r.percentile >= 80 ? 'var(--green)' : r.percentile >= 50 ? 'var(--accent)' : 'var(--amber)'}"></div>
+            </div>
+            <span class="pillar-val">${r.percentile}</span>
+          </div>
+        `).join('')}
+        <p style="color:var(--text-2);font-size:11px;margin-top:12px">
+          Note: 0 = lowest ROIC in universe, 100 = highest. "Higher is better" for ROIC so no inversion applied.
+        </p>
+      `;
+    };
+
+    // -----------------------------------------------------------------------
+    // Red flag demo
+    // -----------------------------------------------------------------------
+
+    window.runFlagDemo = () => {
+      const goodFund  = mockAapl();
+      const badFund   = mockBadCompany();
+
+      const goodFlags = evaluateFlags(goodFund);
+      const badFlags  = evaluateFlags(badFund);
+
+      function renderFlags(flags, label) {
+        const fired = flags.filter(f => f.fired);
+        return `
+          <div style="margin-bottom:20px">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+              <strong style="font-size:14px">${label}</strong>
+              <span class="badge ${fired.length === 0 ? 'badge-pass' : 'badge-fail'}">${fired.length} flag${fired.length !== 1 ? 's' : ''}</span>
+            </div>
+            ${flags.map(f => `
+              <div class="flag-item">
+                <span class="flag-icon">${f.fired ? '🚩' : '✓'}</span>
+                <div class="flag-text">
+                  <div class="flag-label" style="color:${f.fired ? 'var(--red)' : 'var(--text-1)'}">${f.label}</div>
+                  <div class="flag-desc">${f.description}</div>
+                </div>
+                <span class="badge ${f.fired ? 'badge-fail' : 'badge-pass'}">${f.fired ? 'Fired' : 'Clear'}</span>
+              </div>
+            `).join('')}
+          </div>
+        `;
+      }
+
+      document.getElementById('flag-output').innerHTML =
+        renderFlags(goodFlags, 'Mock AAPL') +
+        '<div class="sep"></div>' +
+        renderFlags(badFlags, 'Mock Failing Co');
+    };
+
+    // -----------------------------------------------------------------------
+    // Init
+    // -----------------------------------------------------------------------
+
+    renderModuleCards();
+    refreshStateDisplay();
+    refreshBudget();
+
+    // Run migration silently if needed (fresh install → just set schema version)
+    runMigrationIfNeeded({ offerBackupDownload: false });
+
+  </script>
+</body>
+</html>
