@@ -35,10 +35,28 @@ async function mockFMPApiAllErrors(page, status = 401) {
 
 test.describe('Stock Screener', () => {
 
+  test.beforeEach(async ({ page }) => {
+    // Skip first-run overlays (welcome splash + onboarding) which sit above the
+    // UI and would intercept pointer events during tests.
+    await page.addInitScript(() => {
+      localStorage.setItem('compass_welcomed_v1', '1');
+      localStorage.setItem('fmp_onboarded_v5', '1');
+    });
+  });
+
   test('page loads with correct title', async ({ page }) => {
     await page.goto(HTML_PATH);
-    await expect(page).toHaveTitle("Stuart's Stock Screener");
-    await expect(page.locator('.header-title')).toContainText("Stuart's Stock Screener");
+    await expect(page).toHaveTitle(/Stuart's Stock Compass/);
+    await expect(page.locator('.header-title')).toContainText("Stuart's Stock Compass");
+  });
+
+  test('first-run welcome splash appears for new users', async ({ page }) => {
+    // Fresh context without the welcomed flag: splash must show
+    await page.addInitScript(() => localStorage.removeItem('compass_welcomed_v1'));
+    await page.goto(HTML_PATH);
+    await expect(page.locator('#welcomeSplash')).toBeVisible();
+    await page.locator('.splash-skip').click();
+    await expect(page.locator('#welcomeSplash')).toBeHidden();
   });
 
   test('Run button is visible with estimated time', async ({ page }) => {

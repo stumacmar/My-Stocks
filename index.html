@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>Stuart's Stock Compass — V12</title>
+  <title>Stuart's Stock Compass — V13</title>
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Stock Compass">
@@ -29,10 +29,10 @@
       --green: #2ECC71;
       --amber: #F39C12;
       --red:   #E74C3C;
-      /* Text scale */
+      /* Text scale — text-2 lifted for WCAG-AA contrast on small labels (V13) */
       --text-0: #E6EDF3;
       --text-1: #8B949E;
-      --text-2: #4A5568;
+      --text-2: #707D92;
       /* Score colours */
       --score-7: #F5C518;
       --score-6: #2ECC71;
@@ -171,15 +171,26 @@
     .message-banner.success { display: block; background: rgba(52,211,153,0.1);  border: 1px solid rgba(52,211,153,0.25);  color: var(--green); }
 
     /* ── Data Table ─────────────────────────────────────────────────────── */
-    .table-wrap { padding: 0 0 40px; overflow-x: auto; overflow-y: auto; max-height: 70vh; -webkit-overflow-scrolling: touch; }
+    .table-wrap { padding: 0 0 40px; overflow-x: auto; overflow-y: auto; max-height: 70vh; max-height: 70dvh; -webkit-overflow-scrolling: touch; background: var(--bg-0); }
     table { width: 100%; border-collapse: collapse; min-width: 1300px; }
-    thead { position: sticky; top: 0; z-index: 10; }
     th {
+      position: sticky; top: 0; z-index: 10;
       background: var(--bg-1); border-bottom: 1px solid var(--line); border-top: 1px solid var(--line);
       color: var(--text-2); font-size: 11px; font-weight: 600; letter-spacing: 0.4px;
       text-transform: uppercase; padding: 10px 12px; text-align: right; cursor: pointer;
       user-select: none; white-space: nowrap; -webkit-tap-highlight-color: transparent; transition: color 0.12s;
     }
+    /* V13: pin star + ticker columns while scrolling the wide table horizontally */
+    thead th:nth-child(1) { left: 0; z-index: 12; }
+    thead th:nth-child(2) { left: 36px; z-index: 12; box-shadow: 1px 0 0 var(--line); }
+    tbody tr[data-ticker] td:nth-child(1),
+    tbody tr[data-ticker] td:nth-child(2) { position: sticky; z-index: 2; background: var(--bg-0); }
+    tbody tr[data-ticker] td:nth-child(1) { left: 0; }
+    tbody tr[data-ticker] td:nth-child(2) { left: 36px; box-shadow: 1px 0 0 var(--line); }
+    tbody tr[data-ticker]:nth-child(even) td:nth-child(1),
+    tbody tr[data-ticker]:nth-child(even) td:nth-child(2) { background: #11151C; }
+    tbody tr[data-ticker]:hover td:nth-child(1),
+    tbody tr[data-ticker]:hover td:nth-child(2) { background: #121C22 !important; }
     th:hover { color: var(--text-0); }
     th:nth-child(2), th:nth-child(3), th:nth-child(4) { text-align: left; }
     th.sorted-asc::after  { content: ' ↑'; color: var(--accent); }
@@ -197,9 +208,9 @@
     table.favorites-mode .entry-col { display: table-cell; }
 
     /* Star column */
-    th.th-fav { width: 36px; text-align: center !important; padding: 10px 6px; font-size: 15px; color: var(--amber); cursor: pointer; }
+    th.th-fav { width: 36px; min-width: 36px; max-width: 36px; text-align: center !important; padding: 10px 6px; font-size: 15px; color: var(--amber); cursor: pointer; }
     th.th-fav:hover { color: var(--text-0); }
-    .cell-fav { text-align: center !important; cursor: pointer; color: var(--text-2); font-size: 15px; padding: 8px 6px !important; -webkit-tap-highlight-color: transparent; user-select: none; width: 36px; }
+    .cell-fav { text-align: center !important; cursor: pointer; color: var(--text-2); font-size: 15px; padding: 8px 6px !important; -webkit-tap-highlight-color: transparent; user-select: none; width: 36px; min-width: 36px; max-width: 36px; }
     .cell-fav:hover { color: var(--amber); }
     .cell-fav.starred { color: var(--amber); }
 
@@ -277,7 +288,7 @@
     .sheet-close:hover { background: var(--line); }
     .sheet-body { padding: 18px 22px 48px; }
     .sheet-section-title { font-size: 11px; font-weight: 600; letter-spacing: 0.6px; text-transform: uppercase; color: var(--text-2); margin-bottom: 12px; margin-top: 24px; }
-    .metrics-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(104px, 1fr)); gap: 10px; }
     .metric-cell { background: linear-gradient(145deg, rgba(255,255,255,0.03) 0%, var(--bg-2) 100%); border: 1px solid rgba(255,255,255,0.07); border-top-color: rgba(255,255,255,0.12); border-radius: var(--r-sm); padding: 12px 14px; }
     .metric-label { font-size: 10px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; color: var(--text-2); margin-bottom: 5px; }
     .metric-value { font-size: 15px; font-weight: 600; font-variant-numeric: tabular-nums; }
@@ -311,7 +322,7 @@
     .h-refresh-bar strong { color: var(--text-1); }
     .h-progress { padding: 10px 20px; font-size: 12px; color: var(--amber); display: none; }
     .h-errors   { padding: 4px 20px 10px; font-size: 12px; color: var(--red); display: none; }
-    .h-summary-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; padding: 20px; }
+    .h-summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; padding: 20px; }
     .h-summary-card { background: linear-gradient(145deg, rgba(255,255,255,0.03) 0%, var(--bg-1) 100%); border: 1px solid var(--line); border-top-color: rgba(255,255,255,0.09); border-radius: var(--r-md); padding: 16px 14px; }
     .h-summary-label { font-size: 10px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; color: var(--text-2); margin-bottom: 8px; }
     .h-summary-val { font-family: 'Fraunces', serif; font-size: 22px; font-weight: 700; line-height: 1.1; font-variant-numeric: tabular-nums; }
@@ -373,6 +384,11 @@
       .header-title { font-size: 26px; }
       .btn-csv { margin-left: 0; }
       .sector-select { max-width: 120px; font-size: 12px; }
+      /* V13: 16px inputs prevent iOS auto-zoom on focus */
+      .api-input, .hf-input, .tab-new-input, .new-port-input { font-size: 16px; }
+      .dist-seg-count { font-size: 16px; }
+      .h-bench-nums { gap: 18px; }
+      .controls { padding: 12px; }
     }
 
     /* ── Hero / Score distribution bar ──────────────────────────────────── */
@@ -569,7 +585,10 @@
     @keyframes cardIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:none; } }
     .row-new { animation: rowIn 0.18s ease both; }
     @media (prefers-reduced-motion: reduce) {
-      .row-new, .dist-seg { animation: none; transition: none; }
+      .row-new, .dist-seg, .pulse-dot, .tp-dot, .trickle-dot { animation: none; transition: none; }
+      .bottom-sheet, .settings-sheet, .sheet-overlay, .modal-overlay, .carousel-card-wrap { transition: none; }
+      .btn:not(:disabled):active, .btn-primary:not(:disabled):active, .tab-pill:active,
+      .mode-btn:active, .univ-btn:active, .port-chip:active { transform: none !important; }
     }
 
     /* ── Score treemap (Map view) ────────────────────────────────────────── */
@@ -821,6 +840,29 @@
     .settings-divider { height: 1px; background: var(--line); margin: 18px 0; opacity: 0.6; }
     .api-input:focus, .hf-input:focus { box-shadow: 0 0 0 3px rgba(20,184,166,0.14); }
     .settings-section-title { letter-spacing: 0.07em; }
+
+    /* ── V13: keyboard accessibility ─────────────────────────────────────── */
+    :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+    th:focus-visible { outline-offset: -2px; }
+    tbody tr[data-ticker]:focus-visible { outline-offset: -2px; }
+    .dist-seg:focus-visible { outline-offset: -2px; }
+
+    /* ── V13: "Showing N" live count chip ────────────────────────────────── */
+    .showing-chip { font-size: 12px; color: var(--text-2); white-space: nowrap; padding: 0 2px; }
+    .showing-chip strong { color: var(--text-1); font-weight: 600; font-variant-numeric: tabular-nums; }
+
+    /* ── V13: dynamic-viewport heights for mobile browser chrome ─────────── */
+    .bottom-sheet { height: 82dvh; }
+    .settings-sheet { max-height: 60dvh; }
+
+    /* ── V13: empty-state recovery action ────────────────────────────────── */
+    .empty-clear-btn {
+      margin-top: 16px; padding: 8px 18px; border-radius: 99px; cursor: pointer;
+      background: transparent; border: 1px solid var(--line); color: var(--text-1);
+      font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 500;
+      transition: border-color 0.15s, color 0.15s; -webkit-tap-highlight-color: transparent;
+    }
+    .empty-clear-btn:hover { border-color: var(--accent); color: var(--accent); }
   </style>
 </head>
 <body>
@@ -833,10 +875,10 @@
 
 <!-- Header -->
 <div class="header">
-  <div class="header-title">Stuart's Stock Compass <span class="version-badge">V12</span></div>
+  <div class="header-title">Stuart's Stock Compass <span class="version-badge">V13</span></div>
   <div class="header-sub">
     Quality · Value · Momentum
-    <span class="info-icon" onclick="openInfoModal()" title="Methodology">ⓘ</span>
+    <span class="info-icon" onclick="openInfoModal()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openInfoModal()}" role="button" tabindex="0" aria-label="Methodology" title="Methodology">ⓘ</span>
     <button class="settings-gear" onclick="openSettings()" aria-label="Settings">⚙</button>
   </div>
   <div id="headerRefresh" style="font-size:12px;color:var(--text-2);margin-top:4px"></div>
@@ -897,15 +939,16 @@
   <button id="btnFilterFavs"   class="btn btn-filter"        data-filter="favorites" onclick="setFilter('favorites',this)">&#9733; Starred</button>
   <button class="btn btn-filter btn-view-toggle" id="btnMapToggle" onclick="toggleViewMode()" title="Toggle heat map view">&#9783; Map</button>
   <div class="controls-sep"></div>
-  <select class="sector-select" id="sectorSelect" onchange="setSector(this.value)">
+  <select class="sector-select" id="sectorSelect" onchange="setSector(this.value)" aria-label="Filter by industry">
     <option value="all">All Industries</option>
   </select>
+  <span class="showing-chip">Showing <strong id="statShowing">—</strong></span>
   <button class="btn btn-csv" onclick="exportCSV()">&#8595; CSV</button>
 </div>
 
 <!-- Progress -->
 <div class="progress-wrap" id="progressWrap">
-  <div class="progress-bar-bg">
+  <div class="progress-bar-bg" id="progressBarBg" role="progressbar" aria-label="Screener progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
     <div class="progress-bar-fill" id="progressFill"></div>
   </div>
   <div class="progress-label"  id="progressLabel"><span id="wakeLockStatus" style="display:none;font-size:10px;color:var(--text-2);margin-left:8px">&#9728; Keeping screen awake</span></div>
@@ -914,7 +957,7 @@
 </div>
 
 <!-- Message Banner -->
-<div class="message-banner" id="msgBanner"></div>
+<div class="message-banner" id="msgBanner" role="status" aria-live="polite"></div>
 
 <!-- Failure Panel -->
 <div id="failurePanel" style="display:none; padding: 0 16px;"></div>
@@ -979,7 +1022,7 @@
 
 <!-- Settings Sheet -->
 <div class="sheet-overlay" id="settingsOverlay" onclick="closeSettings()"></div>
-<div class="settings-sheet" id="settingsSheet">
+<div class="settings-sheet" id="settingsSheet" role="dialog" aria-modal="true" aria-label="Settings">
   <div class="sheet-handle"></div>
   <div class="settings-body">
     <div class="settings-title">Settings</div>
@@ -1051,13 +1094,13 @@
 <!-- Bottom Sheet Overlay -->
 <div class="sheet-overlay" id="sheetOverlay" onclick="closeStockSheet()"></div>
 <!-- Bottom Sheet -->
-<div class="bottom-sheet" id="bottomSheet">
+<div class="bottom-sheet" id="bottomSheet" role="dialog" aria-modal="true" aria-label="Stock detail">
   <div class="sheet-handle"></div>
   <div id="sheetContent"></div>
 </div>
 
 <!-- Info Modal -->
-<div class="modal-overlay" id="infoModal" onclick="if(event.target===this)closeInfoModal()">
+<div class="modal-overlay" id="infoModal" onclick="if(event.target===this)closeInfoModal()" role="dialog" aria-modal="true" aria-label="Methodology">
   <div class="modal-box">
     <div class="modal-title">Methodology</div>
     <div class="modal-body">
@@ -1092,7 +1135,7 @@
 </div>
 
 <!-- Metric Info Modal -->
-<div class="modal-overlay" id="metricInfoModal" onclick="if(event.target===this)closeMetricInfo()">
+<div class="modal-overlay" id="metricInfoModal" onclick="if(event.target===this)closeMetricInfo()" role="dialog" aria-modal="true" aria-label="Metric explanation">
   <div class="minfo-box">
     <div class="minfo-title" id="metricInfoTitle"></div>
     <div class="minfo-body"  id="metricInfoBody"></div>
@@ -1105,7 +1148,7 @@
   <div class="carousel-bg-glow"></div>
   <div class="carousel-header">
     <div class="carousel-title">&#9733; Hot Picks</div>
-    <button class="carousel-close" onclick="closeCarousel()">&#10005;</button>
+    <button class="carousel-close" onclick="closeCarousel()" aria-label="Close hot picks">&#10005;</button>
   </div>
   <div class="carousel-stage" id="carouselStage">
     <!-- cards injected by JS -->
@@ -1534,7 +1577,39 @@ const BUILTIN_TABS = [
     const row = e.target.closest('tr[data-ticker]');
     if (row) openStockSheet(row.dataset.ticker);
   });
+  // V13: keyboard — Enter/Space opens the focused row's detail sheet
+  _tw.addEventListener('keydown', e => {
+    if (e.key !== 'Enter' && e.key !== ' ') return;
+    const row = e.target.closest && e.target.closest('tr[data-ticker]');
+    if (row) { e.preventDefault(); openStockSheet(row.dataset.ticker); }
+  });
   _tapListenerOk = true; // proof that init completed past the tap-listener block
+
+  // V13: sortable column headers are keyboard-operable
+  document.querySelectorAll('#resultsTable th').forEach(th => { th.setAttribute('scope', 'col'); th.tabIndex = 0; });
+  const _thead = document.querySelector('#resultsTable thead');
+  if (_thead) _thead.addEventListener('keydown', e => {
+    if ((e.key === 'Enter' || e.key === ' ') && e.target.tagName === 'TH') { e.preventDefault(); e.target.click(); }
+  });
+
+  // V13: Escape closes the topmost open overlay (one layer per press)
+  document.addEventListener('keydown', e => {
+    if (e.key !== 'Escape') return;
+    const vis = id => { const el = document.getElementById(id); return el && el.classList.contains('visible') ? el : null; };
+    const carousel = document.getElementById('carouselOverlay');
+    if (carousel && carousel.style.display !== 'none') { closeCarousel(); return; }
+    let m;
+    if ((m = vis('metricInfoModal')))      { m.classList.remove('visible'); return; }
+    if ((m = vis('candleExplainerModal'))) { m.classList.remove('visible'); return; }
+    if ((m = vis('unstarModal')))          { m.classList.remove('visible'); return; }
+    if ((m = vis('holdingModal')))         { m.classList.remove('visible'); return; }
+    if ((m = vis('renamePortModal')))      { m.classList.remove('visible'); return; }
+    if ((m = vis('infoModal')))            { m.classList.remove('visible'); return; }
+    const sheet = document.getElementById('bottomSheet');
+    if (sheet && sheet.classList.contains('open')) { closeStockSheet(); return; }
+    const settings = document.getElementById('settingsSheet');
+    if (settings && settings.classList.contains('open')) { closeSettings(); return; }
+  });
 })();
 
 function saveFavorites() {
@@ -2244,6 +2319,7 @@ async function runScreener() {
     btnStop.textContent    = '◼ Stop';
     progWrap.classList.add('visible');
     progFill.style.width   = '0%';
+    document.getElementById('progressBarBg')?.setAttribute('aria-valuenow', '0');
     progLabel.textContent  = 'Fetching market data (SPY)…';
     progETA.textContent    = '';
     liveErrors.style.display = 'none';
@@ -2274,6 +2350,7 @@ async function runScreener() {
       console.log('[Screener] Fetching:', symbol, `(${done+1}/${total})`);
       progLabel.textContent = `Fetching ${symbol} (${done+1} / ${total})`;
       progFill.style.width  = `${(done / total) * 100}%`;
+      document.getElementById('progressBarBg')?.setAttribute('aria-valuenow', String(Math.round((done / total) * 100)));
       const _lct = document.getElementById('loadingCurrentTicker');
       if (_lct) _lct.textContent = symbol;
 
@@ -2315,6 +2392,7 @@ async function runScreener() {
     }
 
     progFill.style.width    = '100%';
+    document.getElementById('progressBarBg')?.setAttribute('aria-valuenow', '100');
     progETA.textContent     = '';
     liveErrors.style.display = 'none';
     progLabel.textContent = stopRequested
@@ -2595,18 +2673,20 @@ function _renderVirtual() {
       ${metricTD(s.croci,   v => v > 10,           1, '%')}
       ${metricTD(s.peg,     v => v > 0 && v < 1.5, 2, '')}
       ${metricTD(s.sortino, v => v > 0.5,          2, '')}
-      ${metricTD(s.alpha,   v => v > 0,            1, '%')}
+      ${metricTD(s.alpha,   v => v > 0,            1, '%', true)}
       ${metricTD(s.beta,    v => v < 1.5,          2, '')}
       ${metricTD(s.vol,     () => true,            1, '%')}
       <td class="${corrClass}">${s.corr != null ? s.corr.toFixed(2) : '&mdash;'}</td>
-      ${metricTD(s.chg6m,   v => v > 0,            1, '%')}
-      ${metricTD(s.chg1m,   v => v > 0,            1, '%')}
+      ${metricTD(s.chg6m,   v => v > 0,            1, '%', true)}
+      ${metricTD(s.chg1m,   v => v > 0,            1, '%', true)}
       ${analystCell}
       ${seasonCell}
       ${entryPriceCell}
       ${entrySinceCell}`;
 
     tr.dataset.ticker = s.ticker;
+    tr.tabIndex = 0; // V13: keyboard-focusable row
+    tr.setAttribute('aria-label', `${s.ticker} — ${s.company || ''}, score ${s.score} of ${s.maxScore}`);
     frag.appendChild(tr);
   }
 
@@ -2643,15 +2723,20 @@ function _renderTable() {
 
   document.querySelectorAll('th[data-col]').forEach(th => {
     th.classList.remove('sorted-asc', 'sorted-desc');
-    if (th.dataset.col === sortCol)
+    th.removeAttribute('aria-sort');
+    if (th.dataset.col === sortCol) {
       th.classList.add(sortDir === 'asc' ? 'sorted-asc' : 'sorted-desc');
+      th.setAttribute('aria-sort', sortDir === 'asc' ? 'ascending' : 'descending');
+    }
   });
+  updateShowingCount();
 
   if (!sorted.length) {
     const title = results.length ? 'No results' : 'Ready to screen';
     const sub   = results.length ? 'No stocks match the current filter' : 'Press ► Run Screener to start';
+    const clearBtn = results.length ? '<br><button class="empty-clear-btn" onclick="clearAllFilters()">Clear all filters</button>' : '';
     tbody.innerHTML = `<tr><td colspan="9999"><div class="empty-state">
-      <div class="empty-state-title">${title}</div>${sub}
+      <div class="empty-state-title">${title}</div>${sub}${clearBtn}
     </div></td></tr>`;
     _sortedRows = [];
     return;
@@ -2665,7 +2750,15 @@ function _renderTable() {
 function updateStats() {
   renderDistBar(computeScoreDist());
   updateFilterCounts();
+  updateShowingCount();
   syncTablePlaceholders();
+}
+
+// V13: live "Showing N" count — reflects every active filter
+function updateShowingCount() {
+  const el = document.getElementById('statShowing');
+  if (!el) return;
+  el.textContent = results.length ? String(getFiltered().length) : '—';
 }
 
 function updateFilterCounts() {
@@ -2717,7 +2810,7 @@ async function openStockSheet(ticker) {
         <div class="sheet-company">${esc(s.company)}</div>
         <div class="sheet-price">${fmtPrice(s.price)} ${ragBadge} <span style="font-family:'Fraunces',serif;font-size:16px;color:var(--text-1)">${s.score}/${s.maxScore}</span></div>
       </div>
-      <button class="sheet-close" onclick="closeStockSheet()">✕</button>
+      <button class="sheet-close" onclick="closeStockSheet()" aria-label="Close details">✕</button>
     </div>`;
 
   // Build candlestick price chart — or loading placeholder if history not in memory
@@ -2798,20 +2891,21 @@ async function openStockSheet(ticker) {
     ? (favSincePct >= 0 ? '+' : '') + favSincePct.toFixed(1) + '%' : '—';
   const analystLabel = s.analyst ? (s.analyst.consensus || '—') : '—';
 
-  function mv(val, passes, dp, suffix) {
+  function mv(val, passes, dp, suffix, signed) {
     if (val == null || !isFinite(val)) return {val:'—', cls:'muted'};
-    return {val: val.toFixed(dp)+suffix, cls: passes(val) ? 'pass' : 'fail'};
+    const sign = signed && val > 0 ? '+' : '';
+    return {val: sign + val.toFixed(dp)+suffix, cls: passes(val) ? 'pass' : 'fail'};
   }
   const crociM  = mv(s.croci,   v => v > 10,           1, '%');
   const pegM    = mv(s.peg,     v => v > 0 && v < 1.5, 2, '');
   const sortinoM= mv(s.sortino, v => v > 0.5,          2, '');
   const betaM   = mv(s.beta,    v => v < 1.5,          2, '');
   const volM    = mv(s.vol,     () => true,             1, '%');
-  const alphaM  = mv(s.alpha,   v => v > 0,            1, '%');
+  const alphaM  = mv(s.alpha,   v => v > 0,            1, '%', true);
   let corrCls   = 'muted';
   if (s.corr != null) corrCls = s.corr < 0.5 ? 'pass' : s.corr <= 0.75 ? 'warn' : 'fail';
-  const chg6mM  = mv(s.chg6m,  v => v > 0,            1, '%');
-  const chg1mM  = mv(s.chg1m,  v => v > 0,            1, '%');
+  const chg6mM  = mv(s.chg6m,  v => v > 0,            1, '%', true);
+  const chg1mM  = mv(s.chg1m,  v => v > 0,            1, '%', true);
   const seasonV = s.season != null ? s.season + '%' : '—';
   const seasonC = s.season == null ? 'muted' : s.season > 60 ? 'pass' : s.season >= 40 ? 'muted' : 'fail';
 
@@ -2945,7 +3039,7 @@ async function openFundSheet(ticker) {
   const cached  = holdingsCache.stocks[ticker] || null;
 
   // Show loading state
-  content.innerHTML = `<div class="sheet-header"><div><div class="sheet-ticker">${esc(ticker)}</div><div class="sheet-company">Loading…</div></div><button class="sheet-close" onclick="closeStockSheet()">&#10005;</button></div>`;
+  content.innerHTML = `<div class="sheet-header"><div><div class="sheet-ticker">${esc(ticker)}</div><div class="sheet-company">Loading…</div></div><button class="sheet-close" onclick="closeStockSheet()" aria-label="Close details">&#10005;</button></div>`;
   overlay.classList.add('visible');
   sheet.classList.add('open');
 
@@ -3023,7 +3117,7 @@ async function openFundSheet(ticker) {
         <div class="sheet-price">${priceStr}</div>
         ${pnlHTML}
       </div>
-      <button class="sheet-close" onclick="closeStockSheet()">&#10005;</button>
+      <button class="sheet-close" onclick="closeStockSheet()" aria-label="Close details">&#10005;</button>
     </div>
     <div class="sheet-body">
       ${chartSVG ? `<div class="sheet-section-title" style="display:flex;align-items:center;gap:8px">Price chart <button class="chart-info-btn" onclick="openCandleExplainer()">ⓘ</button></div>${chartSVG}` : ''}
@@ -3053,9 +3147,22 @@ function fmtPrice(v) {
   return '$' + Number(v).toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
 }
 
-function metricTD(val, passes, dp, suffix) {
+function metricTD(val, passes, dp, suffix, signed) {
   if (val == null || !isFinite(val)) return '<td class="muted">&mdash;</td>';
-  return `<td class="${passes(val) ? 'pass' : 'fail'}">${val.toFixed(dp)}${suffix}</td>`;
+  const sign = signed && val > 0 ? '+' : '';
+  return `<td class="${passes(val) ? 'pass' : 'fail'}">${sign}${val.toFixed(dp)}${suffix}</td>`;
+}
+
+// V13: reset every active filter back to the default view
+function clearAllFilters() {
+  _scoreBandFilter = null;
+  currentSector = 'all';
+  const sel = document.getElementById('sectorSelect');
+  if (sel) sel.value = 'all';
+  activeTabIndustryRx = null;
+  currentTabId = 'all';
+  renderTabBar();
+  setFilter('all', document.querySelector('[data-filter="all"]'));
 }
 
 function esc(s) {
@@ -4548,10 +4655,13 @@ function renderDistBar(dist) {
     { score: -1, label: '≤2/7',  cls: 'dist-seg-low', filter: 'scoreLow' },
   ];
 
+  // V13: segments are keyboard-operable buttons
+  const segKeys = `role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click()}"`;
+
   if (!dist || !dist.total) {
     // Empty state: show ghost bar with all bands as equal thin slivers
     bar.innerHTML = BANDS.map(b =>
-      `<div class="dist-seg ${b.cls}" style="flex:1;opacity:0.25" onclick="${b.score === 7 ? 'openCarousel()' : `setScoreFilter('${b.filter}')`}">
+      `<div class="dist-seg ${b.cls}" style="flex:1;opacity:0.25" onclick="${b.score === 7 ? 'openCarousel()' : `setScoreFilter('${b.filter}')`}" ${segKeys} aria-label="${b.label}: no data yet">
         <span class="dist-seg-label">${b.label}</span>
       </div>`
     ).join('');
@@ -4569,7 +4679,7 @@ function renderDistBar(dist) {
       ? `<span class="dist-seg-count">${cnt}</span><span class="dist-seg-label">${b.label}</span>`
       : `<span class="dist-seg-label" style="font-size:7px;opacity:0.6">${b.label}</span>`;
     const clickHandler = b.score === 7 ? 'openCarousel()' : `setScoreFilter('${b.filter}')`;
-    return `<div class="dist-seg ${b.cls}" style="flex:${flex}" onclick="${clickHandler}" title="${b.label}: ${cnt} stocks (${pct}%)">
+    return `<div class="dist-seg ${b.cls}" style="flex:${flex}" onclick="${clickHandler}" ${segKeys} title="${b.label}: ${cnt} stocks (${pct}%)" aria-label="${b.label}: ${cnt} stocks, ${pct} percent — filter list">
       ${inner}
     </div>`;
   }).join('');
