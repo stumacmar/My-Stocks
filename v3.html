@@ -506,20 +506,259 @@
       border-radius: 8px;
     }
 
-    /* ── Portfolio pane (stub) ───────────────────────────────────────── */
-    #v3-portfolio-pane {
+    /* ── Portfolio pane ──────────────────────────────────────────────── */
+    #v3-portfolio-pane { padding-bottom: 24px; }
+
+    /* Empty / no-portfolios state */
+    .v3-portf-empty {
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
-      padding: 64px 24px;
       text-align: center;
-      gap: 12px;
+      padding: 64px 32px;
+      gap: 10px;
+    }
+    .v3-portf-empty-icon  { font-size: 40px; margin-bottom: 4px; }
+    .v3-portf-empty-title { font-family: 'Fraunces', serif; font-size: 22px; font-weight: 700; color: var(--text-0); }
+    .v3-portf-empty-body  { font-size: 13px; color: var(--text-2); line-height: 1.65; max-width: 300px; }
+    .v3-portf-create-btn {
+      margin-top: 8px;
+      padding: 12px 24px;
+      border-radius: 999px;
+      border: none;
+      background: var(--accent);
+      color: #000;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 4px 16px rgba(20,184,166,0.35);
+    }
+
+    /* Portfolio tabs */
+    #v3-portf-tabs {
+      display: flex;
+      gap: 6px;
+      padding: 14px 16px 0;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+    #v3-portf-tabs::-webkit-scrollbar { display: none; }
+
+    .v3-portf-tab {
+      flex-shrink: 0;
+      padding: 7px 14px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: var(--bg-2);
+      color: var(--text-2);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.15s, color 0.15s, border-color 0.15s;
+    }
+    .v3-portf-tab:hover  { background: var(--bg-3); color: var(--text-0); }
+    .v3-portf-tab.active {
+      background: var(--accent-dim);
+      border-color: rgba(20,184,166,0.4);
+      color: var(--accent);
+    }
+    .v3-portf-tab-add {
+      flex-shrink: 0;
+      width: 34px; height: 34px;
+      border-radius: 50%;
+      border: 1px dashed var(--border-hi);
+      background: transparent;
+      color: var(--text-2);
+      font-size: 18px;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: color 0.15s, border-color 0.15s;
+    }
+    .v3-portf-tab-add:hover { color: var(--accent); border-color: rgba(20,184,166,0.4); }
+
+    /* Household summary card */
+    .v3-household-card {
+      margin: 14px 16px 0;
+      padding: 16px 18px;
+      background: linear-gradient(145deg, rgba(255,255,255,0.03) 0%, var(--bg-1) 100%);
+      border: 1px solid var(--border-hi);
+      border-radius: 14px;
+    }
+    .v3-household-top    { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+    .v3-household-label  { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text-2); margin-bottom: 3px; }
+    .v3-household-value  { font-family: 'Fraunces', serif; font-size: 26px; font-weight: 700; color: var(--text-0); }
+    .v3-household-return { font-size: 18px; font-weight: 700; }
+    .v3-household-abs    { font-size: 13px; font-weight: 500; opacity: 0.75; margin-left: 6px; }
+    .v3-household-meta   { font-size: 12px; color: var(--text-2); }
+
+    /* Holding cards */
+    #v3-portf-holdings   { padding: 12px 16px 0; display: flex; flex-direction: column; gap: 8px; }
+    .v3-holding-card {
+      padding: 13px 14px;
+      background: var(--bg-1);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--bg-4);
+      border-radius: 12px;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .v3-holding-card:hover { background: var(--bg-2); }
+    .v3-holding-review    { border-left-color: var(--amber) !important; }
+
+    .v3-holding-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+    .v3-holding-ticker-wrap { display: flex; align-items: center; gap: 8px; }
+    .v3-holding-ticker      { font-weight: 700; font-size: 15px; color: var(--text-0); letter-spacing: 0.01em; }
+    .v3-holding-account-badge {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      padding: 2px 7px;
+      border-radius: 999px;
+      background: var(--bg-3);
+      border: 1px solid var(--border);
       color: var(--text-2);
     }
-    .v3-stub-icon { font-size: 40px; margin-bottom: 8px; }
-    .v3-stub-title { font-family: 'Fraunces', serif; font-size: 22px; font-weight: 700; color: var(--text-0); }
-    .v3-stub-body  { font-size: 13px; color: var(--text-2); line-height: 1.65; max-width: 300px; }
+    .v3-holding-value-wrap { text-align: right; }
+    .v3-holding-value      { font-weight: 700; font-size: 15px; color: var(--text-0); display: block; }
+    .v3-holding-pct        { font-size: 12px; font-weight: 600; }
+
+    .v3-holding-bottom  { display: flex; flex-direction: column; gap: 5px; }
+    .v3-holding-meta    { font-size: 12px; color: var(--text-2); }
+    .v3-holding-name    { color: var(--text-1); }
+
+    /* Score-change chip */
+    .v3-score-change-chip {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      flex-wrap: wrap;
+    }
+    .v3-score-arrow { color: var(--text-2); }
+    .v3-review-chip {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: rgba(245,158,11,0.12);
+      color: var(--amber);
+      border: 1px solid rgba(245,158,11,0.3);
+      letter-spacing: 0.03em;
+    }
+    .v3-no-data-hint { font-size: 11px; color: var(--text-2); font-style: italic; }
+
+    .v3-portf-holdings-empty {
+      text-align: center;
+      padding: 40px 24px;
+      color: var(--text-2);
+    }
+
+    /* Add holding FAB */
+    #v3-add-holding-fab {
+      height: 52px;
+      padding: 0 22px;
+      border-radius: 26px;
+      border: none;
+      background: linear-gradient(135deg, #19d4be 0%, var(--accent) 100%);
+      color: #000;
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      cursor: pointer;
+      box-shadow: 0 4px 20px rgba(20,184,166,0.4);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      display: none;
+    }
+    #v3-add-holding-fab:hover { transform: translateY(-1px); box-shadow: 0 6px 28px rgba(20,184,166,0.5); }
+
+    /* Add holding / create portfolio sheets */
+    .v3-small-sheet {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      background: var(--bg-1);
+      border-radius: var(--sheet-radius) var(--sheet-radius) 0 0;
+      border-top: 1px solid var(--border-hi);
+      z-index: 201;
+      transform: translateY(100%);
+      transition: transform 0.38s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      padding: 8px 20px calc(env(safe-area-inset-bottom) + 32px);
+      overflow-y: auto;
+      max-height: 92vh;
+    }
+    .v3-small-sheet.open { transform: translateY(0); }
+
+    .v3-sheet-title {
+      font-family: 'Fraunces', serif;
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text-0);
+      margin: 14px 0 18px;
+    }
+
+    .v3-form-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 12px;
+      align-items: flex-end;
+    }
+    .v3-form-field { display: flex; flex-direction: column; gap: 5px; flex: 1; }
+    .v3-form-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text-2); }
+    .v3-form-input {
+      background: var(--bg-2);
+      border: 1px solid var(--border-hi);
+      border-radius: 8px;
+      color: var(--text-0);
+      font-size: 14px;
+      padding: 10px 12px;
+      outline: none;
+      font-family: 'Inter', sans-serif;
+      width: 100%;
+      transition: border-color 0.2s;
+    }
+    .v3-form-input:focus { border-color: var(--accent); }
+    .v3-form-input.ticker-input { font-family: monospace; font-weight: 700; font-size: 15px; text-transform: uppercase; }
+
+    .v3-score-preview { font-size: 12px; color: var(--text-2); min-height: 18px; margin-bottom: 10px; }
+    .v3-form-error    { font-size: 12px; color: var(--red); min-height: 18px; margin-bottom: 6px; }
+
+    .v3-submit-btn {
+      width: 100%;
+      padding: 14px;
+      border-radius: 12px;
+      border: none;
+      background: var(--accent);
+      color: #000;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 4px;
+      transition: opacity 0.2s;
+    }
+    .v3-submit-btn:hover { opacity: 0.9; }
+
+    .v3-delete-btn {
+      width: 100%;
+      padding: 12px;
+      border-radius: 10px;
+      border: 1px solid rgba(248,113,113,0.25);
+      background: rgba(248,113,113,0.07);
+      color: var(--red);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .v3-delete-btn:hover { background: rgba(248,113,113,0.12); }
 
     /* ── Settings sheet ──────────────────────────────────────────────── */
     #v3-settings-overlay {
@@ -651,6 +890,10 @@
       #v3-detail-sheet.open { transform: translateX(-50%) translateY(0); }
       #v3-settings-sheet { left: 50%; right: auto; width: 480px; transform: translateX(-50%) translateY(100%); }
       #v3-settings-sheet.open { transform: translateX(-50%) translateY(0); }
+      #v3-add-holding-sheet { left: 50%; right: auto; width: 480px; transform: translateX(-50%) translateY(100%); }
+      #v3-add-holding-sheet.open { transform: translateX(-50%) translateY(0); }
+      #v3-create-portf-sheet { left: 50%; right: auto; width: 400px; transform: translateX(-50%) translateY(100%); }
+      #v3-create-portf-sheet.open { transform: translateX(-50%) translateY(0); }
       #v3-fab-wrap { right: calc(50% - 240px + 20px); }
     }
   </style>
@@ -725,27 +968,106 @@
 
   </div>
 
-  <!-- Portfolio pane (Phase 5 stub) -->
-  <div class="v3-pane" id="v3-portfolio-pane" style="display:none">
-    <div class="v3-stub-icon">📊</div>
-    <div class="v3-stub-title">Portfolio mode</div>
-    <div class="v3-stub-body">
-      Track your own holdings alongside the same scoring signals.<br><br>
-      Coming in Phase 5 — add stocks, funds and ETFs from your ISA, SIPP, or any account.
-    </div>
-  </div>
+  <!-- Portfolio pane — rendered dynamically by src/ui/portfolio.js -->
+  <div class="v3-pane" id="v3-portfolio-pane" style="display:none"></div>
 
 </div>
 
-<!-- FAB Run button -->
+<!-- FAB buttons — screen and portfolio modes -->
 <div id="v3-fab-wrap">
-  <button id="v3-stop-btn" onclick="v3Screen.stopScreen()">■ Stop</button>
-  <button id="v3-run-btn"  onclick="v3Screen.runScreen()">▶ Run Screen</button>
+  <button id="v3-stop-btn"         onclick="v3Screen.stopScreen()">■ Stop</button>
+  <button id="v3-run-btn"          onclick="v3Screen.runScreen()">▶ Run Screen</button>
+  <button id="v3-add-holding-fab"  onclick="v3Portfolio.openAddHolding()">+ Add Holding</button>
 </div>
 
 <!-- Detail sheet overlay + sheet -->
-<div id="v3-detail-overlay" onclick="v3Screen.closeDetail()"></div>
+<div id="v3-detail-overlay" onclick="closeDetailSheet()"></div>
 <div id="v3-detail-sheet" role="dialog" aria-modal="true" aria-label="Stock detail"></div>
+
+<!-- Add holding sheet -->
+<div id="v3-add-holding-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);z-index:200" onclick="v3Portfolio.closeAddHolding()"></div>
+<div id="v3-add-holding-sheet" class="v3-small-sheet" role="dialog" aria-modal="true" aria-label="Add holding">
+  <div class="v3-sheet-handle" onclick="v3Portfolio.closeAddHolding()" style="cursor:pointer"></div>
+  <div class="v3-sheet-title">Add holding</div>
+
+  <div class="v3-form-row">
+    <div class="v3-form-field" style="flex:1.2">
+      <label class="v3-form-label" for="v3-ah-ticker">Ticker</label>
+      <input id="v3-ah-ticker" class="v3-form-input ticker-input" type="text" placeholder="e.g. AAPL"
+             oninput="v3Portfolio.tickerInputChanged(this.value)" autocomplete="off" autocapitalize="characters">
+    </div>
+    <div class="v3-form-field">
+      <label class="v3-form-label" for="v3-ah-account">Account</label>
+      <select id="v3-ah-account" class="v3-form-input">
+        <option value="ISA">ISA</option>
+        <option value="SIPP">SIPP</option>
+        <option value="GIA" selected>GIA</option>
+        <option value="Other">Other</option>
+      </select>
+    </div>
+  </div>
+
+  <div id="v3-ah-score-preview" class="v3-score-preview"></div>
+
+  <div class="v3-form-row">
+    <div class="v3-form-field">
+      <label class="v3-form-label" for="v3-ah-shares">Shares / Units</label>
+      <input id="v3-ah-shares" class="v3-form-input" type="number" min="0.0001" step="any" placeholder="e.g. 100">
+    </div>
+    <div class="v3-form-field">
+      <label class="v3-form-label" for="v3-ah-price">Entry price</label>
+      <input id="v3-ah-price" class="v3-form-input" type="number" min="0.0001" step="any" placeholder="e.g. 150.00">
+    </div>
+    <div class="v3-form-field" style="flex:0.7">
+      <label class="v3-form-label" for="v3-ah-currency">Currency</label>
+      <select id="v3-ah-currency" class="v3-form-input">
+        <option value="USD">USD $</option>
+        <option value="GBP">GBP £</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="v3-form-row">
+    <div class="v3-form-field">
+      <label class="v3-form-label" for="v3-ah-date">Entry date</label>
+      <input id="v3-ah-date" class="v3-form-input" type="date">
+    </div>
+  </div>
+
+  <div class="v3-form-row">
+    <div class="v3-form-field">
+      <label class="v3-form-label" for="v3-ah-notes">Notes (optional)</label>
+      <input id="v3-ah-notes" class="v3-form-input" type="text" placeholder="e.g. Bought on dip">
+    </div>
+  </div>
+
+  <div id="v3-ah-error" class="v3-form-error"></div>
+  <button class="v3-submit-btn" onclick="v3Portfolio.submitAddHolding()">Add holding</button>
+</div>
+
+<!-- Create portfolio sheet -->
+<div id="v3-create-portf-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);z-index:200" onclick="v3Portfolio.closeCreatePortfolio()"></div>
+<div id="v3-create-portf-sheet" class="v3-small-sheet" role="dialog" aria-modal="true" aria-label="Create portfolio">
+  <div class="v3-sheet-handle" onclick="v3Portfolio.closeCreatePortfolio()" style="cursor:pointer"></div>
+  <div class="v3-sheet-title">New portfolio</div>
+
+  <div class="v3-form-row">
+    <div class="v3-form-field">
+      <label class="v3-form-label" for="v3-portf-name-input">Portfolio name</label>
+      <input id="v3-portf-name-input" class="v3-form-input" type="text" placeholder="e.g. Stocks ISA"
+             onkeydown="if(event.key==='Enter')v3Portfolio.submitCreatePortfolio()">
+    </div>
+    <div class="v3-form-field" style="flex:0.6">
+      <label class="v3-form-label" for="v3-portf-currency">Currency</label>
+      <select id="v3-portf-currency" class="v3-form-input">
+        <option value="GBP">GBP £</option>
+        <option value="USD">USD $</option>
+      </select>
+    </div>
+  </div>
+
+  <button class="v3-submit-btn" onclick="v3Portfolio.submitCreatePortfolio()">Create portfolio</button>
+</div>
 
 <!-- Settings sheet -->
 <div id="v3-settings-overlay" onclick="closeSettings()"></div>
@@ -790,10 +1112,18 @@
 
   <div class="v3-setting-row">
     <div>
+      <div class="v3-setting-label">Delete active portfolio</div>
+      <div class="v3-setting-sub">Removes all holdings in the current portfolio</div>
+    </div>
+    <button class="v3-btn" style="color:var(--red);border-color:rgba(248,113,113,0.2)" onclick="v3Portfolio.deleteActivePortfolio();closeSettings()">Delete</button>
+  </div>
+
+  <div class="v3-setting-row">
+    <div>
       <div class="v3-setting-label">About</div>
       <div class="v3-setting-sub">Stuart's Stock Compass V3</div>
     </div>
-    <span style="font-size:12px;color:var(--text-2)">Phase 4</span>
+    <span style="font-size:12px;color:var(--text-2)">Phase 5</span>
   </div>
 </div>
 
@@ -824,6 +1154,7 @@
   import { runMigrationIfNeeded } from './src/state/migration.js';
   import { KEYS, CURRENT_SCHEMA } from './src/state/schema.js';
   import { initScreen, runScreen, stopScreen, setFilter, setSort, openDetail, closeDetail, toggleStar } from './src/ui/screen.js';
+  import { initPortfolio, renderPortfolioView } from './src/ui/portfolio.js';
 
   // ── Boot ───────────────────────────────────────────────────────────
   runMigrationIfNeeded({ offerBackupDownload: false });
@@ -834,6 +1165,7 @@
   }
 
   initScreen();
+  initPortfolio();
   syncSettings();
 
   // ── Mode toggle ────────────────────────────────────────────────────
@@ -846,6 +1178,22 @@
       });
       document.getElementById('v3-screen-pane').style.display    = view === 'screen'    ? '' : 'none';
       document.getElementById('v3-portfolio-pane').style.display = view === 'portfolio' ? '' : 'none';
+
+      // FAB: show run-btn in screen mode, add-holding-fab in portfolio mode
+      const runBtn  = document.getElementById('v3-run-btn');
+      const stopBtn = document.getElementById('v3-stop-btn');
+      const addBtn  = document.getElementById('v3-add-holding-fab');
+      if (view === 'screen') {
+        if (runBtn)  runBtn.style.display  = '';
+        if (stopBtn) stopBtn.style.display = '';   // screen.js will hide/show as needed
+        if (addBtn)  addBtn.style.display  = 'none';
+      } else {
+        if (runBtn)  runBtn.style.display  = 'none';
+        if (stopBtn) stopBtn.style.display = 'none';
+        // portfolio.js controls add-btn visibility based on whether portfolios exist
+        renderPortfolioView();
+      }
+
       dispatch(ACTIONS.SET_LAST_STATE, { view });
     });
   });
@@ -904,12 +1252,22 @@
     if (e.key === 'Enter') window.saveFirstRunKey();
   });
 
+  // Shared detail-sheet close (screen view and portfolio view share the same sheet + overlay)
+  window.closeDetailSheet = () => {
+    v3Screen.closeDetail();
+    document.getElementById('v3-detail-sheet')?.classList.remove('open');
+    document.getElementById('v3-detail-overlay').style.display = 'none';
+    document.body.style.overflow = '';
+  };
+
   // ── Keyboard shortcuts ─────────────────────────────────────────────
   document.addEventListener('keydown', e => {
     if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
     if (e.key === 'Escape') {
-      closeDetail();
+      closeDetailSheet();
       closeSettings();
+      v3Portfolio.closeAddHolding();
+      v3Portfolio.closeCreatePortfolio();
     }
     if (e.key === 'r' && !e.metaKey && !e.ctrlKey) {
       runScreen();
@@ -935,7 +1293,7 @@
       isDragging = false;
       const dy = e.changedTouches[0].clientY - startY;
       sheet.style.transform = '';
-      if (dy > 80) closeDetail();
+      if (dy > 80) closeDetailSheet();
     }, { passive: true });
   })();
 
