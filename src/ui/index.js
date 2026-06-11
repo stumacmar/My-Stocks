@@ -1,13 +1,7 @@
 /**
- * UI module — Phase 4–5 stub.
- *
- * Replace with real screen and portfolio views in Phase 4.
+ * UI module barrel export.
+ * Phase 4 components available.
  */
 
-export function renderScreen(results) {
-  // Phase 4 stub
-}
-
-export function renderPortfolio(portfolios) {
-  // Phase 5 stub
-}
+export { compassGaugeHTML, animateGauge, compositeToRag, compositeToLabel, compositeToColor } from './gauge.js';
+export { initScreen, runScreen, stopScreen, setFilter, setSort, openDetail, closeDetail, toggleStar } from './screen.js';
