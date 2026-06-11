@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>Stuart's Stock Compass — V11</title>
+  <title>Stuart's Stock Compass — V13</title>
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Stock Compass">
@@ -29,10 +29,10 @@
       --green: #2ECC71;
       --amber: #F39C12;
       --red:   #E74C3C;
-      /* Text scale */
+      /* Text scale — text-2 lifted for WCAG-AA contrast on small labels (V13) */
       --text-0: #E6EDF3;
       --text-1: #8B949E;
-      --text-2: #4A5568;
+      --text-2: #707D92;
       /* Score colours */
       --score-7: #F5C518;
       --score-6: #2ECC71;
@@ -50,7 +50,7 @@
     }
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     body {
-      background: var(--bg-0);
+      background: radial-gradient(ellipse at 25% -8%, rgba(20,184,166,0.055) 0%, transparent 52%), var(--bg-0);
       color: var(--text-0);
       font-family: 'Inter', system-ui, -apple-system, sans-serif;
       font-size: 14px;
@@ -130,7 +130,8 @@
       white-space: nowrap; -webkit-tap-highlight-color: transparent; line-height: 1;
     }
     .btn:disabled { opacity: 0.4; cursor: not-allowed; }
-    .btn-primary { background: var(--accent); color: var(--bg-0); font-weight: 600; box-shadow: var(--shadow-sm); }
+    .btn-primary { background: linear-gradient(135deg, #19d4be 0%, var(--accent) 100%); color: var(--bg-0); font-weight: 600; box-shadow: 0 2px 12px rgba(20,184,166,0.28); }
+    .btn-primary:hover { box-shadow: 0 4px 22px rgba(20,184,166,0.42); }
     .btn-primary:not(:disabled):active { opacity: 0.8; }
     .btn-filter { background: transparent; border-color: var(--line); color: var(--text-1); }
     .btn-filter:hover { border-color: var(--text-2); color: var(--text-0); }
@@ -170,15 +171,26 @@
     .message-banner.success { display: block; background: rgba(52,211,153,0.1);  border: 1px solid rgba(52,211,153,0.25);  color: var(--green); }
 
     /* ── Data Table ─────────────────────────────────────────────────────── */
-    .table-wrap { padding: 0 0 40px; overflow-x: auto; overflow-y: auto; max-height: 70vh; -webkit-overflow-scrolling: touch; }
+    .table-wrap { padding: 0 0 40px; overflow-x: auto; overflow-y: auto; max-height: 70vh; max-height: 70dvh; -webkit-overflow-scrolling: touch; background: var(--bg-0); }
     table { width: 100%; border-collapse: collapse; min-width: 1300px; }
-    thead { position: sticky; top: 0; z-index: 10; }
     th {
+      position: sticky; top: 0; z-index: 10;
       background: var(--bg-1); border-bottom: 1px solid var(--line); border-top: 1px solid var(--line);
       color: var(--text-2); font-size: 11px; font-weight: 600; letter-spacing: 0.4px;
       text-transform: uppercase; padding: 10px 12px; text-align: right; cursor: pointer;
       user-select: none; white-space: nowrap; -webkit-tap-highlight-color: transparent; transition: color 0.12s;
     }
+    /* V13: pin star + ticker columns while scrolling the wide table horizontally */
+    thead th:nth-child(1) { left: 0; z-index: 12; }
+    thead th:nth-child(2) { left: 36px; z-index: 12; box-shadow: 1px 0 0 var(--line); }
+    tbody tr[data-ticker] td:nth-child(1),
+    tbody tr[data-ticker] td:nth-child(2) { position: sticky; z-index: 2; background: var(--bg-0); }
+    tbody tr[data-ticker] td:nth-child(1) { left: 0; }
+    tbody tr[data-ticker] td:nth-child(2) { left: 36px; box-shadow: 1px 0 0 var(--line); }
+    tbody tr[data-ticker]:nth-child(even) td:nth-child(1),
+    tbody tr[data-ticker]:nth-child(even) td:nth-child(2) { background: #11151C; }
+    tbody tr[data-ticker]:hover td:nth-child(1),
+    tbody tr[data-ticker]:hover td:nth-child(2) { background: #121C22 !important; }
     th:hover { color: var(--text-0); }
     th:nth-child(2), th:nth-child(3), th:nth-child(4) { text-align: left; }
     th.sorted-asc::after  { content: ' ↑'; color: var(--accent); }
@@ -196,9 +208,9 @@
     table.favorites-mode .entry-col { display: table-cell; }
 
     /* Star column */
-    th.th-fav { width: 36px; text-align: center !important; padding: 10px 6px; font-size: 15px; color: var(--amber); cursor: pointer; }
+    th.th-fav { width: 36px; min-width: 36px; max-width: 36px; text-align: center !important; padding: 10px 6px; font-size: 15px; color: var(--amber); cursor: pointer; }
     th.th-fav:hover { color: var(--text-0); }
-    .cell-fav { text-align: center !important; cursor: pointer; color: var(--text-2); font-size: 15px; padding: 8px 6px !important; -webkit-tap-highlight-color: transparent; user-select: none; width: 36px; }
+    .cell-fav { text-align: center !important; cursor: pointer; color: var(--text-2); font-size: 15px; padding: 8px 6px !important; -webkit-tap-highlight-color: transparent; user-select: none; width: 36px; min-width: 36px; max-width: 36px; }
     .cell-fav:hover { color: var(--amber); }
     .cell-fav.starred { color: var(--amber); }
 
@@ -210,7 +222,9 @@
     .cell-score.strong { color: var(--green); }
     .cell-score.watch  { color: var(--amber); }
     .cell-score.avoid  { color: var(--red); }
-    .cell-score.elite  { color: var(--score-7); text-shadow: 0 0 10px rgba(245,197,24,0.35); }
+    .cell-score.elite  { color: var(--score-7); text-shadow: 0 0 18px rgba(245,197,24,0.65); }
+    .score-num { font-family: 'Fraunces', serif; font-size: 17px; font-weight: 700; line-height: 1; }
+    .score-denom { font-size: 11px; font-weight: 500; opacity: 0.42; margin-left: 1px; }
 
     /* Badges */
     .rag-badge { display: inline-block; padding: 3px 10px; border-radius: 99px; font-size: 11px; font-weight: 600; }
@@ -254,17 +268,18 @@
     .failure-summary { border-top: 1px solid var(--line); color: var(--text-2); font-size: 12px; line-height: 1.65; margin-top: 12px; padding-top: 10px; }
 
     /* ── Bottom Sheet (stock detail) ─────────────────────────────────────── */
-    .sheet-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.65); z-index: 99; opacity: 0; pointer-events: none; transition: opacity 0.25s; }
+    .sheet-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px); z-index: 99; opacity: 0; pointer-events: none; transition: opacity 0.25s; }
     .sheet-overlay.visible { opacity: 1; pointer-events: auto; }
     .bottom-sheet {
       position: fixed; bottom: 0; left: 0; right: 0; height: 82vh;
       background: var(--bg-1); border-radius: 20px 20px 0 0;
-      transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.4,0,0.2,1);
+      transform: translateY(100%); transition: transform 0.42s cubic-bezier(0.175, 0.885, 0.32, 1.275);
       z-index: 100; overflow-y: auto; -webkit-overflow-scrolling: touch;
       box-shadow: var(--shadow-md);
     }
-    .bottom-sheet.open { transform: translateY(0); }
-    .sheet-handle { width: 36px; height: 4px; background: var(--line); border-radius: 99px; margin: 14px auto 0; }
+    .bottom-sheet.open { transform: translateY(0); box-shadow: 0 -1px 0 rgba(20,184,166,0.4), 0 -8px 52px rgba(20,184,166,0.09), 0 -32px 80px rgba(0,0,0,0.55); }
+    .sheet-handle { width: 40px; height: 5px; background: var(--line); border-radius: 99px; margin: 14px auto 0; transition: background 0.35s; }
+    .bottom-sheet.open .sheet-handle { background: rgba(20,184,166,0.45); transition: background 0.4s 0.25s; }
     .sheet-header { padding: 18px 22px 14px; display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 1px solid var(--line); }
     .sheet-ticker { font-family: 'Fraunces', serif; font-size: 28px; font-weight: 700; color: var(--accent); }
     .sheet-company { font-size: 13px; color: var(--text-1); margin-top: 3px; }
@@ -273,8 +288,8 @@
     .sheet-close:hover { background: var(--line); }
     .sheet-body { padding: 18px 22px 48px; }
     .sheet-section-title { font-size: 11px; font-weight: 600; letter-spacing: 0.6px; text-transform: uppercase; color: var(--text-2); margin-bottom: 12px; margin-top: 24px; }
-    .metrics-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-    .metric-cell { background: var(--bg-2); border-radius: var(--r-sm); padding: 12px 14px; box-shadow: var(--shadow-sm); }
+    .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(104px, 1fr)); gap: 10px; }
+    .metric-cell { background: linear-gradient(145deg, rgba(255,255,255,0.03) 0%, var(--bg-2) 100%); border: 1px solid rgba(255,255,255,0.07); border-top-color: rgba(255,255,255,0.12); border-radius: var(--r-sm); padding: 12px 14px; }
     .metric-label { font-size: 10px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; color: var(--text-2); margin-bottom: 5px; }
     .metric-value { font-size: 15px; font-weight: 600; font-variant-numeric: tabular-nums; }
     .season-row { display: flex; gap: 3px; align-items: flex-end; height: 64px; margin-top: 8px; }
@@ -307,8 +322,8 @@
     .h-refresh-bar strong { color: var(--text-1); }
     .h-progress { padding: 10px 20px; font-size: 12px; color: var(--amber); display: none; }
     .h-errors   { padding: 4px 20px 10px; font-size: 12px; color: var(--red); display: none; }
-    .h-summary-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; padding: 20px; }
-    .h-summary-card { background: var(--bg-1); border-radius: var(--r-md); padding: 16px 14px; box-shadow: var(--shadow-sm); }
+    .h-summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; padding: 20px; }
+    .h-summary-card { background: linear-gradient(145deg, rgba(255,255,255,0.03) 0%, var(--bg-1) 100%); border: 1px solid var(--line); border-top-color: rgba(255,255,255,0.09); border-radius: var(--r-md); padding: 16px 14px; }
     .h-summary-label { font-size: 10px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; color: var(--text-2); margin-bottom: 8px; }
     .h-summary-val { font-family: 'Fraunces', serif; font-size: 22px; font-weight: 700; line-height: 1.1; font-variant-numeric: tabular-nums; }
     .h-summary-sub { font-size: 11px; color: var(--text-2); margin-top: 4px; }
@@ -369,6 +384,11 @@
       .header-title { font-size: 26px; }
       .btn-csv { margin-left: 0; }
       .sector-select { max-width: 120px; font-size: 12px; }
+      /* V13: 16px inputs prevent iOS auto-zoom on focus */
+      .api-input, .hf-input, .tab-new-input, .new-port-input { font-size: 16px; }
+      .dist-seg-count { font-size: 16px; }
+      .h-bench-nums { gap: 18px; }
+      .controls { padding: 12px; }
     }
 
     /* ── Hero / Score distribution bar ──────────────────────────────────── */
@@ -379,17 +399,18 @@
     .hero-status { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-2); white-space: nowrap; }
     .pulse-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); flex-shrink: 0; animation: pulse 1.2s ease-in-out infinite; }
     @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.35;transform:scale(0.65)} }
-    .dist-bar { display: flex; gap: 3px; height: 52px; align-items: stretch; border-radius: var(--r-sm); overflow: hidden; }
-    .dist-seg { display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; transition: flex 0.4s ease, filter 0.1s; gap: 2px; min-width: 8px; -webkit-tap-highlight-color: transparent; overflow: hidden; }
+    .dist-bar { display: flex; gap: 3px; height: 72px; align-items: stretch; border-radius: var(--r-sm); overflow: hidden; }
+    .dist-seg { display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; transition: flex 0.4s ease, opacity 0.3s, filter 0.3s; gap: 2px; min-width: 8px; -webkit-tap-highlight-color: transparent; overflow: hidden; border-radius: 5px; }
     .dist-seg:hover { filter: brightness(1.15); }
+    .dist-seg.seg-dim { opacity: 0.3; filter: saturate(0.4); }
     .dist-seg-7   { background: var(--score-7); color: #1a1500; }
     .dist-seg-6   { background: var(--score-6); color: #001a0d; }
     .dist-seg-5   { background: rgba(26,188,156,0.4); color: var(--score-5); }
     .dist-seg-4   { background: rgba(243,156,18,0.32); color: var(--score-4); }
     .dist-seg-3   { background: rgba(230,126,34,0.32); color: var(--score-3); }
     .dist-seg-low { background: rgba(231,76,60,0.2); color: var(--score-low); }
-    .dist-seg-count { font-family: 'Fraunces', serif; font-size: 15px; font-weight: 700; }
-    .dist-seg-label { font-size: 9px; font-weight: 500; opacity: 0.85; }
+    .dist-seg-count { font-family: 'Fraunces', serif; font-size: 20px; font-weight: 700; }
+    .dist-seg-label { font-size: 10px; font-weight: 500; opacity: 0.85; letter-spacing: 0.04em; }
     .dist-rag-row { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 10px; font-size: 13px; color: var(--text-1); line-height: 1.5; }
 
     /* ── Settings gear / sheet ───────────────────────────────────────────── */
@@ -436,23 +457,27 @@
     .crit-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: var(--r-sm); border: 1px solid var(--line); }
     .crit-item.ci-pass { border-color: rgba(52,211,153,0.2); background: rgba(52,211,153,0.04); }
     .crit-item.ci-fail { border-color: rgba(248,113,113,0.1); }
-    .ci-icon { font-size: 14px; width: 20px; text-align: center; flex-shrink: 0; }
+    .ci-icon { font-size: 12px; font-weight: 700; width: 22px; height: 22px; min-width: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .crit-item.ci-pass .ci-icon { background: rgba(46,204,113,0.12); color: var(--green); border: 1px solid rgba(46,204,113,0.28); }
+    .crit-item.ci-fail .ci-icon { background: rgba(248,113,113,0.08); color: var(--red); border: 1px solid rgba(248,113,113,0.2); }
     .ci-name  { font-size: 12px; color: var(--text-1); flex: 1; }
     .ci-val   { font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums; }
+    .crit-item.ci-pass .ci-val { color: var(--green); }
+    .crit-item.ci-fail .ci-val { color: var(--text-1); opacity: 0.8; }
     .ci-thr   { font-size: 10px; color: var(--text-2); margin-top: 1px; }
 
     /* ── Footer ──────────────────────────────────────────────────────────── */
     .footer-note { padding: 18px 20px; font-size: 11px; color: var(--text-2); text-align: center; border-top: 1px solid var(--line); line-height: 1.7; }
 
     /* ── V9: Mode Nav ────────────────────────────────────────────────────── */
-    .mode-nav { display: flex; gap: 6px; padding: 10px 16px 8px; background: var(--bg-1); border-bottom: 1px solid var(--line); }
+    .mode-nav { display: flex; gap: 6px; padding: 10px 16px 8px; background: var(--bg-0); border-bottom: 1px solid var(--line); }
     .mode-btn {
       flex: 1; padding: 8px 12px; border-radius: 99px; border: 1px solid var(--line);
       background: transparent; color: var(--text-1); font-family: 'Inter', sans-serif;
-      font-size: 13px; font-weight: 500; cursor: pointer; transition: background 0.18s, color 0.18s, border-color 0.18s;
+      font-size: 13px; font-weight: 500; cursor: pointer; transition: background 0.18s, color 0.18s, border-color 0.18s, box-shadow 0.2s;
       -webkit-tap-highlight-color: transparent; text-align: center;
     }
-    .mode-btn.active { background: var(--accent); color: var(--bg-0); border-color: var(--accent); font-weight: 600; }
+    .mode-btn.active { background: var(--accent); color: var(--bg-0); border-color: var(--accent); font-weight: 600; box-shadow: 0 2px 16px rgba(20,184,166,0.38); }
 
     /* ── V9: Trickle Status Badge ────────────────────────────────────────── */
     .trickle-status {
@@ -560,7 +585,10 @@
     @keyframes cardIn { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:none; } }
     .row-new { animation: rowIn 0.18s ease both; }
     @media (prefers-reduced-motion: reduce) {
-      .row-new, .dist-seg { animation: none; transition: none; }
+      .row-new, .dist-seg, .pulse-dot, .tp-dot, .trickle-dot { animation: none; transition: none; }
+      .bottom-sheet, .settings-sheet, .sheet-overlay, .modal-overlay, .carousel-card-wrap { transition: none; }
+      .btn:not(:disabled):active, .btn-primary:not(:disabled):active, .tab-pill:active,
+      .mode-btn:active, .univ-btn:active, .port-chip:active { transform: none !important; }
     }
 
     /* ── Score treemap (Map view) ────────────────────────────────────────── */
@@ -769,6 +797,72 @@
       -webkit-tap-highlight-color: transparent;
     }
     .splash-cta:active { opacity: 0.85; }
+
+    /* ── V12: World-class UX ─────────────────────────────────────────────── */
+    ::selection { background: rgba(20,184,166,0.22); color: var(--text-0); }
+    ::-webkit-scrollbar { width: 4px; height: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--bg-2); border-radius: 99px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--text-2); }
+    * { scrollbar-width: thin; scrollbar-color: var(--bg-2) transparent; }
+
+    .version-badge {
+      display: inline-block; font-size: 9px; font-weight: 600; color: var(--text-2);
+      border: 1px solid var(--line); border-radius: 4px; padding: 1px 6px;
+      vertical-align: middle; margin-left: 8px; letter-spacing: 0.05em;
+      font-family: 'Inter', sans-serif;
+    }
+
+    .btn { -webkit-tap-highlight-color: transparent; }
+    .btn:not(:disabled):active { transform: scale(0.96); transition: transform 0.07s ease, opacity 0.07s, background 0.07s !important; }
+    .btn-primary:not(:disabled):active { transform: scale(0.95) !important; }
+    .tab-pill:active { transform: scale(0.96); -webkit-tap-highlight-color: transparent; }
+    .mode-btn:active { transform: scale(0.96); }
+    .univ-btn:active { transform: scale(0.96); }
+    .port-chip:active { transform: scale(0.96); }
+
+    tbody tr[data-ticker] { -webkit-tap-highlight-color: transparent; cursor: pointer; }
+    tbody tr[data-ticker]:active td { background: rgba(94,234,212,0.08) !important; transition: background 0.06s; }
+
+    .table-placeholder {
+      flex-direction: column; align-items: center; justify-content: center;
+      padding: 60px 24px; text-align: center; gap: 10px;
+    }
+    .tp-icon { font-size: 38px; color: var(--text-2); margin-bottom: 6px; opacity: 0.55; }
+    .tp-title { font-family: 'Fraunces', serif; font-size: 21px; font-weight: 700; color: var(--text-1); }
+    .tp-sub { font-size: 13px; color: var(--text-2); line-height: 1.7; margin-top: 4px; }
+    .tp-sub strong { color: var(--accent); font-weight: 600; }
+    .tp-dots { display: flex; gap: 8px; margin-bottom: 12px; }
+    .tp-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); animation: pulse 1.3s ease-in-out infinite; }
+    .tp-dot:nth-child(2) { animation-delay: 0.2s; }
+    .tp-dot:nth-child(3) { animation-delay: 0.4s; }
+
+    .settings-divider { height: 1px; background: var(--line); margin: 18px 0; opacity: 0.6; }
+    .api-input:focus, .hf-input:focus { box-shadow: 0 0 0 3px rgba(20,184,166,0.14); }
+    .settings-section-title { letter-spacing: 0.07em; }
+
+    /* ── V13: keyboard accessibility ─────────────────────────────────────── */
+    :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+    th:focus-visible { outline-offset: -2px; }
+    tbody tr[data-ticker]:focus-visible { outline-offset: -2px; }
+    .dist-seg:focus-visible { outline-offset: -2px; }
+
+    /* ── V13: "Showing N" live count chip ────────────────────────────────── */
+    .showing-chip { font-size: 12px; color: var(--text-2); white-space: nowrap; padding: 0 2px; }
+    .showing-chip strong { color: var(--text-1); font-weight: 600; font-variant-numeric: tabular-nums; }
+
+    /* ── V13: dynamic-viewport heights for mobile browser chrome ─────────── */
+    .bottom-sheet { height: 82dvh; }
+    .settings-sheet { max-height: 60dvh; }
+
+    /* ── V13: empty-state recovery action ────────────────────────────────── */
+    .empty-clear-btn {
+      margin-top: 16px; padding: 8px 18px; border-radius: 99px; cursor: pointer;
+      background: transparent; border: 1px solid var(--line); color: var(--text-1);
+      font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 500;
+      transition: border-color 0.15s, color 0.15s; -webkit-tap-highlight-color: transparent;
+    }
+    .empty-clear-btn:hover { border-color: var(--accent); color: var(--accent); }
   </style>
 </head>
 <body>
@@ -781,10 +875,10 @@
 
 <!-- Header -->
 <div class="header">
-  <div class="header-title">Stuart's Stock Compass — V11</div>
+  <div class="header-title">Stuart's Stock Compass <span class="version-badge">V13</span></div>
   <div class="header-sub">
     Quality · Value · Momentum
-    <span class="info-icon" onclick="openInfoModal()" title="Methodology">ⓘ</span>
+    <span class="info-icon" onclick="openInfoModal()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openInfoModal()}" role="button" tabindex="0" aria-label="Methodology" title="Methodology">ⓘ</span>
     <button class="settings-gear" onclick="openSettings()" aria-label="Settings">⚙</button>
   </div>
   <div id="headerRefresh" style="font-size:12px;color:var(--text-2);margin-top:4px"></div>
@@ -837,23 +931,24 @@
   <button class="btn btn-pause"   id="btnPause" onclick="togglePause()"  style="display:none">&#9646;&#9646; Pause</button>
   <button class="btn btn-stop"    id="btnStop"  onclick="stopScreener()" style="display:none">&#9632; Stop</button>
   <div class="controls-sep"></div>
-  <button class="btn btn-filter" data-filter="perfect"   onclick="setFilter('perfect',this)">&#9733; Hot</button>
-  <button class="btn btn-filter active" data-filter="all"       onclick="setFilter('all',this)">All</button>
-  <button class="btn btn-filter"        data-filter="strong"    onclick="setFilter('strong',this)">Strong</button>
-  <button class="btn btn-filter"        data-filter="watch"     onclick="setFilter('watch',this)">Watch</button>
-  <button class="btn btn-filter"        data-filter="avoid"     onclick="setFilter('avoid',this)">Avoid</button>
-  <button class="btn btn-filter"        data-filter="favorites" onclick="setFilter('favorites',this)">&#9733; Starred</button>
+  <button id="btnFilterHot"    class="btn btn-filter" data-filter="perfect"   onclick="setFilter('perfect',this)">&#9733; Hot</button>
+  <button id="btnFilterAll"    class="btn btn-filter active" data-filter="all"       onclick="setFilter('all',this)">All</button>
+  <button id="btnFilterStrong" class="btn btn-filter"        data-filter="strong"    onclick="setFilter('strong',this)">Strong</button>
+  <button id="btnFilterWatch"  class="btn btn-filter"        data-filter="watch"     onclick="setFilter('watch',this)">Watch</button>
+  <button id="btnFilterAvoid"  class="btn btn-filter"        data-filter="avoid"     onclick="setFilter('avoid',this)">Avoid</button>
+  <button id="btnFilterFavs"   class="btn btn-filter"        data-filter="favorites" onclick="setFilter('favorites',this)">&#9733; Starred</button>
   <button class="btn btn-filter btn-view-toggle" id="btnMapToggle" onclick="toggleViewMode()" title="Toggle heat map view">&#9783; Map</button>
   <div class="controls-sep"></div>
-  <select class="sector-select" id="sectorSelect" onchange="setSector(this.value)">
+  <select class="sector-select" id="sectorSelect" onchange="setSector(this.value)" aria-label="Filter by industry">
     <option value="all">All Industries</option>
   </select>
+  <span class="showing-chip">Showing <strong id="statShowing">—</strong></span>
   <button class="btn btn-csv" onclick="exportCSV()">&#8595; CSV</button>
 </div>
 
 <!-- Progress -->
 <div class="progress-wrap" id="progressWrap">
-  <div class="progress-bar-bg">
+  <div class="progress-bar-bg" id="progressBarBg" role="progressbar" aria-label="Screener progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
     <div class="progress-bar-fill" id="progressFill"></div>
   </div>
   <div class="progress-label"  id="progressLabel"><span id="wakeLockStatus" style="display:none;font-size:10px;color:var(--text-2);margin-left:8px">&#9728; Keeping screen awake</span></div>
@@ -862,7 +957,7 @@
 </div>
 
 <!-- Message Banner -->
-<div class="message-banner" id="msgBanner"></div>
+<div class="message-banner" id="msgBanner" role="status" aria-live="polite"></div>
 
 <!-- Failure Panel -->
 <div id="failurePanel" style="display:none; padding: 0 16px;"></div>
@@ -898,6 +993,19 @@
   </table>
 </div>
 
+<!-- Loading placeholder (running, no results yet) -->
+<div id="loadingState" class="table-placeholder" style="display:none">
+  <div class="tp-dots"><div class="tp-dot"></div><div class="tp-dot"></div><div class="tp-dot"></div></div>
+  <div class="tp-title">Scoring your universe…</div>
+  <div class="tp-sub" id="loadingCurrentTicker"></div>
+</div>
+<!-- Empty state (not running, no results) -->
+<div id="emptyState" class="table-placeholder" style="display:none">
+  <div class="tp-icon">◎</div>
+  <div class="tp-title">Ready to screen</div>
+  <div class="tp-sub">Tap <strong>Run</strong> to score all stocks against<br>7 quality, value &amp; momentum criteria.</div>
+</div>
+
 <!-- Score Heat Map View -->
 <div id="mapView" class="map-view" style="display:none"></div>
 
@@ -914,7 +1022,7 @@
 
 <!-- Settings Sheet -->
 <div class="sheet-overlay" id="settingsOverlay" onclick="closeSettings()"></div>
-<div class="settings-sheet" id="settingsSheet">
+<div class="settings-sheet" id="settingsSheet" role="dialog" aria-modal="true" aria-label="Settings">
   <div class="sheet-handle"></div>
   <div class="settings-body">
     <div class="settings-title">Settings</div>
@@ -924,9 +1032,11 @@
     </div>
     <div class="api-note">Free key at <a href="https://financialmodelingprep.com" target="_blank" rel="noopener">financialmodelingprep.com</a> — 250 calls/day free tier. Starter plan needed for full S&amp;P 500 runs.</div>
 
+    <div class="settings-divider"></div>
     <div class="settings-section-title">About refreshing</div>
     <p class="settings-note">iOS and Safari suspend background JavaScript to save battery. A pure web app cannot reliably run for 30 minutes in the background — this is an OS restriction, not a bug. The combination of per-stock caching (work survives interruption), incremental trickle refresh (25 oldest on every open), and screen wake lock (during a full run) covers most real-world use. Please keep this tab open during a full refresh.</p>
 
+    <div class="settings-divider"></div>
     <div class="settings-section-title">Cache</div>
     <p class="settings-note">Per-stock data is cached locally. Export to back up your cache or share between devices. Import merges into existing data.</p>
     <div class="settings-cache-btns">
@@ -935,6 +1045,7 @@
     </div>
     <input type="file" id="importCacheInput" accept=".json" style="display:none" onchange="importCache(this)">
 
+    <div class="settings-divider"></div>
     <div class="settings-section-title">Welcome guide</div>
     <p class="settings-note">Show the welcome guide again to review how the app works.</p>
     <div class="settings-cache-btns">
@@ -983,13 +1094,13 @@
 <!-- Bottom Sheet Overlay -->
 <div class="sheet-overlay" id="sheetOverlay" onclick="closeStockSheet()"></div>
 <!-- Bottom Sheet -->
-<div class="bottom-sheet" id="bottomSheet">
+<div class="bottom-sheet" id="bottomSheet" role="dialog" aria-modal="true" aria-label="Stock detail">
   <div class="sheet-handle"></div>
   <div id="sheetContent"></div>
 </div>
 
 <!-- Info Modal -->
-<div class="modal-overlay" id="infoModal" onclick="if(event.target===this)closeInfoModal()">
+<div class="modal-overlay" id="infoModal" onclick="if(event.target===this)closeInfoModal()" role="dialog" aria-modal="true" aria-label="Methodology">
   <div class="modal-box">
     <div class="modal-title">Methodology</div>
     <div class="modal-body">
@@ -1024,7 +1135,7 @@
 </div>
 
 <!-- Metric Info Modal -->
-<div class="modal-overlay" id="metricInfoModal" onclick="if(event.target===this)closeMetricInfo()">
+<div class="modal-overlay" id="metricInfoModal" onclick="if(event.target===this)closeMetricInfo()" role="dialog" aria-modal="true" aria-label="Metric explanation">
   <div class="minfo-box">
     <div class="minfo-title" id="metricInfoTitle"></div>
     <div class="minfo-body"  id="metricInfoBody"></div>
@@ -1037,7 +1148,7 @@
   <div class="carousel-bg-glow"></div>
   <div class="carousel-header">
     <div class="carousel-title">&#9733; Hot Picks</div>
-    <button class="carousel-close" onclick="closeCarousel()">&#10005;</button>
+    <button class="carousel-close" onclick="closeCarousel()" aria-label="Close hot picks">&#10005;</button>
   </div>
   <div class="carousel-stage" id="carouselStage">
     <!-- cards injected by JS -->
@@ -1466,7 +1577,39 @@ const BUILTIN_TABS = [
     const row = e.target.closest('tr[data-ticker]');
     if (row) openStockSheet(row.dataset.ticker);
   });
+  // V13: keyboard — Enter/Space opens the focused row's detail sheet
+  _tw.addEventListener('keydown', e => {
+    if (e.key !== 'Enter' && e.key !== ' ') return;
+    const row = e.target.closest && e.target.closest('tr[data-ticker]');
+    if (row) { e.preventDefault(); openStockSheet(row.dataset.ticker); }
+  });
   _tapListenerOk = true; // proof that init completed past the tap-listener block
+
+  // V13: sortable column headers are keyboard-operable
+  document.querySelectorAll('#resultsTable th').forEach(th => { th.setAttribute('scope', 'col'); th.tabIndex = 0; });
+  const _thead = document.querySelector('#resultsTable thead');
+  if (_thead) _thead.addEventListener('keydown', e => {
+    if ((e.key === 'Enter' || e.key === ' ') && e.target.tagName === 'TH') { e.preventDefault(); e.target.click(); }
+  });
+
+  // V13: Escape closes the topmost open overlay (one layer per press)
+  document.addEventListener('keydown', e => {
+    if (e.key !== 'Escape') return;
+    const vis = id => { const el = document.getElementById(id); return el && el.classList.contains('visible') ? el : null; };
+    const carousel = document.getElementById('carouselOverlay');
+    if (carousel && carousel.style.display !== 'none') { closeCarousel(); return; }
+    let m;
+    if ((m = vis('metricInfoModal')))      { m.classList.remove('visible'); return; }
+    if ((m = vis('candleExplainerModal'))) { m.classList.remove('visible'); return; }
+    if ((m = vis('unstarModal')))          { m.classList.remove('visible'); return; }
+    if ((m = vis('holdingModal')))         { m.classList.remove('visible'); return; }
+    if ((m = vis('renamePortModal')))      { m.classList.remove('visible'); return; }
+    if ((m = vis('infoModal')))            { m.classList.remove('visible'); return; }
+    const sheet = document.getElementById('bottomSheet');
+    if (sheet && sheet.classList.contains('open')) { closeStockSheet(); return; }
+    const settings = document.getElementById('settingsSheet');
+    if (settings && settings.classList.contains('open')) { closeSettings(); return; }
+  });
 })();
 
 function saveFavorites() {
@@ -2176,6 +2319,7 @@ async function runScreener() {
     btnStop.textContent    = '◼ Stop';
     progWrap.classList.add('visible');
     progFill.style.width   = '0%';
+    document.getElementById('progressBarBg')?.setAttribute('aria-valuenow', '0');
     progLabel.textContent  = 'Fetching market data (SPY)…';
     progETA.textContent    = '';
     liveErrors.style.display = 'none';
@@ -2206,6 +2350,9 @@ async function runScreener() {
       console.log('[Screener] Fetching:', symbol, `(${done+1}/${total})`);
       progLabel.textContent = `Fetching ${symbol} (${done+1} / ${total})`;
       progFill.style.width  = `${(done / total) * 100}%`;
+      document.getElementById('progressBarBg')?.setAttribute('aria-valuenow', String(Math.round((done / total) * 100)));
+      const _lct = document.getElementById('loadingCurrentTicker');
+      if (_lct) _lct.textContent = symbol;
 
       if (done > 2) {
         const elapsed = (Date.now() - runStartTime) / 1000;
@@ -2245,6 +2392,7 @@ async function runScreener() {
     }
 
     progFill.style.width    = '100%';
+    document.getElementById('progressBarBg')?.setAttribute('aria-valuenow', '100');
     progETA.textContent     = '';
     liveErrors.style.display = 'none';
     progLabel.textContent = stopRequested
@@ -2520,23 +2668,25 @@ function _renderVirtual() {
       <td class="cell-company"  title="${esc(s.company)}">${esc(s.company)   || '&mdash;'}</td>
       <td class="cell-industry" title="${esc(s.industry)}">${esc(s.industry) || '&mdash;'}</td>
       <td class="muted">${fmtPrice(s.price)}</td>
-      <td class="cell-score ${isElite ? 'elite' : s.rag}"><div class="score-cell-wrap"><div class="crit-dots">${dots}</div>${s.score}/${s.maxScore}</div></td>
+      <td class="cell-score ${isElite ? 'elite' : s.rag}"><div class="score-cell-wrap"><div class="crit-dots">${dots}</div><span class="score-num">${s.score}</span><span class="score-denom">/${s.maxScore}</span></div></td>
       <td><span class="rag-badge ${isElite ? 'elite' : s.rag}">${isElite ? '★ Hot' : ragLabel(s.rag)}</span></td>
       ${metricTD(s.croci,   v => v > 10,           1, '%')}
       ${metricTD(s.peg,     v => v > 0 && v < 1.5, 2, '')}
       ${metricTD(s.sortino, v => v > 0.5,          2, '')}
-      ${metricTD(s.alpha,   v => v > 0,            1, '%')}
+      ${metricTD(s.alpha,   v => v > 0,            1, '%', true)}
       ${metricTD(s.beta,    v => v < 1.5,          2, '')}
       ${metricTD(s.vol,     () => true,            1, '%')}
       <td class="${corrClass}">${s.corr != null ? s.corr.toFixed(2) : '&mdash;'}</td>
-      ${metricTD(s.chg6m,   v => v > 0,            1, '%')}
-      ${metricTD(s.chg1m,   v => v > 0,            1, '%')}
+      ${metricTD(s.chg6m,   v => v > 0,            1, '%', true)}
+      ${metricTD(s.chg1m,   v => v > 0,            1, '%', true)}
       ${analystCell}
       ${seasonCell}
       ${entryPriceCell}
       ${entrySinceCell}`;
 
     tr.dataset.ticker = s.ticker;
+    tr.tabIndex = 0; // V13: keyboard-focusable row
+    tr.setAttribute('aria-label', `${s.ticker} — ${s.company || ''}, score ${s.score} of ${s.maxScore}`);
     frag.appendChild(tr);
   }
 
@@ -2573,15 +2723,20 @@ function _renderTable() {
 
   document.querySelectorAll('th[data-col]').forEach(th => {
     th.classList.remove('sorted-asc', 'sorted-desc');
-    if (th.dataset.col === sortCol)
+    th.removeAttribute('aria-sort');
+    if (th.dataset.col === sortCol) {
       th.classList.add(sortDir === 'asc' ? 'sorted-asc' : 'sorted-desc');
+      th.setAttribute('aria-sort', sortDir === 'asc' ? 'ascending' : 'descending');
+    }
   });
+  updateShowingCount();
 
   if (!sorted.length) {
     const title = results.length ? 'No results' : 'Ready to screen';
     const sub   = results.length ? 'No stocks match the current filter' : 'Press ► Run Screener to start';
+    const clearBtn = results.length ? '<br><button class="empty-clear-btn" onclick="clearAllFilters()">Clear all filters</button>' : '';
     tbody.innerHTML = `<tr><td colspan="9999"><div class="empty-state">
-      <div class="empty-state-title">${title}</div>${sub}
+      <div class="empty-state-title">${title}</div>${sub}${clearBtn}
     </div></td></tr>`;
     _sortedRows = [];
     return;
@@ -2594,6 +2749,40 @@ function _renderTable() {
 // ── Stats ─────────────────────────────────────────────────────────────────────
 function updateStats() {
   renderDistBar(computeScoreDist());
+  updateFilterCounts();
+  updateShowingCount();
+  syncTablePlaceholders();
+}
+
+// V13: live "Showing N" count — reflects every active filter
+function updateShowingCount() {
+  const el = document.getElementById('statShowing');
+  if (!el) return;
+  el.textContent = results.length ? String(getFiltered().length) : '—';
+}
+
+function updateFilterCounts() {
+  if (!results || !results.length) return;
+  const hot    = results.filter(r => r.rag === 'elite').length;
+  const strong = results.filter(r => r.rag === 'strong').length;
+  const watch  = results.filter(r => r.rag === 'watch').length;
+  const avoid  = results.filter(r => r.rag === 'avoid').length;
+  const favs   = results.filter(r => favorites && favorites.has(r.ticker)).length;
+  const g = id => document.getElementById(id);
+  if (g('btnFilterHot'))    g('btnFilterHot').textContent    = hot    ? `★ Hot (${hot})`        : '★ Hot';
+  if (g('btnFilterAll'))    g('btnFilterAll').textContent    = `All (${results.length})`;
+  if (g('btnFilterStrong')) g('btnFilterStrong').textContent = strong  ? `Strong (${strong})`   : 'Strong';
+  if (g('btnFilterWatch'))  g('btnFilterWatch').textContent  = watch   ? `Watch (${watch})`     : 'Watch';
+  if (g('btnFilterAvoid'))  g('btnFilterAvoid').textContent  = avoid   ? `Avoid (${avoid})`     : 'Avoid';
+  if (g('btnFilterFavs'))   g('btnFilterFavs').textContent   = favs    ? `★ Starred (${favs})`  : '★ Starred';
+}
+
+function syncTablePlaceholders() {
+  const loading = document.getElementById('loadingState');
+  const empty   = document.getElementById('emptyState');
+  if (!loading || !empty) return;
+  loading.style.display = (running && results.length === 0) ? 'flex' : 'none';
+  empty.style.display   = (!running && results.length === 0) ? 'flex' : 'none';
 }
 
 // ── Bottom Sheet ──────────────────────────────────────────────────────────────
@@ -2621,7 +2810,7 @@ async function openStockSheet(ticker) {
         <div class="sheet-company">${esc(s.company)}</div>
         <div class="sheet-price">${fmtPrice(s.price)} ${ragBadge} <span style="font-family:'Fraunces',serif;font-size:16px;color:var(--text-1)">${s.score}/${s.maxScore}</span></div>
       </div>
-      <button class="sheet-close" onclick="closeStockSheet()">✕</button>
+      <button class="sheet-close" onclick="closeStockSheet()" aria-label="Close details">✕</button>
     </div>`;
 
   // Build candlestick price chart — or loading placeholder if history not in memory
@@ -2702,20 +2891,21 @@ async function openStockSheet(ticker) {
     ? (favSincePct >= 0 ? '+' : '') + favSincePct.toFixed(1) + '%' : '—';
   const analystLabel = s.analyst ? (s.analyst.consensus || '—') : '—';
 
-  function mv(val, passes, dp, suffix) {
+  function mv(val, passes, dp, suffix, signed) {
     if (val == null || !isFinite(val)) return {val:'—', cls:'muted'};
-    return {val: val.toFixed(dp)+suffix, cls: passes(val) ? 'pass' : 'fail'};
+    const sign = signed && val > 0 ? '+' : '';
+    return {val: sign + val.toFixed(dp)+suffix, cls: passes(val) ? 'pass' : 'fail'};
   }
   const crociM  = mv(s.croci,   v => v > 10,           1, '%');
   const pegM    = mv(s.peg,     v => v > 0 && v < 1.5, 2, '');
   const sortinoM= mv(s.sortino, v => v > 0.5,          2, '');
   const betaM   = mv(s.beta,    v => v < 1.5,          2, '');
   const volM    = mv(s.vol,     () => true,             1, '%');
-  const alphaM  = mv(s.alpha,   v => v > 0,            1, '%');
+  const alphaM  = mv(s.alpha,   v => v > 0,            1, '%', true);
   let corrCls   = 'muted';
   if (s.corr != null) corrCls = s.corr < 0.5 ? 'pass' : s.corr <= 0.75 ? 'warn' : 'fail';
-  const chg6mM  = mv(s.chg6m,  v => v > 0,            1, '%');
-  const chg1mM  = mv(s.chg1m,  v => v > 0,            1, '%');
+  const chg6mM  = mv(s.chg6m,  v => v > 0,            1, '%', true);
+  const chg1mM  = mv(s.chg1m,  v => v > 0,            1, '%', true);
   const seasonV = s.season != null ? s.season + '%' : '—';
   const seasonC = s.season == null ? 'muted' : s.season > 60 ? 'pass' : s.season >= 40 ? 'muted' : 'fail';
 
@@ -2849,7 +3039,7 @@ async function openFundSheet(ticker) {
   const cached  = holdingsCache.stocks[ticker] || null;
 
   // Show loading state
-  content.innerHTML = `<div class="sheet-header"><div><div class="sheet-ticker">${esc(ticker)}</div><div class="sheet-company">Loading…</div></div><button class="sheet-close" onclick="closeStockSheet()">&#10005;</button></div>`;
+  content.innerHTML = `<div class="sheet-header"><div><div class="sheet-ticker">${esc(ticker)}</div><div class="sheet-company">Loading…</div></div><button class="sheet-close" onclick="closeStockSheet()" aria-label="Close details">&#10005;</button></div>`;
   overlay.classList.add('visible');
   sheet.classList.add('open');
 
@@ -2927,7 +3117,7 @@ async function openFundSheet(ticker) {
         <div class="sheet-price">${priceStr}</div>
         ${pnlHTML}
       </div>
-      <button class="sheet-close" onclick="closeStockSheet()">&#10005;</button>
+      <button class="sheet-close" onclick="closeStockSheet()" aria-label="Close details">&#10005;</button>
     </div>
     <div class="sheet-body">
       ${chartSVG ? `<div class="sheet-section-title" style="display:flex;align-items:center;gap:8px">Price chart <button class="chart-info-btn" onclick="openCandleExplainer()">ⓘ</button></div>${chartSVG}` : ''}
@@ -2957,9 +3147,22 @@ function fmtPrice(v) {
   return '$' + Number(v).toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
 }
 
-function metricTD(val, passes, dp, suffix) {
+function metricTD(val, passes, dp, suffix, signed) {
   if (val == null || !isFinite(val)) return '<td class="muted">&mdash;</td>';
-  return `<td class="${passes(val) ? 'pass' : 'fail'}">${val.toFixed(dp)}${suffix}</td>`;
+  const sign = signed && val > 0 ? '+' : '';
+  return `<td class="${passes(val) ? 'pass' : 'fail'}">${sign}${val.toFixed(dp)}${suffix}</td>`;
+}
+
+// V13: reset every active filter back to the default view
+function clearAllFilters() {
+  _scoreBandFilter = null;
+  currentSector = 'all';
+  const sel = document.getElementById('sectorSelect');
+  if (sel) sel.value = 'all';
+  activeTabIndustryRx = null;
+  currentTabId = 'all';
+  renderTabBar();
+  setFilter('all', document.querySelector('[data-filter="all"]'));
 }
 
 function esc(s) {
@@ -4452,10 +4655,13 @@ function renderDistBar(dist) {
     { score: -1, label: '≤2/7',  cls: 'dist-seg-low', filter: 'scoreLow' },
   ];
 
+  // V13: segments are keyboard-operable buttons
+  const segKeys = `role="button" tabindex="0" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click()}"`;
+
   if (!dist || !dist.total) {
     // Empty state: show ghost bar with all bands as equal thin slivers
     bar.innerHTML = BANDS.map(b =>
-      `<div class="dist-seg ${b.cls}" style="flex:1;opacity:0.25" onclick="${b.score === 7 ? 'openCarousel()' : `setScoreFilter('${b.filter}')`}">
+      `<div class="dist-seg ${b.cls}" style="flex:1;opacity:0.25" onclick="${b.score === 7 ? 'openCarousel()' : `setScoreFilter('${b.filter}')`}" ${segKeys} aria-label="${b.label}: no data yet">
         <span class="dist-seg-label">${b.label}</span>
       </div>`
     ).join('');
@@ -4473,7 +4679,7 @@ function renderDistBar(dist) {
       ? `<span class="dist-seg-count">${cnt}</span><span class="dist-seg-label">${b.label}</span>`
       : `<span class="dist-seg-label" style="font-size:7px;opacity:0.6">${b.label}</span>`;
     const clickHandler = b.score === 7 ? 'openCarousel()' : `setScoreFilter('${b.filter}')`;
-    return `<div class="dist-seg ${b.cls}" style="flex:${flex}" onclick="${clickHandler}" title="${b.label}: ${cnt} stocks (${pct}%)">
+    return `<div class="dist-seg ${b.cls}" style="flex:${flex}" onclick="${clickHandler}" ${segKeys} title="${b.label}: ${cnt} stocks (${pct}%)" aria-label="${b.label}: ${cnt} stocks, ${pct} percent — filter list">
       ${inner}
     </div>`;
   }).join('');
@@ -4646,7 +4852,7 @@ function renderCriteriaList(s) {
     const cls = passed ? 'ci-pass' : 'ci-fail';
     const icon = passed ? '✓' : '✗';
     const iconColor = passed ? 'var(--green)' : 'var(--red)';
-    return `<div class="crit-item ${cls}">
+    return `<div class="crit-item ${cls}" style="animation:cardIn 0.35s ease both;animation-delay:${i*45}ms">
       <span class="ci-icon" style="color:${iconColor}">${icon}</span>
       <div style="flex:1">
         <div class="ci-name">${d.name} <span style="color:var(--text-2);font-size:9px">threshold ${d.threshold}</span></div>

@@ -2,8 +2,10 @@
   "name": "my-stocks",
   "version": "1.0.0",
   "main": "index.js",
+  "type": "module",
   "scripts": {
-    "test": "npx playwright test"
+    "test": "npx playwright test",
+    "test:engine": "node --test src/engine/scoring.test.js"
   },
   "keywords": [],
   "author": "",

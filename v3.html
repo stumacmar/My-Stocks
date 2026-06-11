@@ -1,0 +1,1305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0c0f14">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>Stuart's Stock Compass V3</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;700;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    /* ── Design tokens ───────────────────────────────────────────────── */
+    :root {
+      --bg-0: #0c0f14;
+      --bg-1: #151920;
+      --bg-2: #1e232c;
+      --bg-3: #272d38;
+      --bg-4: #2f3645;
+      --text-0: #f0f3f7;
+      --text-1: #a8b3c4;
+      --text-2: #6b7a90;
+      --accent: #14b8a6;
+      --accent-dim: rgba(20,184,166,0.12);
+      --green: #2ecc71;
+      --amber: #f59e0b;
+      --red: #f87171;
+      --gold: #f5c518;
+      --border: rgba(255,255,255,0.07);
+      --border-hi: rgba(255,255,255,0.12);
+      --sheet-radius: 20px;
+    }
+
+    /* ── Reset ───────────────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { height: 100%; -webkit-text-size-adjust: 100%; }
+    body {
+      height: 100%;
+      background: radial-gradient(ellipse at 25% -8%, rgba(20,184,166,0.055) 0%, transparent 52%), var(--bg-0);
+      color: var(--text-0);
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      font-size: 14px;
+      line-height: 1.5;
+      overscroll-behavior: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* ── App shell ───────────────────────────────────────────────────── */
+    #v3-app {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      max-width: 680px;
+      margin: 0 auto;
+    }
+
+    /* ── Header ──────────────────────────────────────────────────────── */
+    #v3-header {
+      flex-shrink: 0;
+      padding: 16px 16px 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .v3-logo {
+      font-family: 'Fraunces', Georgia, serif;
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text-0);
+      letter-spacing: -0.02em;
+      line-height: 1.2;
+    }
+    .v3-logo span { color: var(--accent); }
+    .v3-version-badge {
+      font-family: 'Inter', sans-serif;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 999px;
+      background: var(--accent-dim);
+      color: var(--accent);
+      border: 1px solid rgba(20,184,166,0.25);
+      letter-spacing: 0.06em;
+      margin-left: 6px;
+      vertical-align: middle;
+    }
+
+    .v3-header-actions { display: flex; align-items: center; gap: 8px; }
+
+    .v3-icon-btn {
+      width: 36px; height: 36px;
+      border-radius: 10px;
+      background: var(--bg-2);
+      border: 1px solid var(--border);
+      color: var(--text-1);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      font-size: 15px;
+      transition: background 0.15s, color 0.15s;
+    }
+    .v3-icon-btn:hover { background: var(--bg-3); color: var(--text-0); }
+
+    /* ── Mode toggle ─────────────────────────────────────────────────── */
+    #v3-mode-toggle {
+      flex-shrink: 0;
+      display: flex;
+      gap: 2px;
+      background: var(--bg-1);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 4px;
+      margin: 14px 16px 0;
+    }
+
+    .v3-mode-btn {
+      flex: 1;
+      padding: 9px 0;
+      border-radius: 10px;
+      border: none;
+      background: transparent;
+      color: var(--text-2);
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+    }
+    .v3-mode-btn.active {
+      background: var(--bg-3);
+      color: var(--text-0);
+      box-shadow: 0 2px 16px rgba(20,184,166,0.3);
+    }
+
+    /* ── Pane ────────────────────────────────────────────────────────── */
+    .v3-pane {
+      flex: 1;
+      overflow-y: auto;
+      overflow-x: hidden;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior: contain;
+    }
+    .v3-pane::-webkit-scrollbar { width: 3px; }
+    .v3-pane::-webkit-scrollbar-track { background: transparent; }
+    .v3-pane::-webkit-scrollbar-thumb { background: var(--bg-4); border-radius: 2px; }
+
+    /* ── Distribution bar ────────────────────────────────────────────── */
+    #v3-dist-bar {
+      display: flex;
+      height: 80px;
+      margin: 14px 16px 0;
+      border-radius: 12px;
+      overflow: hidden;
+      background: var(--bg-1);
+      border: 1px solid var(--border);
+    }
+
+    .v3-dist-seg {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+      min-width: 40px;
+      transition: opacity 0.2s;
+      user-select: none;
+    }
+    .v3-dist-seg:hover { opacity: 0.85; }
+    .v3-dist-count { font-family: 'Fraunces', serif; font-size: 20px; font-weight: 700; line-height: 1; }
+    .v3-dist-label { font-size: 10px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; color: var(--text-1); }
+    .v3-dist-pct   { font-size: 10px; color: var(--text-2); }
+
+    /* ── Filter chips ────────────────────────────────────────────────── */
+    #v3-filter-row {
+      display: flex;
+      gap: 6px;
+      padding: 12px 16px 0;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+    #v3-filter-row::-webkit-scrollbar { display: none; }
+
+    .v3-chip {
+      flex-shrink: 0;
+      padding: 7px 13px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: var(--bg-2);
+      color: var(--text-1);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.15s, border-color 0.15s, color 0.15s, box-shadow 0.15s;
+    }
+    .v3-chip:hover { background: var(--bg-3); color: var(--text-0); }
+    .v3-chip.active {
+      background: var(--accent-dim);
+      border-color: rgba(20,184,166,0.4);
+      color: var(--accent);
+      box-shadow: 0 0 0 1px rgba(20,184,166,0.2);
+    }
+
+    /* ── Table header ────────────────────────────────────────────────── */
+    #v3-table-head {
+      display: grid;
+      grid-template-columns: 28px 56px 1fr 52px 44px 72px 22px;
+      gap: 0 8px;
+      padding: 10px 16px 6px;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-2);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      border-bottom: 1px solid var(--border);
+      margin: 10px 16px 0;
+      cursor: pointer;
+    }
+    #v3-table-head > span:hover { color: var(--text-1); }
+
+    /* ── Table rows ──────────────────────────────────────────────────── */
+    #v3-table-body { padding: 0 16px; }
+
+    .v3-row {
+      display: grid;
+      grid-template-columns: 28px 56px 1fr 52px 44px 72px 22px;
+      gap: 0 8px;
+      align-items: center;
+      padding: 11px 0;
+      border-bottom: 1px solid var(--border);
+      cursor: pointer;
+      transition: background 0.1s;
+      border-radius: 4px;
+    }
+    .v3-row:hover { background: rgba(255,255,255,0.025); }
+    .v3-row:last-child { border-bottom: none; }
+
+    .v3-row-star {
+      font-size: 16px;
+      color: var(--text-2);
+      text-align: center;
+      line-height: 1;
+      cursor: pointer;
+      padding: 4px;
+      border-radius: 6px;
+      transition: color 0.15s, transform 0.15s;
+    }
+    .v3-row-star:hover { color: var(--gold); transform: scale(1.2); }
+
+    .v3-row-ticker {
+      font-weight: 700;
+      font-size: 13px;
+      color: var(--text-0);
+      letter-spacing: 0.01em;
+    }
+
+    .v3-row-name {
+      font-size: 12px;
+      color: var(--text-2);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .v3-score-badge {
+      display: inline-block;
+      min-width: 40px;
+      text-align: center;
+      font-family: 'Fraunces', serif;
+      font-size: 15px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 7px;
+      border: 1px solid;
+    }
+
+    .v3-rag-pill {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 9px;
+      border-radius: 999px;
+      border: 1px solid;
+      letter-spacing: 0.03em;
+      white-space: nowrap;
+    }
+
+    .v3-row-flag { font-size: 13px; text-align: center; }
+
+    /* ── Empty / loading states ──────────────────────────────────────── */
+    .v3-empty {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 64px 24px;
+      text-align: center;
+      gap: 8px;
+    }
+    .v3-empty-icon { font-size: 36px; color: var(--text-2); margin-bottom: 4px; }
+    .v3-empty-title { font-family: 'Fraunces', serif; font-size: 20px; font-weight: 700; color: var(--text-0); }
+    .v3-empty-sub { font-size: 13px; color: var(--text-2); line-height: 1.6; }
+
+    /* ── Progress ────────────────────────────────────────────────────── */
+    #v3-progress-wrap {
+      display: none;
+      padding: 0 16px;
+      margin-top: 10px;
+    }
+    #v3-progress-track {
+      height: 4px;
+      background: var(--bg-3);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    #v3-progress-bar {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent), #2ecc71);
+      border-radius: 2px;
+      transition: width 0.3s ease;
+      width: 0%;
+    }
+    #v3-progress-text {
+      font-size: 11px;
+      color: var(--text-2);
+      margin-top: 5px;
+    }
+    #v3-run-error {
+      display: none;
+      font-size: 12px;
+      color: var(--red);
+      padding: 8px 16px;
+      margin-top: 6px;
+    }
+
+    /* ── Run meta ────────────────────────────────────────────────────── */
+    #v3-run-meta {
+      font-size: 11px;
+      color: var(--text-2);
+      padding: 8px 16px 0;
+    }
+
+    /* ── FAB run button ──────────────────────────────────────────────── */
+    #v3-fab-wrap {
+      position: fixed;
+      bottom: calc(env(safe-area-inset-bottom) + 20px);
+      right: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 10px;
+      z-index: 100;
+    }
+
+    #v3-run-btn {
+      height: 52px;
+      padding: 0 22px;
+      border-radius: 26px;
+      border: none;
+      background: linear-gradient(135deg, #19d4be 0%, var(--accent) 100%);
+      color: #000;
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      cursor: pointer;
+      box-shadow: 0 4px 20px rgba(20,184,166,0.4);
+      transition: opacity 0.2s, transform 0.15s, box-shadow 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    #v3-run-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 28px rgba(20,184,166,0.5); }
+    #v3-run-btn:active { transform: translateY(0); }
+    #v3-run-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+    #v3-stop-btn {
+      display: none;
+      height: 40px;
+      padding: 0 18px;
+      border-radius: 20px;
+      border: 1px solid rgba(248,113,113,0.3);
+      background: rgba(248,113,113,0.1);
+      color: var(--red);
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    /* ── Bottom sheet (detail) ───────────────────────────────────────── */
+    #v3-detail-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.55);
+      backdrop-filter: blur(3px);
+      -webkit-backdrop-filter: blur(3px);
+      z-index: 200;
+    }
+
+    #v3-detail-sheet {
+      position: fixed;
+      bottom: 0;
+      left: 0; right: 0;
+      max-height: 92vh;
+      background: var(--bg-1);
+      border-radius: var(--sheet-radius) var(--sheet-radius) 0 0;
+      border-top: 1px solid var(--border-hi);
+      z-index: 201;
+      transform: translateY(100%);
+      transition: transform 0.42s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      box-shadow: 0 -1px 0 rgba(20,184,166,0.25), 0 -8px 52px rgba(0,0,0,0.4);
+    }
+    #v3-detail-sheet.open {
+      transform: translateY(0);
+    }
+
+    .v3-sheet-handle {
+      width: 40px; height: 5px;
+      background: var(--bg-4);
+      border-radius: 3px;
+      margin: 12px auto 4px;
+      transition: background 0.3s;
+    }
+    #v3-detail-sheet.open .v3-sheet-handle { background: rgba(20,184,166,0.4); }
+
+    .v3-sheet-inner { padding: 8px 20px 40px; max-width: 520px; margin: 0 auto; }
+
+    .v3-detail-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+    .v3-detail-ticker { font-family: 'Fraunces', serif; font-size: 28px; font-weight: 900; color: var(--text-0); }
+    .v3-detail-name   { font-size: 13px; color: var(--text-1); margin-top: 2px; }
+    .v3-detail-sector { font-size: 11px; color: var(--text-2); margin-top: 3px; text-transform: uppercase; letter-spacing: 0.07em; }
+    .v3-detail-star   { font-size: 24px; color: var(--text-2); cursor: pointer; padding: 4px; }
+    .v3-detail-star:hover { color: var(--gold); }
+
+    .v3-gauge-wrap {
+      display: flex;
+      justify-content: center;
+      margin: 4px 0 16px;
+    }
+
+    .v3-section-title {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.09em;
+      color: var(--text-2);
+      margin: 20px 0 10px;
+    }
+
+    .v3-criteria-list { display: flex; flex-direction: column; gap: 2px; }
+    .v3-crit-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 10px;
+      border-radius: 8px;
+      background: var(--bg-2);
+    }
+    .v3-crit-icon {
+      width: 20px; height: 20px; min-width: 20px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 700;
+    }
+    .v3-crit-icon.pass { background: rgba(46,204,113,0.12); color: var(--green); border: 1px solid rgba(46,204,113,0.25); }
+    .v3-crit-icon.fail { background: rgba(248,113,113,0.08); color: var(--red);   border: 1px solid rgba(248,113,113,0.2); }
+    .v3-crit-label { flex: 1; font-size: 13px; color: var(--text-1); }
+    .v3-crit-val   { font-size: 12px; font-weight: 600; font-family: monospace; }
+
+    .v3-flags-list { display: flex; flex-direction: column; gap: 6px; }
+    .v3-flag-row {
+      display: flex; gap: 10px; align-items: flex-start;
+      padding: 10px;
+      background: rgba(248,113,113,0.05);
+      border: 1px solid rgba(248,113,113,0.15);
+      border-radius: 8px;
+    }
+    .v3-flag-icon { font-size: 14px; }
+    .v3-flag-label { font-size: 13px; font-weight: 600; color: var(--red); }
+    .v3-flag-desc { font-size: 11px; color: var(--text-2); margin-top: 2px; line-height: 1.5; }
+    .v3-no-flags {
+      font-size: 13px;
+      color: var(--green);
+      padding: 10px;
+      background: rgba(46,204,113,0.05);
+      border: 1px solid rgba(46,204,113,0.15);
+      border-radius: 8px;
+      margin-top: 8px;
+    }
+    .v3-detail-price {
+      font-size: 13px;
+      color: var(--text-1);
+      margin-top: 16px;
+      padding: 10px;
+      background: var(--bg-2);
+      border-radius: 8px;
+    }
+
+    /* ── Portfolio pane ──────────────────────────────────────────────── */
+    #v3-portfolio-pane { padding-bottom: 24px; }
+
+    /* Empty / no-portfolios state */
+    .v3-portf-empty {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      padding: 64px 32px;
+      gap: 10px;
+    }
+    .v3-portf-empty-icon  { font-size: 40px; margin-bottom: 4px; }
+    .v3-portf-empty-title { font-family: 'Fraunces', serif; font-size: 22px; font-weight: 700; color: var(--text-0); }
+    .v3-portf-empty-body  { font-size: 13px; color: var(--text-2); line-height: 1.65; max-width: 300px; }
+    .v3-portf-create-btn {
+      margin-top: 8px;
+      padding: 12px 24px;
+      border-radius: 999px;
+      border: none;
+      background: var(--accent);
+      color: #000;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 4px 16px rgba(20,184,166,0.35);
+    }
+
+    /* Portfolio tabs */
+    #v3-portf-tabs {
+      display: flex;
+      gap: 6px;
+      padding: 14px 16px 0;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+    #v3-portf-tabs::-webkit-scrollbar { display: none; }
+
+    .v3-portf-tab {
+      flex-shrink: 0;
+      padding: 7px 14px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: var(--bg-2);
+      color: var(--text-2);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.15s, color 0.15s, border-color 0.15s;
+    }
+    .v3-portf-tab:hover  { background: var(--bg-3); color: var(--text-0); }
+    .v3-portf-tab.active {
+      background: var(--accent-dim);
+      border-color: rgba(20,184,166,0.4);
+      color: var(--accent);
+    }
+    .v3-portf-tab-add {
+      flex-shrink: 0;
+      width: 34px; height: 34px;
+      border-radius: 50%;
+      border: 1px dashed var(--border-hi);
+      background: transparent;
+      color: var(--text-2);
+      font-size: 18px;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: color 0.15s, border-color 0.15s;
+    }
+    .v3-portf-tab-add:hover { color: var(--accent); border-color: rgba(20,184,166,0.4); }
+
+    /* Household summary card */
+    .v3-household-card {
+      margin: 14px 16px 0;
+      padding: 16px 18px;
+      background: linear-gradient(145deg, rgba(255,255,255,0.03) 0%, var(--bg-1) 100%);
+      border: 1px solid var(--border-hi);
+      border-radius: 14px;
+    }
+    .v3-household-top    { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+    .v3-household-label  { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text-2); margin-bottom: 3px; }
+    .v3-household-value  { font-family: 'Fraunces', serif; font-size: 26px; font-weight: 700; color: var(--text-0); }
+    .v3-household-return { font-size: 18px; font-weight: 700; }
+    .v3-household-abs    { font-size: 13px; font-weight: 500; opacity: 0.75; margin-left: 6px; }
+    .v3-household-meta   { font-size: 12px; color: var(--text-2); }
+
+    /* Holding cards */
+    #v3-portf-holdings   { padding: 12px 16px 0; display: flex; flex-direction: column; gap: 8px; }
+    .v3-holding-card {
+      padding: 13px 14px;
+      background: var(--bg-1);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--bg-4);
+      border-radius: 12px;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .v3-holding-card:hover { background: var(--bg-2); }
+    .v3-holding-review    { border-left-color: var(--amber) !important; }
+
+    .v3-holding-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+    .v3-holding-ticker-wrap { display: flex; align-items: center; gap: 8px; }
+    .v3-holding-ticker      { font-weight: 700; font-size: 15px; color: var(--text-0); letter-spacing: 0.01em; }
+    .v3-holding-account-badge {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      padding: 2px 7px;
+      border-radius: 999px;
+      background: var(--bg-3);
+      border: 1px solid var(--border);
+      color: var(--text-2);
+    }
+    .v3-holding-value-wrap { text-align: right; }
+    .v3-holding-value      { font-weight: 700; font-size: 15px; color: var(--text-0); display: block; }
+    .v3-holding-pct        { font-size: 12px; font-weight: 600; }
+
+    .v3-holding-bottom  { display: flex; flex-direction: column; gap: 5px; }
+    .v3-holding-meta    { font-size: 12px; color: var(--text-2); }
+    .v3-holding-name    { color: var(--text-1); }
+
+    /* Score-change chip */
+    .v3-score-change-chip {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      flex-wrap: wrap;
+    }
+    .v3-score-arrow { color: var(--text-2); }
+    .v3-review-chip {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: rgba(245,158,11,0.12);
+      color: var(--amber);
+      border: 1px solid rgba(245,158,11,0.3);
+      letter-spacing: 0.03em;
+    }
+    .v3-no-data-hint { font-size: 11px; color: var(--text-2); font-style: italic; }
+
+    .v3-portf-holdings-empty {
+      text-align: center;
+      padding: 40px 24px;
+      color: var(--text-2);
+    }
+
+    /* Add holding FAB */
+    #v3-add-holding-fab {
+      height: 52px;
+      padding: 0 22px;
+      border-radius: 26px;
+      border: none;
+      background: linear-gradient(135deg, #19d4be 0%, var(--accent) 100%);
+      color: #000;
+      font-family: 'Inter', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      cursor: pointer;
+      box-shadow: 0 4px 20px rgba(20,184,166,0.4);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      display: none;
+    }
+    #v3-add-holding-fab:hover { transform: translateY(-1px); box-shadow: 0 6px 28px rgba(20,184,166,0.5); }
+
+    /* Add holding / create portfolio sheets */
+    .v3-small-sheet {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      background: var(--bg-1);
+      border-radius: var(--sheet-radius) var(--sheet-radius) 0 0;
+      border-top: 1px solid var(--border-hi);
+      z-index: 201;
+      transform: translateY(100%);
+      transition: transform 0.38s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      padding: 8px 20px calc(env(safe-area-inset-bottom) + 32px);
+      overflow-y: auto;
+      max-height: 92vh;
+    }
+    .v3-small-sheet.open { transform: translateY(0); }
+
+    .v3-sheet-title {
+      font-family: 'Fraunces', serif;
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text-0);
+      margin: 14px 0 18px;
+    }
+
+    .v3-form-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 12px;
+      align-items: flex-end;
+    }
+    .v3-form-field { display: flex; flex-direction: column; gap: 5px; flex: 1; }
+    .v3-form-label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.07em; color: var(--text-2); }
+    .v3-form-input {
+      background: var(--bg-2);
+      border: 1px solid var(--border-hi);
+      border-radius: 8px;
+      color: var(--text-0);
+      font-size: 14px;
+      padding: 10px 12px;
+      outline: none;
+      font-family: 'Inter', sans-serif;
+      width: 100%;
+      transition: border-color 0.2s;
+    }
+    .v3-form-input:focus { border-color: var(--accent); }
+    .v3-form-input.ticker-input { font-family: monospace; font-weight: 700; font-size: 15px; text-transform: uppercase; }
+
+    .v3-score-preview { font-size: 12px; color: var(--text-2); min-height: 18px; margin-bottom: 10px; }
+    .v3-form-error    { font-size: 12px; color: var(--red); min-height: 18px; margin-bottom: 6px; }
+
+    .v3-submit-btn {
+      width: 100%;
+      padding: 14px;
+      border-radius: 12px;
+      border: none;
+      background: var(--accent);
+      color: #000;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 4px;
+      transition: opacity 0.2s;
+    }
+    .v3-submit-btn:hover { opacity: 0.9; }
+
+    .v3-delete-btn {
+      width: 100%;
+      padding: 12px;
+      border-radius: 10px;
+      border: 1px solid rgba(248,113,113,0.25);
+      background: rgba(248,113,113,0.07);
+      color: var(--red);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .v3-delete-btn:hover { background: rgba(248,113,113,0.12); }
+
+    /* ── Settings sheet ──────────────────────────────────────────────── */
+    #v3-settings-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.55);
+      backdrop-filter: blur(3px);
+      -webkit-backdrop-filter: blur(3px);
+      z-index: 200;
+    }
+
+    #v3-settings-sheet {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      max-height: 80vh;
+      background: var(--bg-1);
+      border-radius: var(--sheet-radius) var(--sheet-radius) 0 0;
+      border-top: 1px solid var(--border-hi);
+      z-index: 201;
+      transform: translateY(100%);
+      transition: transform 0.38s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      overflow-y: auto;
+      padding: 8px 20px calc(env(safe-area-inset-bottom) + 32px);
+    }
+    #v3-settings-sheet.open { transform: translateY(0); }
+
+    .v3-settings-title {
+      font-family: 'Fraunces', serif;
+      font-size: 20px;
+      font-weight: 700;
+      margin: 16px 0 20px;
+      color: var(--text-0);
+    }
+
+    .v3-setting-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .v3-setting-row:last-child { border-bottom: none; }
+    .v3-setting-label { font-size: 14px; color: var(--text-0); }
+    .v3-setting-sub   { font-size: 12px; color: var(--text-2); margin-top: 2px; }
+
+    .v3-text-input {
+      background: var(--bg-2);
+      border: 1px solid var(--border-hi);
+      border-radius: 8px;
+      color: var(--text-0);
+      font-size: 13px;
+      font-family: monospace;
+      padding: 8px 12px;
+      width: 200px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .v3-text-input:focus { border-color: var(--accent); }
+
+    .v3-select {
+      background: var(--bg-2);
+      border: 1px solid var(--border-hi);
+      border-radius: 8px;
+      color: var(--text-0);
+      font-size: 13px;
+      padding: 8px 12px;
+      outline: none;
+      cursor: pointer;
+    }
+
+    .v3-btn {
+      padding: 9px 16px;
+      border-radius: 8px;
+      border: 1px solid var(--border-hi);
+      background: var(--bg-2);
+      color: var(--text-0);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .v3-btn:hover { background: var(--bg-3); }
+    .v3-btn-primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #000;
+      font-weight: 700;
+    }
+    .v3-btn-primary:hover { opacity: 0.9; }
+
+    /* ── API key prompt ──────────────────────────────────────────────── */
+    #v3-api-prompt {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: var(--bg-0);
+      z-index: 300;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+    #v3-api-prompt.visible { display: flex; }
+
+    .v3-api-card {
+      width: 100%;
+      max-width: 400px;
+      background: var(--bg-1);
+      border: 1px solid var(--border-hi);
+      border-radius: 20px;
+      padding: 32px 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .v3-api-title {
+      font-family: 'Fraunces', serif;
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--text-0);
+    }
+    .v3-api-sub { font-size: 13px; color: var(--text-1); line-height: 1.6; }
+    .v3-api-input-row { display: flex; gap: 10px; }
+    .v3-api-input-row .v3-text-input { flex: 1; width: auto; }
+
+    /* ── Responsive adjustments ──────────────────────────────────────── */
+    @media (min-width: 520px) {
+      #v3-detail-sheet { left: 50%; right: auto; width: 520px; transform: translateX(-50%) translateY(100%); }
+      #v3-detail-sheet.open { transform: translateX(-50%) translateY(0); }
+      #v3-settings-sheet { left: 50%; right: auto; width: 480px; transform: translateX(-50%) translateY(100%); }
+      #v3-settings-sheet.open { transform: translateX(-50%) translateY(0); }
+      #v3-add-holding-sheet { left: 50%; right: auto; width: 480px; transform: translateX(-50%) translateY(100%); }
+      #v3-add-holding-sheet.open { transform: translateX(-50%) translateY(0); }
+      #v3-create-portf-sheet { left: 50%; right: auto; width: 400px; transform: translateX(-50%) translateY(100%); }
+      #v3-create-portf-sheet.open { transform: translateX(-50%) translateY(0); }
+      #v3-fab-wrap { right: calc(50% - 240px + 20px); }
+    }
+  </style>
+</head>
+<body>
+
+<!-- =====================================================================
+     App shell
+====================================================================== -->
+<div id="v3-app">
+
+  <!-- Header -->
+  <div id="v3-header">
+    <div>
+      <div class="v3-logo">Stuart's Stock <span>Compass</span><span class="v3-version-badge">V3</span></div>
+    </div>
+    <div class="v3-header-actions">
+      <button class="v3-icon-btn" id="v3-settings-btn" title="Settings" aria-label="Settings" onclick="openSettings()">⚙</button>
+    </div>
+  </div>
+
+  <!-- Mode toggle -->
+  <div id="v3-mode-toggle" role="tablist">
+    <button class="v3-mode-btn active" data-v3-tab="screen"    role="tab" aria-selected="true">SCREEN</button>
+    <button class="v3-mode-btn"        data-v3-tab="portfolio" role="tab" aria-selected="false">PORTFOLIO</button>
+  </div>
+
+  <!-- Screen pane -->
+  <div class="v3-pane" id="v3-screen-pane">
+
+    <div id="v3-run-meta"></div>
+
+    <!-- Distribution bar -->
+    <div id="v3-dist-bar"></div>
+
+    <!-- Progress (shown during run) -->
+    <div id="v3-progress-wrap">
+      <div id="v3-progress-track"><div id="v3-progress-bar"></div></div>
+      <div id="v3-progress-text"></div>
+    </div>
+    <div id="v3-run-error"></div>
+
+    <!-- Filter chips -->
+    <div id="v3-filter-row">
+      <button id="chip-all"     class="v3-chip active" onclick="v3Screen.setFilter('all')">All</button>
+      <button id="chip-hot"     class="v3-chip"        onclick="v3Screen.setFilter('hot')">★ Hot</button>
+      <button id="chip-strong"  class="v3-chip"        onclick="v3Screen.setFilter('strong')">Strong</button>
+      <button id="chip-watch"   class="v3-chip"        onclick="v3Screen.setFilter('watch')">Watch</button>
+      <button id="chip-avoid"   class="v3-chip"        onclick="v3Screen.setFilter('avoid')">Avoid</button>
+      <button id="chip-starred" class="v3-chip"        onclick="v3Screen.setFilter('starred')">★ Starred</button>
+    </div>
+
+    <!-- Table header -->
+    <div id="v3-table-head">
+      <span></span>
+      <span onclick="v3Screen.setSort('ticker')">Ticker</span>
+      <span>Name</span>
+      <span onclick="v3Screen.setSort('composite')" title="Composite score 0–100">Score</span>
+      <span onclick="v3Screen.setSort('score7')" title="Classic 7 score">7-pt</span>
+      <span>Band</span>
+      <span title="Red flags"></span>
+    </div>
+
+    <!-- Table body -->
+    <div id="v3-table-body">
+      <div class="v3-empty">
+        <div class="v3-empty-icon">◎</div>
+        <div class="v3-empty-title">Ready to screen</div>
+        <div class="v3-empty-sub">Tap <strong>Run Screen</strong> to score all S&amp;P 500 stocks.</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Portfolio pane — rendered dynamically by src/ui/portfolio.js -->
+  <div class="v3-pane" id="v3-portfolio-pane" style="display:none"></div>
+
+</div>
+
+<!-- FAB buttons — screen and portfolio modes -->
+<div id="v3-fab-wrap">
+  <button id="v3-stop-btn"         onclick="v3Screen.stopScreen()">■ Stop</button>
+  <button id="v3-run-btn"          onclick="v3Screen.runScreen()">▶ Run Screen</button>
+  <button id="v3-add-holding-fab"  onclick="v3Portfolio.openAddHolding()">+ Add Holding</button>
+</div>
+
+<!-- Detail sheet overlay + sheet -->
+<div id="v3-detail-overlay" onclick="closeDetailSheet()"></div>
+<div id="v3-detail-sheet" role="dialog" aria-modal="true" aria-label="Stock detail"></div>
+
+<!-- Add holding sheet -->
+<div id="v3-add-holding-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);z-index:200" onclick="v3Portfolio.closeAddHolding()"></div>
+<div id="v3-add-holding-sheet" class="v3-small-sheet" role="dialog" aria-modal="true" aria-label="Add holding">
+  <div class="v3-sheet-handle" onclick="v3Portfolio.closeAddHolding()" style="cursor:pointer"></div>
+  <div class="v3-sheet-title">Add holding</div>
+
+  <div class="v3-form-row">
+    <div class="v3-form-field" style="flex:1.2">
+      <label class="v3-form-label" for="v3-ah-ticker">Ticker</label>
+      <input id="v3-ah-ticker" class="v3-form-input ticker-input" type="text" placeholder="e.g. AAPL"
+             oninput="v3Portfolio.tickerInputChanged(this.value)" autocomplete="off" autocapitalize="characters">
+    </div>
+    <div class="v3-form-field">
+      <label class="v3-form-label" for="v3-ah-account">Account</label>
+      <select id="v3-ah-account" class="v3-form-input">
+        <option value="ISA">ISA</option>
+        <option value="SIPP">SIPP</option>
+        <option value="GIA" selected>GIA</option>
+        <option value="Other">Other</option>
+      </select>
+    </div>
+  </div>
+
+  <div id="v3-ah-score-preview" class="v3-score-preview"></div>
+
+  <div class="v3-form-row">
+    <div class="v3-form-field">
+      <label class="v3-form-label" for="v3-ah-shares">Shares / Units</label>
+      <input id="v3-ah-shares" class="v3-form-input" type="number" min="0.0001" step="any" placeholder="e.g. 100">
+    </div>
+    <div class="v3-form-field">
+      <label class="v3-form-label" for="v3-ah-price">Entry price</label>
+      <input id="v3-ah-price" class="v3-form-input" type="number" min="0.0001" step="any" placeholder="e.g. 150.00">
+    </div>
+    <div class="v3-form-field" style="flex:0.7">
+      <label class="v3-form-label" for="v3-ah-currency">Currency</label>
+      <select id="v3-ah-currency" class="v3-form-input">
+        <option value="USD">USD $</option>
+        <option value="GBP">GBP £</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="v3-form-row">
+    <div class="v3-form-field">
+      <label class="v3-form-label" for="v3-ah-date">Entry date</label>
+      <input id="v3-ah-date" class="v3-form-input" type="date">
+    </div>
+  </div>
+
+  <div class="v3-form-row">
+    <div class="v3-form-field">
+      <label class="v3-form-label" for="v3-ah-notes">Notes (optional)</label>
+      <input id="v3-ah-notes" class="v3-form-input" type="text" placeholder="e.g. Bought on dip">
+    </div>
+  </div>
+
+  <div id="v3-ah-error" class="v3-form-error"></div>
+  <button class="v3-submit-btn" onclick="v3Portfolio.submitAddHolding()">Add holding</button>
+</div>
+
+<!-- Create portfolio sheet -->
+<div id="v3-create-portf-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);z-index:200" onclick="v3Portfolio.closeCreatePortfolio()"></div>
+<div id="v3-create-portf-sheet" class="v3-small-sheet" role="dialog" aria-modal="true" aria-label="Create portfolio">
+  <div class="v3-sheet-handle" onclick="v3Portfolio.closeCreatePortfolio()" style="cursor:pointer"></div>
+  <div class="v3-sheet-title">New portfolio</div>
+
+  <div class="v3-form-row">
+    <div class="v3-form-field">
+      <label class="v3-form-label" for="v3-portf-name-input">Portfolio name</label>
+      <input id="v3-portf-name-input" class="v3-form-input" type="text" placeholder="e.g. Stocks ISA"
+             onkeydown="if(event.key==='Enter')v3Portfolio.submitCreatePortfolio()">
+    </div>
+    <div class="v3-form-field" style="flex:0.6">
+      <label class="v3-form-label" for="v3-portf-currency">Currency</label>
+      <select id="v3-portf-currency" class="v3-form-input">
+        <option value="GBP">GBP £</option>
+        <option value="USD">USD $</option>
+      </select>
+    </div>
+  </div>
+
+  <button class="v3-submit-btn" onclick="v3Portfolio.submitCreatePortfolio()">Create portfolio</button>
+</div>
+
+<!-- Settings sheet -->
+<div id="v3-settings-overlay" onclick="closeSettings()"></div>
+<div id="v3-settings-sheet">
+  <div class="v3-sheet-handle" onclick="closeSettings()" style="cursor:pointer"></div>
+  <div class="v3-settings-title">Settings</div>
+
+  <div class="v3-setting-row">
+    <div>
+      <div class="v3-setting-label">FMP API key</div>
+      <div class="v3-setting-sub">financialmodelingprep.com</div>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <input class="v3-text-input" id="settings-api-key" type="password" placeholder="Enter key…" autocomplete="off">
+      <button class="v3-btn v3-btn-primary" onclick="saveApiKey()">Save</button>
+    </div>
+  </div>
+
+  <div class="v3-setting-row">
+    <div>
+      <div class="v3-setting-label">Display currency</div>
+      <div class="v3-setting-sub">Prices shown in</div>
+    </div>
+    <select class="v3-select" id="settings-currency" onchange="saveCurrency(this.value)">
+      <option value="GBP">GBP £</option>
+      <option value="USD">USD $</option>
+    </select>
+  </div>
+
+  <div class="v3-setting-row">
+    <div>
+      <div class="v3-setting-label">Scoring preset</div>
+      <div class="v3-setting-sub">Used for composite 0–100 score</div>
+    </div>
+    <select class="v3-select" id="settings-preset" onchange="savePreset(this.value)">
+      <option value="BALANCED">Balanced</option>
+      <option value="QUALITY_COMPOUNDER">Quality Compounder</option>
+      <option value="DEEP_VALUE">Deep Value</option>
+      <option value="CLASSIC_7">Classic 7 only</option>
+    </select>
+  </div>
+
+  <div class="v3-setting-row">
+    <div>
+      <div class="v3-setting-label">Delete active portfolio</div>
+      <div class="v3-setting-sub">Removes all holdings in the current portfolio</div>
+    </div>
+    <button class="v3-btn" style="color:var(--red);border-color:rgba(248,113,113,0.2)" onclick="v3Portfolio.deleteActivePortfolio();closeSettings()">Delete</button>
+  </div>
+
+  <div class="v3-setting-row">
+    <div>
+      <div class="v3-setting-label">About</div>
+      <div class="v3-setting-sub">Stuart's Stock Compass V3</div>
+    </div>
+    <span style="font-size:12px;color:var(--text-2)">Phase 5</span>
+  </div>
+</div>
+
+<!-- API key first-run prompt -->
+<div id="v3-api-prompt">
+  <div class="v3-api-card">
+    <div style="font-size:36px;margin-bottom:4px">🧭</div>
+    <div class="v3-api-title">Welcome to Stock Compass</div>
+    <div class="v3-api-sub">
+      Enter your <strong>Financial Modeling Prep</strong> API key to get started.
+      Scores are fetched live from FMP — a Starter or higher plan is recommended.
+    </div>
+    <div class="v3-api-input-row">
+      <input class="v3-text-input" id="first-run-api-key" type="text" placeholder="Paste API key…" autocomplete="off">
+      <button class="v3-btn v3-btn-primary" onclick="saveFirstRunKey()">Go →</button>
+    </div>
+    <div style="font-size:11px;color:var(--text-2);margin-top:4px">
+      Your key is stored locally only — never sent to our servers.
+    </div>
+  </div>
+</div>
+
+<!-- =====================================================================
+     Scripts
+====================================================================== -->
+<script type="module">
+  import { getState, dispatch, ACTIONS, subscribe } from './src/state/store.js';
+  import { runMigrationIfNeeded } from './src/state/migration.js';
+  import { KEYS, CURRENT_SCHEMA } from './src/state/schema.js';
+  import { initScreen, runScreen, stopScreen, setFilter, setSort, openDetail, closeDetail, toggleStar } from './src/ui/screen.js';
+  import { initPortfolio, renderPortfolioView } from './src/ui/portfolio.js';
+
+  // ── Boot ───────────────────────────────────────────────────────────
+  runMigrationIfNeeded({ offerBackupDownload: false });
+
+  const { apiKey } = getState();
+  if (!apiKey) {
+    document.getElementById('v3-api-prompt').classList.add('visible');
+  }
+
+  initScreen();
+  initPortfolio();
+  syncSettings();
+
+  // ── Mode toggle ────────────────────────────────────────────────────
+  document.querySelectorAll('[data-v3-tab]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const view = btn.dataset.v3Tab;
+      document.querySelectorAll('[data-v3-tab]').forEach(b => {
+        b.classList.toggle('active', b.dataset.v3Tab === view);
+        b.setAttribute('aria-selected', b.dataset.v3Tab === view);
+      });
+      document.getElementById('v3-screen-pane').style.display    = view === 'screen'    ? '' : 'none';
+      document.getElementById('v3-portfolio-pane').style.display = view === 'portfolio' ? '' : 'none';
+
+      // FAB: show run-btn in screen mode, add-holding-fab in portfolio mode
+      const runBtn  = document.getElementById('v3-run-btn');
+      const stopBtn = document.getElementById('v3-stop-btn');
+      const addBtn  = document.getElementById('v3-add-holding-fab');
+      if (view === 'screen') {
+        if (runBtn)  runBtn.style.display  = '';
+        if (stopBtn) stopBtn.style.display = '';   // screen.js will hide/show as needed
+        if (addBtn)  addBtn.style.display  = 'none';
+      } else {
+        if (runBtn)  runBtn.style.display  = 'none';
+        if (stopBtn) stopBtn.style.display = 'none';
+        // portfolio.js controls add-btn visibility based on whether portfolios exist
+        renderPortfolioView();
+      }
+
+      dispatch(ACTIONS.SET_LAST_STATE, { view });
+    });
+  });
+
+  // Restore last view
+  const lastView = getState().lastState?.view || 'screen';
+  if (lastView === 'portfolio') {
+    document.querySelector('[data-v3-tab="portfolio"]').click();
+  }
+
+  // ── Settings ───────────────────────────────────────────────────────
+  window.openSettings = () => {
+    const sheet   = document.getElementById('v3-settings-sheet');
+    const overlay = document.getElementById('v3-settings-overlay');
+    syncSettings();
+    sheet.classList.add('open');
+    overlay.style.display = 'block';
+    document.body.style.overflow = 'hidden';
+  };
+
+  window.closeSettings = () => {
+    document.getElementById('v3-settings-sheet').classList.remove('open');
+    document.getElementById('v3-settings-overlay').style.display = 'none';
+    document.body.style.overflow = '';
+  };
+
+  function syncSettings() {
+    const s = getState();
+    const keyEl      = document.getElementById('settings-api-key');
+    const curEl      = document.getElementById('settings-currency');
+    const presetEl   = document.getElementById('settings-preset');
+    if (keyEl)    keyEl.placeholder = s.apiKey ? '••••••••' : 'Enter key…';
+    if (curEl)    curEl.value       = s.currency || 'GBP';
+    if (presetEl) presetEl.value    = s.settings?.scoringPreset || 'BALANCED';
+  }
+
+  window.saveApiKey = () => {
+    const val = document.getElementById('settings-api-key')?.value.trim();
+    if (val) { dispatch(ACTIONS.SET_API_KEY, val); syncSettings(); }
+    closeSettings();
+  };
+
+  window.saveCurrency = (v) => dispatch(ACTIONS.SET_CURRENCY, v);
+
+  window.savePreset = (v) => dispatch(ACTIONS.PATCH_SETTINGS, { scoringPreset: v });
+
+  window.saveFirstRunKey = () => {
+    const val = document.getElementById('first-run-api-key')?.value.trim();
+    if (!val) return;
+    dispatch(ACTIONS.SET_API_KEY, val);
+    document.getElementById('v3-api-prompt').classList.remove('visible');
+  };
+
+  // Enter key on first-run input
+  document.getElementById('first-run-api-key')?.addEventListener('keydown', e => {
+    if (e.key === 'Enter') window.saveFirstRunKey();
+  });
+
+  // Shared detail-sheet close (screen view and portfolio view share the same sheet + overlay)
+  window.closeDetailSheet = () => {
+    v3Screen.closeDetail();
+    document.getElementById('v3-detail-sheet')?.classList.remove('open');
+    document.getElementById('v3-detail-overlay').style.display = 'none';
+    document.body.style.overflow = '';
+  };
+
+  // ── Keyboard shortcuts ─────────────────────────────────────────────
+  document.addEventListener('keydown', e => {
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+    if (e.key === 'Escape') {
+      closeDetailSheet();
+      closeSettings();
+      v3Portfolio.closeAddHolding();
+      v3Portfolio.closeCreatePortfolio();
+    }
+    if (e.key === 'r' && !e.metaKey && !e.ctrlKey) {
+      runScreen();
+    }
+  });
+
+  // Swipe-down on detail sheet to close
+  (function setupSwipe() {
+    const sheet = document.getElementById('v3-detail-sheet');
+    let startY = 0, isDragging = false;
+    sheet.addEventListener('touchstart', e => {
+      if (sheet.scrollTop > 0) return;
+      startY = e.touches[0].clientY;
+      isDragging = true;
+    }, { passive: true });
+    sheet.addEventListener('touchmove', e => {
+      if (!isDragging) return;
+      const dy = e.touches[0].clientY - startY;
+      if (dy > 0) sheet.style.transform = `translateY(${dy}px)`;
+    }, { passive: true });
+    sheet.addEventListener('touchend', e => {
+      if (!isDragging) return;
+      isDragging = false;
+      const dy = e.changedTouches[0].clientY - startY;
+      sheet.style.transform = '';
+      if (dy > 80) closeDetailSheet();
+    }, { passive: true });
+  })();
+
+  // Debug handle
+  window._v3 = { getState, dispatch, ACTIONS };
+</script>
+
+</body>
+</html>
