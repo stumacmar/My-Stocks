@@ -231,8 +231,7 @@ export async function runScreen() {
 
   const { apiKey } = getState();
   if (!apiKey) {
-    const prompt = document.getElementById('v3-api-prompt');
-    if (prompt) prompt.style.display = '';
+    document.getElementById('v3-api-prompt')?.classList.add('visible');
     return;
   }
 
@@ -243,7 +242,7 @@ export async function runScreen() {
   const runBtn  = document.getElementById('v3-run-btn');
   const stopBtn = document.getElementById('v3-stop-btn');
   if (runBtn)  runBtn.disabled = true;
-  if (stopBtn) stopBtn.style.display = '';
+  if (stopBtn) stopBtn.style.display = 'flex';
 
   const universe = SP500;
   const scored   = [];

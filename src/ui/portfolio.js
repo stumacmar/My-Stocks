@@ -276,7 +276,7 @@ export function renderPortfolioView() {
 
 function updatePortfolioFAB(show) {
   const fab = document.getElementById('v3-add-holding-fab');
-  if (fab) fab.style.display = show ? '' : 'none';
+  if (fab) fab.style.display = show ? 'flex' : 'none';
 }
 
 // ---------------------------------------------------------------------------
