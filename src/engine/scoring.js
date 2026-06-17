@@ -84,7 +84,7 @@ export function computePercentiles(metricValues) {
   const pctMap  = new Map();
   sorted.forEach(([ticker], i) => {
     // Percentile rank: proportion of stocks with lower value
-    pctMap.set(ticker, Math.round((i / (n - 1)) * 100));
+    pctMap.set(ticker, n > 1 ? Math.round((i / (n - 1)) * 100) : 50);
   });
 
   // Nulls get null percentile

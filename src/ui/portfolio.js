@@ -14,9 +14,17 @@ import { getState, dispatch, ACTIONS, subscribe } from '../state/store.js';
 import {
   getPortfolios, createPortfolio, deletePortfolio, renamePortfolio,
   addHolding, removeHolding, holdingReturn, getHouseholdSummary,
-  ragFromScore7, RAG_LABELS, RAG_COLORS,
 } from '../portfolio/index.js';
+import { ragFromScore7, RAG_LABELS, RAG_COLORS } from '../engine/rag.js';
 import { compassGaugeHTML, animateGauge } from './gauge.js';
+
+// ---------------------------------------------------------------------------
+// XSS helper
+// ---------------------------------------------------------------------------
+
+function escHtml(s) {
+  return String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
 
 // ---------------------------------------------------------------------------
 // Module state
@@ -122,14 +130,14 @@ function holdingCardHTML(h, portfolioId, currency) {
   return `
     <div class="v3-holding-card${hasReview ? ' v3-holding-review' : ''}"
          style="border-left-color:${nowRag ? nowColor : 'var(--bg-4)'}"
-         onclick="v3Portfolio.openHoldingDetail('${portfolioId}','${h.id}')"
+         onclick="v3Portfolio.openHoldingDetail('${escHtml(portfolioId)}','${escHtml(h.id)}')"
          role="button" tabindex="0"
-         onkeydown="if(event.key==='Enter')v3Portfolio.openHoldingDetail('${portfolioId}','${h.id}')">
+         onkeydown="if(event.key==='Enter')v3Portfolio.openHoldingDetail('${escHtml(portfolioId)}','${escHtml(h.id)}')">
 
       <div class="v3-holding-top">
         <div class="v3-holding-ticker-wrap">
-          <span class="v3-holding-ticker">${h.ticker}</span>
-          <span class="v3-holding-account-badge">${h.accountType}</span>
+          <span class="v3-holding-ticker">${escHtml(h.ticker)}</span>
+          <span class="v3-holding-account-badge">${escHtml(h.accountType)}</span>
         </div>
         <div class="v3-holding-value-wrap">
           <span class="v3-holding-value">${fmtValue(ret?.value, currency)}</span>
@@ -139,7 +147,7 @@ function holdingCardHTML(h, portfolioId, currency) {
 
       <div class="v3-holding-bottom">
         <div class="v3-holding-meta">
-          ${h.name && h.name !== h.ticker ? `<span class="v3-holding-name">${h.name}</span> · ` : ''}
+          ${h.name && h.name !== h.ticker ? `<span class="v3-holding-name">${escHtml(h.name)}</span> · ` : ''}
           <span>${h.shares} ${h.type === 'fund' || h.type === 'etf' ? 'units' : 'shares'}</span>
           · <span>entered ${fmtDate(h.entryDate)}</span>
         </div>
@@ -439,9 +447,9 @@ export function openHoldingDetail(portfolioId, holdingId) {
 
       <div class="v3-detail-header">
         <div>
-          <div class="v3-detail-ticker">${h.ticker}</div>
-          <div class="v3-detail-name">${h.name !== h.ticker ? h.name : ''}</div>
-          <div class="v3-detail-sector">${h.accountType} · ${portfolio.name}</div>
+          <div class="v3-detail-ticker">${escHtml(h.ticker)}</div>
+          <div class="v3-detail-name">${h.name !== h.ticker ? escHtml(h.name) : ''}</div>
+          <div class="v3-detail-sector">${escHtml(h.accountType)} · ${escHtml(portfolio.name)}</div>
         </div>
         <div style="text-align:right">
           <div style="font-size:22px;font-weight:700;color:${pctColor}">${fmtValue(ret?.value, currency)}</div>
@@ -467,7 +475,7 @@ export function openHoldingDetail(portfolioId, holdingId) {
       </div>
 
       ${h.notes ? `<div class="v3-section-title">Notes</div>
-        <div style="font-size:13px;color:var(--text-1);padding:10px;background:var(--bg-2);border-radius:8px">${h.notes}</div>` : ''}
+        <div style="font-size:13px;color:var(--text-1);padding:10px;background:var(--bg-2);border-radius:8px">${escHtml(h.notes)}</div>` : ''}
 
       <!-- Delete button -->
       <div style="margin-top:28px">
@@ -491,6 +499,11 @@ export function openHoldingDetail(portfolioId, holdingId) {
   });
 
   sheet.classList.add('open');
+  // Move focus into the sheet for keyboard and screen-reader users
+  requestAnimationFrame(() => {
+    const firstFocusable = sheet.querySelector('button, [href], input, [tabindex]:not([tabindex="-1"])');
+    firstFocusable?.focus();
+  });
   if (overlay) overlay.style.display = 'block';
   document.body.style.overflow = 'hidden';
 }

@@ -5,6 +5,9 @@
  */
 
 import { getState, dispatch, ACTIONS } from '../state/store.js';
+import { ragFromScore7, RAG_LABELS, RAG_COLORS } from '../engine/rag.js';
+
+export { ragFromScore7, RAG_LABELS, RAG_COLORS };
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -14,17 +17,6 @@ function uuid() {
   if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID();
   return Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 10);
 }
-
-export function ragFromScore7(score) {
-  if (score == null) return null;
-  if (score === 7)   return 'hot';
-  if (score >= 6)    return 'strong';
-  if (score >= 4)    return 'watch';
-  return 'avoid';
-}
-
-export const RAG_LABELS = { hot: '★ Hot', strong: 'Strong', watch: 'Watch', avoid: 'Avoid' };
-export const RAG_COLORS = { hot: '#f5c518', strong: '#2ecc71', watch: '#f59e0b', avoid: '#f87171' };
 
 // ---------------------------------------------------------------------------
 // Portfolio CRUD

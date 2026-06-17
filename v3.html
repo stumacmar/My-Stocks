@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; connect-src https://financialmodelingprep.com https://fonts.googleapis.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:;">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#0c0f14">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -884,6 +885,17 @@
     .v3-api-input-row .v3-text-input { flex: 1; width: auto; }
 
     /* ── Responsive adjustments ──────────────────────────────────────── */
+    @media (max-width: 380px) {
+      /* Collapse score and band columns on very narrow screens */
+      #v3-table-head,
+      .v3-row {
+        grid-template-columns: 22px 50px 1fr 44px 60px 18px;
+        gap: 0 5px;
+      }
+      #v3-table-head > span:nth-child(5) { display: none; }  /* Hide 7-pt column */
+      .v3-row > div:nth-child(5)         { display: none; }  /* Hide 7-pt value */
+      .v3-score-badge { min-width: 34px; font-size: 13px; }
+    }
     @media (min-width: 520px) {
       #v3-detail-sheet { left: 50%; right: auto; width: 520px; transform: translateX(-50%) translateY(100%); }
       #v3-detail-sheet.open { transform: translateX(-50%) translateY(0); }
@@ -981,7 +993,7 @@
 
 <!-- Detail sheet overlay + sheet -->
 <div id="v3-detail-overlay" onclick="closeDetailSheet()"></div>
-<div id="v3-detail-sheet" role="dialog" aria-modal="true" aria-label="Stock detail"></div>
+<div id="v3-detail-sheet" role="dialog" aria-modal="true" aria-label="Stock detail" tabindex="-1"></div>
 
 <!-- Add holding sheet -->
 <div id="v3-add-holding-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);z-index:200" onclick="v3Portfolio.closeAddHolding()"></div>
@@ -1285,7 +1297,11 @@
     sheet.addEventListener('touchmove', e => {
       if (!isDragging) return;
       const dy = e.touches[0].clientY - startY;
-      if (dy > 0) sheet.style.transform = `translateY(${dy}px)`;
+      if (dy > 0) {
+        // Preserve the horizontal centering on wide screens
+        const tx = window.innerWidth >= 520 ? '-50%' : '0';
+        sheet.style.transform = `translateX(${tx}) translateY(${dy}px)`;
+      }
     }, { passive: true });
     sheet.addEventListener('touchend', e => {
       if (!isDragging) return;

@@ -110,7 +110,7 @@ describe('classicScore', () => {
   test('all 7 pass with good fundamentals', () => {
     const result = classicScore(makeFundamentals());
     assert.equal(result.score, 7);
-    assert.equal(result.rag, 'elite');
+    assert.equal(result.rag, 'hot');
   });
 
   test('fails P/E check when P/E > 25', () => {

@@ -6,7 +6,7 @@ Set via the Settings panel on first launch. Stored in `scV3.apiKey` (localStorag
 
 **Tier**: Paid/Starter (~750 calls/day). Batch endpoints reduce S&P 500 run to ~30 calls.
 
-Default demo key (read-only, limited): `Uq0TKcRxFVhqq4CvmOk2EStbeyTsONCi`
+Default demo key: enter your own FMP API key in Settings.
 
 ---
 

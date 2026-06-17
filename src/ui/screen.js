@@ -18,6 +18,16 @@ import { classicScore } from '../engine/presets.js';
 import { evaluateFlags } from '../engine/flags.js';
 import { compassGaugeHTML, animateGauge, compositeToRag, compositeToLabel, compositeToColor } from './gauge.js';
 import { SP500 } from '../data/sp500.js';
+import { RAG_LABELS, RAG_COLORS, ragFromScore7 } from '../engine/rag.js';
+import { getRemainingBudget } from '../data/budget.js';
+
+// ---------------------------------------------------------------------------
+// XSS helper
+// ---------------------------------------------------------------------------
+
+function escHtml(s) {
+  return String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
 
 // ---------------------------------------------------------------------------
 // Module state
@@ -29,20 +39,6 @@ let _sort         = { col: 'composite', dir: 'desc' };
 let _running      = false;
 let _stopRequested = false;
 let _activeDetail = null;      // ticker of open detail sheet
-
-// ---------------------------------------------------------------------------
-// RAG helpers (Classic 7 rag for backward-compat; composite rag for V3)
-// ---------------------------------------------------------------------------
-
-function ragFromClassic(score7) {
-  if (score7 === 7) return 'hot';
-  if (score7 >= 6)  return 'strong';
-  if (score7 >= 4)  return 'watch';
-  return 'avoid';
-}
-
-const RAG_COLORS = { hot: '#f5c518', strong: '#2ecc71', watch: '#f59e0b', avoid: '#f87171' };
-const RAG_LABELS = { hot: '★ Hot', strong: 'Strong', watch: 'Watch', avoid: 'Avoid' };
 
 // ---------------------------------------------------------------------------
 // Distribution bar
@@ -166,17 +162,17 @@ function renderTable(results) {
     const starred = isStarred(r.ticker);
     const flagged = r.flagCount > 0;
     return `
-    <div class="v3-row" role="button" tabindex="0" onclick="v3Screen.openDetail('${r.ticker}')" onkeydown="if(event.key==='Enter'||event.key===' ')v3Screen.openDetail('${r.ticker}')">
-      <div class="v3-row-star" onclick="event.stopPropagation();v3Screen.toggleStar('${r.ticker}')" title="${starred ? 'Unstar' : 'Star'}">${starred ? '★' : '☆'}</div>
-      <div class="v3-row-ticker">${r.ticker}</div>
-      <div class="v3-row-name">${r.name || ''}</div>
+    <div class="v3-row" role="button" tabindex="0" onclick="v3Screen.openDetail('${escHtml(r.ticker)}')" onkeydown="if(event.key==='Enter'||event.key===' ')v3Screen.openDetail('${escHtml(r.ticker)}')">
+      <div class="v3-row-star" onclick="event.stopPropagation();v3Screen.toggleStar('${escHtml(r.ticker)}')" title="${starred ? 'Unstar' : 'Star'}">${starred ? '★' : '☆'}</div>
+      <div class="v3-row-ticker">${escHtml(r.ticker)}</div>
+      <div class="v3-row-name">${escHtml(r.name || '')}</div>
       <div class="v3-row-score">
         <span class="v3-score-badge" style="color:${color};border-color:${color}20;background:${color}10">
           ${r.composite != null ? r.composite : '—'}
         </span>
       </div>
       <div class="v3-row-classic">
-        <span style="color:${RAG_COLORS[ragFromClassic(r.score7)] || '#6b7a90'};font-size:12px;font-weight:600">
+        <span style="color:${RAG_COLORS[ragFromScore7(r.score7)] || '#6b7a90'};font-size:12px;font-weight:600">
           ${r.score7 != null ? `${r.score7}/7` : '—'}
         </span>
       </div>
@@ -235,6 +231,19 @@ export async function runScreen() {
     return;
   }
 
+  // Warn if budget is likely insufficient for a full run
+  const remaining = getRemainingBudget();
+  // Cost estimate: 6 calls per uncached stock + bulk quotes
+  // (simplified: warn if < 100 calls remaining)
+  if (remaining < 100) {
+    const ok = confirm(
+      `Low API budget: only ${remaining} calls remaining today.\n\n` +
+      `A full screen run uses ~6 calls per uncached stock.\n` +
+      `You may only score a partial list. Continue?`
+    );
+    if (!ok) return;
+  }
+
   _running      = true;
   _stopRequested = false;
   _results       = [];
@@ -268,6 +277,12 @@ export async function runScreen() {
 
     try {
       const stockResult = await fetchStockData(ticker, apiKey);
+      if (stockResult.error?.toLowerCase().includes('budget')) {
+        // Budget exhausted — stop run rather than scoring with null data
+        _stopRequested = true;
+        showRunError(`Daily API budget reached at ${scored.length} stocks. Run again tomorrow for remaining stocks.`);
+        break;
+      }
       const fund        = stockResult.data || {};
 
       // Classic 7 is the primary scorer for now (V3 percentile engine needs full universe data)
@@ -281,7 +296,7 @@ export async function runScreen() {
         name:      fund.profile?.companyName || quote?.name || ticker,
         composite: c7.composite,   // 0–100 mapped from Classic 7 for now
         score7:    c7.score,
-        rag:       ragFromClassic(c7.score),
+        rag:       ragFromScore7(c7.score),
         criteria:  c7.criteria,
         flags,
         flagCount: flags.filter(f => f.fired).length,
@@ -371,11 +386,11 @@ export function openDetail(ticker) {
       <!-- Header -->
       <div class="v3-detail-header">
         <div>
-          <div class="v3-detail-ticker">${result.ticker}</div>
-          <div class="v3-detail-name">${result.name || ''}</div>
-          ${result.sector ? `<div class="v3-detail-sector">${result.sector}</div>` : ''}
+          <div class="v3-detail-ticker">${escHtml(result.ticker)}</div>
+          <div class="v3-detail-name">${escHtml(result.name || '')}</div>
+          ${result.sector ? `<div class="v3-detail-sector">${escHtml(result.sector)}</div>` : ''}
         </div>
-        <div class="v3-detail-star" onclick="v3Screen.toggleStar('${ticker}')">${isStarred(ticker) ? '★' : '☆'}</div>
+        <div class="v3-detail-star" onclick="v3Screen.toggleStar('${escHtml(ticker)}')">${isStarred(ticker) ? '★' : '☆'}</div>
       </div>
 
       <!-- Compass gauge -->
