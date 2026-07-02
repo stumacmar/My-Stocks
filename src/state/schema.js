@@ -19,6 +19,8 @@ export const KEYS = Object.freeze({
   ETF_PROXIES:      'scV3.etfProxies',
   SETTINGS:         'scV3.settings',
   LAST_STATE:       'scV3.lastState',
+  SCORE_HISTORY:    'scV3.scoreHistory',
+  BRIEFING_SEEN:    'scV3.briefingSeen',
 });
 
 // V2 key prefixes — read-only during migration, never written

@@ -27,7 +27,7 @@ import { evaluateFlags } from './flags.js';
 // Metric definitions
 // ---------------------------------------------------------------------------
 
-const METRICS = {
+export const METRICS = {
   // Quality
   roic:                { pillar: 'quality',   lowerIsBetter: false },
   grossMarginStability:{ pillar: 'quality',   lowerIsBetter: false },
