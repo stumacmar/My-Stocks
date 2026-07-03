@@ -131,9 +131,18 @@ function filteredSorted(results) {
 
   const { col, dir } = _sort;
   rows = [...rows].sort((a, b) => {
-    const av = a[col] ?? -Infinity;
-    const bv = b[col] ?? -Infinity;
-    return dir === 'asc' ? av - bv : bv - av;
+    const av = a[col];
+    const bv = b[col];
+
+    const aNum = typeof av === 'number' ? av : Number(av);
+    const bNum = typeof bv === 'number' ? bv : Number(bv);
+    const bothNumeric = Number.isFinite(aNum) && Number.isFinite(bNum);
+
+    const cmp = bothNumeric
+      ? (aNum - bNum)
+      : String(av ?? '').localeCompare(String(bv ?? ''), undefined, { numeric: true, sensitivity: 'base' });
+
+    return dir === 'asc' ? cmp : -cmp;
   });
 
   return rows;
