@@ -1387,7 +1387,7 @@
      Scripts
 ====================================================================== -->
 <script type="module">
-  import { getState, dispatch, ACTIONS, subscribe } from './src/state/store.js';
+  import { getState, dispatch, ACTIONS, subscribe, reinitFromStorage } from './src/state/store.js';
   import { runMigrationIfNeeded } from './src/state/migration.js';
   import { KEYS, CURRENT_SCHEMA } from './src/state/schema.js';
   import { initScreen, runScreen } from './src/ui/screen.js';
@@ -1395,7 +1395,10 @@
   import { initObservatory, activateSky, deactivateSky } from './src/ui/observatory.js';
 
   // ── Boot ───────────────────────────────────────────────────────────
-  runMigrationIfNeeded({ offerBackupDownload: false });
+  const migrated = runMigrationIfNeeded({ offerBackupDownload: false });
+  // The store snapshots localStorage at import time — before migration wrote
+  // the scV3.* keys. Re-read so a migrated API key is seen on FIRST load.
+  if (migrated) reinitFromStorage();
 
   const { apiKey } = getState();
   if (!apiKey) {
@@ -1428,7 +1431,8 @@
       const addBtn  = document.getElementById('v3-add-holding-fab');
       if (view === 'screen') {
         if (runBtn)  runBtn.style.display  = '';
-        if (stopBtn) stopBtn.style.display = '';   // screen.js will hide/show as needed
+        // Keep the stop button up if a run is mid-flight (run btn disabled)
+        if (stopBtn) stopBtn.style.display = runBtn?.disabled ? 'flex' : 'none';
         if (addBtn)  addBtn.style.display  = 'none';
       } else if (view === 'portfolio') {
         if (runBtn)  runBtn.style.display  = 'none';

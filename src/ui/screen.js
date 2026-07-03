@@ -231,7 +231,7 @@ function setProgress(done, total, currentTicker = '') {
     return;
   }
 
-  wrap.style.display = '';
+  wrap.style.display = 'block';  // '' would fall back to the stylesheet's display:none
   const pct = Math.round((done / total) * 100);
   if (bar)  bar.style.width = pct + '%';
   if (text) text.textContent = `${done} / ${total}${currentTicker ? ` — ${currentTicker}` : ''}`;
@@ -268,8 +268,7 @@ export async function runScreen() {
   _results       = [];
 
   // Clear any error banner left over from a previous run
-  const errEl = document.getElementById('v3-run-error');
-  if (errEl) { errEl.textContent = ''; errEl.style.display = 'none'; }
+  clearRunError();
 
   const runBtn  = document.getElementById('v3-run-btn');
   const stopBtn = document.getElementById('v3-stop-btn');
@@ -282,16 +281,22 @@ export async function runScreen() {
   // Fetch bulk quotes first (~10 calls for full S&P 500)
   setProgress(0, universe.length, 'Fetching quotes…');
   const quoteResult = await fetchBulkQuotes(universe, apiKey);
+  const quoteMap    = quoteResult.data || new Map();
 
-  if (quoteResult.error && !quoteResult.data?.size) {
-    showRunError(quoteResult.error);
-    finishRun();
-    return;
+  if (quoteResult.error && !quoteMap.size) {
+    if (quoteResult.error.toLowerCase().includes('budget')) {
+      showRunError(quoteResult.error);
+      finishRun();
+      return;
+    }
+    // Batch quotes can be tier-restricted even when per-stock endpoints
+    // work — warn and keep going rather than aborting the whole run.
+    showRunError(`Batch quotes unavailable (${quoteResult.error}) — continuing with per-stock data…`);
   }
 
-  const quoteMap = quoteResult.data || new Map();
-
   // Score each stock
+  let hardFailures = 0;
+  let successes    = 0;
   for (let i = 0; i < universe.length; i++) {
     if (_stopRequested) break;
 
@@ -306,7 +311,23 @@ export async function runScreen() {
         showRunError(`Daily API budget reached at ${scored.length} stocks. Run again tomorrow for remaining stocks.`);
         break;
       }
-      const fund        = stockResult.data || {};
+      const fund = stockResult.data || {};
+
+      // No data at all for this ticker → don't score junk; if the first
+      // several stocks ALL fail, surface the reason and stop.
+      const hasData = fund.profile || fund.keyMetrics
+        || fund.income?.length || fund.balance?.length || fund.cashFlow?.length;
+      if (!hasData) {
+        hardFailures++;
+        if (successes === 0 && hardFailures >= 8) {
+          showRunError(`Can't fetch data from FMP (${stockResult.error || 'empty responses'}). Check your API key, plan, and connection — then try again.`);
+          break;
+        }
+        await new Promise(r => setTimeout(r, 150));  // don't hammer a failing API
+        continue;
+      }
+      successes++;
+      if (successes === 1) clearRunError();  // per-stock data works — drop the quotes warning
 
       // Classic 7 is the primary scorer for now (V3 percentile engine needs full universe data)
       const c7   = classicScore(fund);
@@ -342,6 +363,18 @@ export async function runScreen() {
 
     // Small delay to avoid hammering the API
     await new Promise(r => setTimeout(r, 200));
+  }
+
+  // A run that produced nothing (aborted early, API down) must not wipe the
+  // previous good results — restore them and bail.
+  if (!scored.length) {
+    _results = getState().screenResults?.results || [];
+    renderTable(_results);
+    renderDistBar(_results);
+    updateFilterChips(_results);
+    setProgress(0, 0);
+    finishRun();
+    return;
   }
 
   _results = scored;
@@ -401,7 +434,14 @@ function finishRun() {
 
 function showRunError(msg) {
   const el = document.getElementById('v3-run-error');
-  if (el) { el.textContent = msg; el.style.display = ''; }
+  // 'block', not '' — the stylesheet's `display: none` wins over an empty
+  // inline style, which made every run error invisible.
+  if (el) { el.textContent = msg; el.style.display = 'block'; }
+}
+
+function clearRunError() {
+  const el = document.getElementById('v3-run-error');
+  if (el) { el.textContent = ''; el.style.display = 'none'; }
 }
 
 export function stopScreen() {
