@@ -167,7 +167,7 @@ export function classicScore(fundamentals) {
     maxScore:  7,
     criteria:  checks,
     composite: Math.round((score / 7) * 100),
-    rag: score === 7 ? 'elite'
+    rag: score === 7 ? 'hot'
        : score >= 6 ? 'strong'
        : score >= 4 ? 'watch'
        : 'avoid',

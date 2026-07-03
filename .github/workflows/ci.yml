@@ -1,0 +1,63 @@
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  test-engine:
+    name: Engine unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: node --test $(find src -name "*.test.js")
+
+  lint-imports:
+    name: Check module imports resolve
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Syntax-check all ES modules
+        run: |
+          for f in $(find src -name "*.js" ! -name "*.test.js"); do
+            node --input-type=module --check < "$f" || exit 1
+          done
+      - name: Check no missing named exports in v3.html imports
+        run: |
+          python3 - <<'EOF'
+          import re, os, sys
+          def get_exports(path):
+              src = open(path).read()
+              exports = set()
+              for m in re.finditer(r'\bexport\s+(?:async\s+)?(?:function|class|const|let|var)\s+(\w+)', src):
+                  exports.add(m.group(1))
+              for m in re.finditer(r'export\s*\{([^}]+)\}', src):
+                  for item in m.group(1).split(','):
+                      item = item.strip()
+                      exports.add(item.split(' as ')[-1].strip() if ' as ' in item else item)
+              return exports
+          errors = []
+          for m in re.finditer(r'import\s*\{([^}]+)\}\s*from\s*[\'"]([^\'"]+)[\'"]', open('v3.html').read()):
+              names = [i.strip().split(' as ')[0].strip() for i in m.group(1).split(',')]
+              spec = m.group(2)
+              resolved = os.path.normpath(spec.lstrip('./'))
+              if not os.path.exists(resolved):
+                  errors.append(f"MISSING: {spec}")
+                  continue
+              ex = get_exports(resolved)
+              for name in names:
+                  if name and name not in ex:
+                      errors.append(f"v3.html imports '{name}' from '{spec}' but it is not exported")
+          if errors:
+              for e in errors: print(e)
+              sys.exit(1)
+          print("All imports OK")
+          EOF

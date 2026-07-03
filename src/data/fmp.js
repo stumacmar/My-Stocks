@@ -86,7 +86,7 @@ export async function fetchBulkQuotes(symbols, apiKey) {
 
     try {
       const tickers = uncached.join(',');
-      const url     = `${BASE}/quote?symbols=${tickers}&apikey=${apiKey}`;
+      const url     = `${BASE}/quote?symbols=${tickers}&apikey=${encodeURIComponent(apiKey)}`;
       const json    = await _fetch(url);
 
       recordCalls(1);
@@ -135,7 +135,7 @@ export async function fetchProfile(ticker, apiKey) {
   if (wouldExceedBudget(1)) return _budgetError();
 
   try {
-    const url  = `${BASE}/profile/${ticker}?apikey=${apiKey}`;
+    const url  = `${BASE}/profile/${ticker}?apikey=${encodeURIComponent(apiKey)}`;
     const json = await _fetch(url);
     recordCalls(1);
 
@@ -165,7 +165,7 @@ export async function fetchKeyMetrics(ticker, apiKey) {
   if (wouldExceedBudget(1)) return _budgetError();
 
   try {
-    const url  = `${BASE}/key-metrics-ttm/${ticker}?apikey=${apiKey}`;
+    const url  = `${BASE}/key-metrics-ttm/${ticker}?apikey=${encodeURIComponent(apiKey)}`;
     const json = await _fetch(url);
     recordCalls(1);
 
@@ -194,7 +194,7 @@ export async function fetchIncomeStatements(ticker, apiKey, limit = 5) {
   if (wouldExceedBudget(1)) return _budgetError();
 
   try {
-    const url  = `${BASE}/income-statement/${ticker}?period=annual&limit=${limit}&apikey=${apiKey}`;
+    const url  = `${BASE}/income-statement/${ticker}?period=annual&limit=${limit}&apikey=${encodeURIComponent(apiKey)}`;
     const json = await _fetch(url);
     recordCalls(1);
 
@@ -218,7 +218,7 @@ export async function fetchCashFlowStatements(ticker, apiKey, limit = 5) {
   if (wouldExceedBudget(1)) return _budgetError();
 
   try {
-    const url  = `${BASE}/cash-flow-statement/${ticker}?period=annual&limit=${limit}&apikey=${apiKey}`;
+    const url  = `${BASE}/cash-flow-statement/${ticker}?period=annual&limit=${limit}&apikey=${encodeURIComponent(apiKey)}`;
     const json = await _fetch(url);
     recordCalls(1);
 
@@ -242,7 +242,7 @@ export async function fetchBalanceSheets(ticker, apiKey, limit = 5) {
   if (wouldExceedBudget(1)) return _budgetError();
 
   try {
-    const url  = `${BASE}/balance-sheet-statement/${ticker}?period=annual&limit=${limit}&apikey=${apiKey}`;
+    const url  = `${BASE}/balance-sheet-statement/${ticker}?period=annual&limit=${limit}&apikey=${encodeURIComponent(apiKey)}`;
     const json = await _fetch(url);
     recordCalls(1);
 
@@ -273,12 +273,12 @@ export async function fetchPriceHistory(ticker, apiKey, days = 365) {
 
   try {
     const from = new Date(Date.now() - days * 86400_000).toISOString().slice(0, 10);
-    const url  = `${BASE}/historical-price-eod/full/${ticker}?from=${from}&apikey=${apiKey}`;
+    const url  = `${BASE}/historical-price-eod/full/${ticker}?from=${from}&apikey=${encodeURIComponent(apiKey)}`;
     const json = await _fetch(url);
     recordCalls(1);
 
     const arr = json?.historical || (Array.isArray(json) ? json : []);
-    cacheSet(cKey, arr, TTL.FUNDAMENTALS);
+    cacheSet(cKey, arr, isMarketHours() ? TTL.QUOTE_MARKET : TTL.QUOTE_CLOSED);
     return { data: arr, error: null, callsUsed: 1, fromCache: false, fetchedAt: _now() };
   } catch (err) {
     return { data: null, error: err.message, callsUsed: 1, fromCache: false, fetchedAt: _now() };
@@ -290,12 +290,11 @@ export async function fetchPriceHistory(ticker, apiKey, days = 365) {
 // ---------------------------------------------------------------------------
 
 /**
- * Fetch bulk fundamentals for a list of tickers using FMP's bulk endpoints.
- * Uses /quote (bulk), then per-ticker key-metrics for fundamentals needed for scoring.
- * Returns estimated call cost before making any calls.
+ * Estimate the bulk-quote call cost of a screen run before making any calls.
+ * Covers only the quote phase (1 call per 50 symbols); per-ticker fundamental
+ * fetches are budget-checked individually as the run progresses.
  */
 export function estimateScreenCost(symbols) {
-  // 1 bulk quote call per 50 symbols + 1 key-metrics per symbol (unless cached)
   const quoteCalls = Math.ceil(symbols.length / CHUNK_SIZE);
   return { quoteCalls, totalEstimate: quoteCalls };
 }

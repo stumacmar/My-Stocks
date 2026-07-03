@@ -5,6 +5,9 @@
  */
 
 import { getState, dispatch, ACTIONS } from '../state/store.js';
+import { ragFromScore7, RAG_LABELS, RAG_COLORS } from '../engine/rag.js';
+
+export { ragFromScore7, RAG_LABELS, RAG_COLORS };
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -14,17 +17,6 @@ function uuid() {
   if (typeof crypto !== 'undefined' && crypto.randomUUID) return crypto.randomUUID();
   return Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 10);
 }
-
-export function ragFromScore7(score) {
-  if (score == null) return null;
-  if (score === 7)   return 'hot';
-  if (score >= 6)    return 'strong';
-  if (score >= 4)    return 'watch';
-  return 'avoid';
-}
-
-export const RAG_LABELS = { hot: '★ Hot', strong: 'Strong', watch: 'Watch', avoid: 'Avoid' };
-export const RAG_COLORS = { hot: '#f5c518', strong: '#2ecc71', watch: '#f59e0b', avoid: '#f87171' };
 
 // ---------------------------------------------------------------------------
 // Portfolio CRUD
@@ -142,14 +134,12 @@ export function holdingReturn(holding, currentPriceUSD, fxObj, displayCurrency =
 
   const rate = fxObj?.rate || null;
 
-  // Convert entry price to USD
+  // Convert entry price to USD. rate is USD→GBP (≈0.794), so GBP→USD divides:
+  // £1 / 0.794 ≈ $1.26
   let entryPriceUSD;
   if (entryCurrency === 'GBP') {
     if (!rate) return null;  // can't convert without FX
-    entryPriceUSD = entryPrice / rate;  // GBP / (USD→GBP rate) = GBP * (GBP→USD rate) ... wait
-    // rate ≈ 0.794 (USD→GBP): 1 USD * 0.794 = £0.794
-    // GBP to USD: £1 / 0.794 ≈ $1.26
-    entryPriceUSD = entryPrice / rate;  // £ / 0.794 ≈ $ ✓
+    entryPriceUSD = entryPrice / rate;
   } else {
     entryPriceUSD = entryPrice;
   }
