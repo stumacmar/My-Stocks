@@ -80,6 +80,17 @@ export function getState() {
 }
 
 /**
+ * Re-read all state from localStorage and notify subscribers.
+ * Needed after the V2→V3 migration writes keys, because this module is
+ * imported (and state snapshotted) before the migration runs.
+ */
+export function reinitFromStorage() {
+  const prev = _state;
+  _state = makeInitialState();
+  _notify(prev);
+}
+
+/**
  * Subscribe to state changes. Returns an unsubscribe function.
  */
 export function subscribe(fn) {
