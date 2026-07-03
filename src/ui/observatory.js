@@ -546,7 +546,8 @@ export function activateSky() {
          <button class="v3-portf-create-btn" onclick="document.querySelector('[data-v3-tab=&quot;screen&quot;]').click()">Go to Screen</button>`
       : `<div class="v3-empty-icon">✶</div>
          <div class="v3-empty-title">Not enough light</div>
-         <div class="v3-empty-sub">Your results predate pillar scoring and the cache has expired.<br>Run a fresh screen to chart the sky.</div>`;
+         <div class="v3-empty-sub">Your saved results are from an older version of the app.<br>Run one fresh screen and every stock becomes a star.</div>
+         <button class="v3-portf-create-btn" onclick="document.querySelector('[data-v3-tab=&quot;screen&quot;]').click()">Go to Screen</button>`;
   }
 
   if (!_raf) _raf = requestAnimationFrame(loop);
