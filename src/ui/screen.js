@@ -60,7 +60,7 @@ function renderDistBar(results) {
     const color = RAG_COLORS[rag];
     const label = RAG_LABELS[rag];
     return `
-      <div class="v3-dist-seg" data-rag="${rag}" style="flex:${n || 0.001};background:${color}20;border-top:2px solid ${color};cursor:pointer" onclick="v3Screen.setFilter('${rag}')">
+      <div class="v3-dist-seg" data-rag="${rag}" style="flex:${n || 0.001};background:${color}20;border-top:2px solid ${color};cursor:pointer" role="button" tabindex="0" aria-label="${label}: ${n} stocks (${pct}%)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();this.click()}" onclick="v3Screen.setFilter('${rag}')">
         <div class="v3-dist-count" style="color:${color}">${n}</div>
         <div class="v3-dist-label">${label}</div>
         <div class="v3-dist-pct">${pct}%</div>
