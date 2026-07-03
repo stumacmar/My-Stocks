@@ -85,8 +85,8 @@ export async function fetchBulkQuotes(symbols, apiKey) {
     if (wouldExceedBudget(1)) return _budgetError();
 
     try {
-      const tickers = uncached.join(',');
-      const url     = `${BASE}/quote?symbols=${tickers}&apikey=${encodeURIComponent(apiKey)}`;
+      const tickers = uncached.map(encodeURIComponent).join(',');
+      const url     = `${BASE}/batch-quote?symbols=${tickers}&apikey=${encodeURIComponent(apiKey)}`;
       const json    = await _fetch(url);
 
       recordCalls(1);
@@ -135,7 +135,7 @@ export async function fetchProfile(ticker, apiKey) {
   if (wouldExceedBudget(1)) return _budgetError();
 
   try {
-    const url  = `${BASE}/profile/${ticker}?apikey=${encodeURIComponent(apiKey)}`;
+    const url  = `${BASE}/profile?symbol=${encodeURIComponent(ticker)}&apikey=${encodeURIComponent(apiKey)}`;
     const json = await _fetch(url);
     recordCalls(1);
 
@@ -165,12 +165,16 @@ export async function fetchKeyMetrics(ticker, apiKey) {
   if (wouldExceedBudget(1)) return _budgetError();
 
   try {
-    const url  = `${BASE}/key-metrics-ttm/${ticker}?apikey=${encodeURIComponent(apiKey)}`;
+    const url  = `${BASE}/ratios?symbol=${encodeURIComponent(ticker)}&limit=1&apikey=${encodeURIComponent(apiKey)}`;
     const json = await _fetch(url);
     recordCalls(1);
 
     const item = Array.isArray(json) ? json[0] : json;
-    if (!item) throw new Error('Empty key-metrics response');
+    if (!item) throw new Error('Empty ratios response');
+    // Compat: the scorer reads peRatioTTM; /ratios names it priceToEarningsRatio
+    if (item.peRatioTTM == null && item.priceToEarningsRatio != null) {
+      item.peRatioTTM = item.priceToEarningsRatio;
+    }
 
     cacheSet(cKey, item, TTL.FUNDAMENTALS);
     return { data: item, error: null, callsUsed: 1, fromCache: false, fetchedAt: _now() };
@@ -194,7 +198,7 @@ export async function fetchIncomeStatements(ticker, apiKey, limit = 5) {
   if (wouldExceedBudget(1)) return _budgetError();
 
   try {
-    const url  = `${BASE}/income-statement/${ticker}?period=annual&limit=${limit}&apikey=${encodeURIComponent(apiKey)}`;
+    const url  = `${BASE}/income-statement?symbol=${encodeURIComponent(ticker)}&limit=${limit}&apikey=${encodeURIComponent(apiKey)}`;
     const json = await _fetch(url);
     recordCalls(1);
 
@@ -218,7 +222,7 @@ export async function fetchCashFlowStatements(ticker, apiKey, limit = 5) {
   if (wouldExceedBudget(1)) return _budgetError();
 
   try {
-    const url  = `${BASE}/cash-flow-statement/${ticker}?period=annual&limit=${limit}&apikey=${encodeURIComponent(apiKey)}`;
+    const url  = `${BASE}/cash-flow-statement?symbol=${encodeURIComponent(ticker)}&limit=${limit}&apikey=${encodeURIComponent(apiKey)}`;
     const json = await _fetch(url);
     recordCalls(1);
 
@@ -242,7 +246,7 @@ export async function fetchBalanceSheets(ticker, apiKey, limit = 5) {
   if (wouldExceedBudget(1)) return _budgetError();
 
   try {
-    const url  = `${BASE}/balance-sheet-statement/${ticker}?period=annual&limit=${limit}&apikey=${encodeURIComponent(apiKey)}`;
+    const url  = `${BASE}/balance-sheet-statement?symbol=${encodeURIComponent(ticker)}&limit=${limit}&apikey=${encodeURIComponent(apiKey)}`;
     const json = await _fetch(url);
     recordCalls(1);
 
@@ -273,7 +277,7 @@ export async function fetchPriceHistory(ticker, apiKey, days = 365) {
 
   try {
     const from = new Date(Date.now() - days * 86400_000).toISOString().slice(0, 10);
-    const url  = `${BASE}/historical-price-eod/full/${ticker}?from=${from}&apikey=${encodeURIComponent(apiKey)}`;
+    const url  = `${BASE}/historical-price-eod/full?symbol=${encodeURIComponent(ticker)}&from=${from}&apikey=${encodeURIComponent(apiKey)}`;
     const json = await _fetch(url);
     recordCalls(1);
 
