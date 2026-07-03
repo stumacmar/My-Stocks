@@ -39,16 +39,19 @@ export async function getFXRate(apiKey) {
   }
 
   try {
-    const url = `${BASE}/fx/GBPUSD?apikey=${encodeURIComponent(apiKey)}`;
+    // Same endpoint the V12/V13 app uses: quote for the GBPUSD pair.
+    // price = USD per 1 GBP (~1.26); our stored rate is USD→GBP (~0.79).
+    const url = `${BASE}/quote?symbol=GBPUSD&apikey=${encodeURIComponent(apiKey)}`;
     const res = await fetch(url, { signal: AbortSignal.timeout(8000) });
     recordCalls(1);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const json = await res.json();
     const item = Array.isArray(json) ? json[0] : json;
-    if (!item || typeof item.bid !== 'number' || item.bid <= 0) {
+    const usdPerGbp = typeof item?.price === 'number' ? item.price : (typeof item?.bid === 'number' ? item.bid : null);
+    if (!usdPerGbp || usdPerGbp <= 0) {
       throw new Error('Unexpected FX response shape');
     }
-    const rate      = 1 / item.bid;
+    const rate      = 1 / usdPerGbp;
     const fetchedAt = new Date().toISOString();
     dispatch(ACTIONS.SET_FX, { rate, fetchedAt });
     return { rate, fetchedAt, fromCache: false, error: null };
