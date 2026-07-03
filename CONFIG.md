@@ -6,7 +6,7 @@ Set via the Settings panel on first launch. Stored in `scV3.apiKey` (localStorag
 
 **Tier**: Paid/Starter (~750 calls/day). Batch endpoints reduce S&P 500 run to ~30 calls.
 
-Default demo key: enter your own FMP API key in Settings.
+No key is bundled with the app — enter your own FMP API key in Settings.
 
 ---
 
@@ -107,26 +107,36 @@ purgeV2Data();
 
 ```
 My-Stocks/
-├── index.html          V12 production (do not modify for V3 work)
-├── v3.html             V3 entry point / Phase 2+3 review page
+├── index.html          V12/V13 production (do not modify for V3+ work)
+├── v3.html             V3/V4 entry point (Screen · Sky · Portfolio)
 ├── src/
-│   ├── main.js         Boot sequence
 │   ├── state/
 │   │   ├── schema.js   KEYS constants, CURRENT_SCHEMA
 │   │   ├── migration.js V2→V3 migration
+│   │   ├── history.js  Per-run score snapshots + band-crossing diff
 │   │   └── store.js    Central state store
 │   ├── data/
 │   │   ├── cache.js    localStorage cache with TTL + LRU
 │   │   ├── budget.js   Daily call counter
 │   │   ├── fx.js       FX rate + USD→GBP conversion
+│   │   ├── sp500.js    S&P 500 universe list
 │   │   └── fmp.js      FMP API client (batch-first)
 │   ├── engine/
 │   │   ├── scoring.js  5-pillar percentile scoring engine
+│   │   ├── universe.js Whole-universe pillar pass + cache reconstruction
 │   │   ├── presets.js  Scoring presets + Classic 7
 │   │   ├── flags.js    5 red flag checks
-│   │   └── scoring.test.js node --test tests
-│   ├── portfolio/      Phase 6 (stub)
-│   └── ui/             Phase 4–5 (stub)
-├── lib/                Vendored libraries (uPlot — Phase 4)
+│   │   └── rag.js      Canonical RAG labels/colours/banding
+│   ├── portfolio/
+│   │   └── index.js    Portfolio CRUD + return calculations
+│   └── ui/
+│       ├── screen.js   Screen view (run flow, table, detail sheet, briefing)
+│       ├── portfolio.js Portfolio view
+│       ├── observatory.js The Sky — star-field market map
+│       ├── rose.js     Compass Rose (five-pillar signature)
+│       └── gauge.js    Compass Gauge (composite score dial)
+├── lib/                Vendored libraries
 └── CONFIG.md           This file
+
+(*.test.js files sit beside the modules they test; CI runs them all.)
 ```

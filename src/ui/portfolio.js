@@ -23,7 +23,12 @@ import { compassGaugeHTML, animateGauge } from './gauge.js';
 // ---------------------------------------------------------------------------
 
 function escHtml(s) {
-  return String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  return String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+// Guards the JS string context inside inline handlers; pair with escHtml.
+function escJs(s) {
+  return String(s ?? '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
 }
 
 // ---------------------------------------------------------------------------
@@ -130,9 +135,9 @@ function holdingCardHTML(h, portfolioId, currency) {
   return `
     <div class="v3-holding-card${hasReview ? ' v3-holding-review' : ''}"
          style="border-left-color:${nowRag ? nowColor : 'var(--bg-4)'}"
-         onclick="v3Portfolio.openHoldingDetail('${escHtml(portfolioId)}','${escHtml(h.id)}')"
+         onclick="v3Portfolio.openHoldingDetail('${escHtml(escJs(portfolioId))}','${escHtml(escJs(h.id))}')"
          role="button" tabindex="0"
-         onkeydown="if(event.key==='Enter')v3Portfolio.openHoldingDetail('${escHtml(portfolioId)}','${escHtml(h.id)}')">
+         onkeydown="if(event.key==='Enter')v3Portfolio.openHoldingDetail('${escHtml(escJs(portfolioId))}','${escHtml(escJs(h.id))}')">
 
       <div class="v3-holding-top">
         <div class="v3-holding-ticker-wrap">
@@ -165,8 +170,8 @@ function holdingCardHTML(h, portfolioId, currency) {
 function portfolioTabsHTML(portfolios, activeId) {
   const tabs = portfolios.map(p => `
     <button class="v3-portf-tab${p.id === activeId ? ' active' : ''}"
-            onclick="v3Portfolio.switchPortfolio('${p.id}')">
-      ${p.name}
+            onclick="v3Portfolio.switchPortfolio('${escHtml(escJs(p.id))}')">
+      ${escHtml(p.name)}
     </button>`).join('');
 
   return `
@@ -479,7 +484,7 @@ export function openHoldingDetail(portfolioId, holdingId) {
 
       <!-- Delete button -->
       <div style="margin-top:28px">
-        <button class="v3-delete-btn" onclick="v3Portfolio.removeHoldingConfirm('${portfolioId}','${holdingId}')">
+        <button class="v3-delete-btn" onclick="v3Portfolio.removeHoldingConfirm('${escHtml(escJs(portfolioId))}','${escHtml(escJs(holdingId))}')">
           Remove holding
         </button>
       </div>

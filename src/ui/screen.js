@@ -29,7 +29,14 @@ import { roseHTML, animateRose } from './rose.js';
 // ---------------------------------------------------------------------------
 
 function escHtml(s) {
-  return String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  return String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+// For values embedded in a JS string inside an inline handler:
+// onclick="f('${escHtml(escJs(v))}')" — escJs guards the JS string context,
+// escHtml guards the attribute context.
+function escJs(s) {
+  return String(s ?? '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
 }
 
 // ---------------------------------------------------------------------------
@@ -174,8 +181,8 @@ function renderTable(results) {
     const starred = isStarred(r.ticker);
     const flagged = r.flagCount > 0;
     return `
-    <div class="v3-row" role="button" tabindex="0" onclick="v3Screen.openDetail('${escHtml(r.ticker)}')" onkeydown="if(event.key==='Enter'||event.key===' ')v3Screen.openDetail('${escHtml(r.ticker)}')">
-      <div class="v3-row-star" onclick="event.stopPropagation();v3Screen.toggleStar('${escHtml(r.ticker)}')" title="${starred ? 'Unstar' : 'Star'}">${starred ? '★' : '☆'}</div>
+    <div class="v3-row" role="button" tabindex="0" onclick="v3Screen.openDetail('${escHtml(escJs(r.ticker))}')" onkeydown="if(event.key==='Enter'||event.key===' ')v3Screen.openDetail('${escHtml(escJs(r.ticker))}')">
+      <div class="v3-row-star" onclick="event.stopPropagation();v3Screen.toggleStar('${escHtml(escJs(r.ticker))}')" title="${starred ? 'Unstar' : 'Star'}">${starred ? '★' : '☆'}</div>
       <div class="v3-row-ticker">${escHtml(r.ticker)}</div>
       <div class="v3-row-name">${escHtml(r.name || '')}</div>
       <div class="v3-row-score">
@@ -259,6 +266,10 @@ export async function runScreen() {
   _running      = true;
   _stopRequested = false;
   _results       = [];
+
+  // Clear any error banner left over from a previous run
+  const errEl = document.getElementById('v3-run-error');
+  if (errEl) { errEl.textContent = ''; errEl.style.display = 'none'; }
 
   const runBtn  = document.getElementById('v3-run-btn');
   const stopBtn = document.getElementById('v3-stop-btn');
@@ -422,7 +433,7 @@ function _moverLine(m, dir, owned, starred) {
   const tag     = owned.has(m.ticker) ? ' <span class="v3-log-tag">you hold this</span>'
                 : starred.has(m.ticker) ? ' <span class="v3-log-tag">starred</span>' : '';
   return `
-    <div class="v3-log-mover" onclick="v3Screen.openDetail('${escHtml(m.ticker)}')" role="button" tabindex="0">
+    <div class="v3-log-mover" onclick="v3Screen.openDetail('${escHtml(escJs(m.ticker))}')" role="button" tabindex="0">
       <span class="v3-log-ticker">${escHtml(m.ticker)}</span>
       <span class="v3-log-verb">${verb}</span>
       <span style="color:${RAG_COLORS[fromRag]};font-weight:600">${RAG_LABELS[fromRag]}</span>
@@ -540,7 +551,7 @@ export function openDetail(ticker) {
           <div class="v3-detail-name">${escHtml(result.name || '')}</div>
           ${result.sector ? `<div class="v3-detail-sector">${escHtml(result.sector)}</div>` : ''}
         </div>
-        <div class="v3-detail-star" onclick="v3Screen.toggleStar('${escHtml(ticker)}')">${isStarred(ticker) ? '★' : '☆'}</div>
+        <div class="v3-detail-star" onclick="v3Screen.toggleStar('${escHtml(escJs(ticker))}')">${isStarred(ticker) ? '★' : '☆'}</div>
       </div>
 
       <!-- Compass gauge -->

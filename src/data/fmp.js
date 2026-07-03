@@ -290,12 +290,11 @@ export async function fetchPriceHistory(ticker, apiKey, days = 365) {
 // ---------------------------------------------------------------------------
 
 /**
- * Fetch bulk fundamentals for a list of tickers using FMP's bulk endpoints.
- * Uses /quote (bulk), then per-ticker key-metrics for fundamentals needed for scoring.
- * Returns estimated call cost before making any calls.
+ * Estimate the bulk-quote call cost of a screen run before making any calls.
+ * Covers only the quote phase (1 call per 50 symbols); per-ticker fundamental
+ * fetches are budget-checked individually as the run progresses.
  */
 export function estimateScreenCost(symbols) {
-  // 1 bulk quote call per 50 symbols + 1 key-metrics per symbol (unless cached)
   const quoteCalls = Math.ceil(symbols.length / CHUNK_SIZE);
   return { quoteCalls, totalEstimate: quoteCalls };
 }

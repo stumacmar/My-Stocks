@@ -134,14 +134,12 @@ export function holdingReturn(holding, currentPriceUSD, fxObj, displayCurrency =
 
   const rate = fxObj?.rate || null;
 
-  // Convert entry price to USD
+  // Convert entry price to USD. rate is USD→GBP (≈0.794), so GBP→USD divides:
+  // £1 / 0.794 ≈ $1.26
   let entryPriceUSD;
   if (entryCurrency === 'GBP') {
     if (!rate) return null;  // can't convert without FX
-    entryPriceUSD = entryPrice / rate;  // GBP / (USD→GBP rate) = GBP * (GBP→USD rate) ... wait
-    // rate ≈ 0.794 (USD→GBP): 1 USD * 0.794 = £0.794
-    // GBP to USD: £1 / 0.794 ≈ $1.26
-    entryPriceUSD = entryPrice / rate;  // £ / 0.794 ≈ $ ✓
+    entryPriceUSD = entryPrice / rate;
   } else {
     entryPriceUSD = entryPrice;
   }
