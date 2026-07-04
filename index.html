@@ -1408,6 +1408,15 @@
   // the scV3.* keys. Re-read so a migrated API key is seen on FIRST load.
   if (migrated) reinitFromStorage();
 
+  // Built-in FMP key (owner's own). A key saved in Settings always wins;
+  // this only fills in when no key is stored, so the app works immediately
+  // on a fresh device. Note: this file is public — rotate the key at FMP
+  // if usage ever looks wrong, then update it here and in Settings.
+  const DEFAULT_API_KEY = 'Uq0TKcRxFVhqq4CvmOk2EStbeyTsONCi';
+  if (!getState().apiKey && DEFAULT_API_KEY) {
+    dispatch(ACTIONS.SET_API_KEY, DEFAULT_API_KEY);
+  }
+
   const { apiKey } = getState();
   if (!apiKey) {
     document.getElementById('v3-api-prompt').classList.add('visible');
