@@ -212,7 +212,57 @@ function updateRunMeta(ts) {
   if (!el) return;
   if (!ts) { el.textContent = ''; return; }
   const d = new Date(ts);
-  el.textContent = `Last run: ${d.toLocaleDateString()} ${d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+  let text = `Scores: ${d.toLocaleDateString()} ${d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+  const pricesAt = getState().screenResults?.pricesAt;
+  if (pricesAt && pricesAt !== ts) {
+    const p = new Date(pricesAt);
+    text += ` · Prices: ${p.toLocaleDateString()} ${p.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+  }
+  el.textContent = text;
+}
+
+// ---------------------------------------------------------------------------
+// Price auto-refresh — keeps prices live between full scans.
+// Scores need a full run (fundamentals), but quotes are ~10 batch calls for
+// the whole universe and each is TTL-cached (15 min market / 4 h closed),
+// so calling this on every app open is budget-safe.
+// ---------------------------------------------------------------------------
+
+let _refreshingPrices = false;
+
+export async function refreshPrices() {
+  if (_refreshingPrices || _running) return;
+  const { apiKey, screenResults } = getState();
+  if (!apiKey || !screenResults?.results?.length) return;
+
+  _refreshingPrices = true;
+  try {
+    const tickers = screenResults.results.map(r => r.ticker);
+    const res = await fetchBulkQuotes(tickers, apiKey);
+    if (!res.data?.size) return;
+
+    let changed = false;
+    const rows = screenResults.results.map(r => {
+      const q = res.data.get(r.ticker);
+      if (q?.price != null && q.price !== r.price) {
+        changed = true;
+        return { ...r, price: q.price };
+      }
+      return r;
+    });
+
+    if (changed || !screenResults.pricesAt) {
+      dispatch(ACTIONS.SET_SCREEN_RESULTS, {
+        ...screenResults,
+        results: rows,
+        pricesAt: new Date().toISOString(),
+      });
+      _results = rows;
+      renderTable(_results);
+    }
+    updateRunMeta(getState().screenResults?.scoredAt);
+  } catch { /* quotes are a nicety — never surface boot-time errors for them */ }
+  finally { _refreshingPrices = false; }
 }
 
 // ---------------------------------------------------------------------------
@@ -734,6 +784,9 @@ export function initScreen() {
   }
 
   renderBriefing();
+
+  // Keep prices current between full scans (TTL-guarded, ~10 calls max)
+  refreshPrices();
 
   // Re-render when watchlist changes
   subscribe((state, prev) => {
