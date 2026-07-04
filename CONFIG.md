@@ -107,8 +107,9 @@ purgeV2Data();
 
 ```
 My-Stocks/
-├── index.html          V12/V13 production (do not modify for V3+ work)
-├── v3.html             V3/V4 entry point (Screen · Sky · Portfolio)
+├── index.html          V4 app — main entry point (Screen · Sky · Portfolio)
+├── v13.html            Legacy V12/V13 app (retired, kept as fallback)
+├── v3.html             Redirect → index.html (old links keep working)
 ├── src/
 │   ├── state/
 │   │   ├── schema.js   KEYS constants, CURRENT_SCHEMA
