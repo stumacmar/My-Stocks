@@ -2,7 +2,10 @@
  * Score history — compact per-run snapshots that give the app memory.
  *
  * Each completed screen run appends one snapshot:
- *   { id, at: ISO, stocks: { TICKER: [score7, composite, q, v, g, s, m] } }
+ *   { id, at: ISO, stocks: { TICKER: [score7, composite, q, v, g, s, m, price] } }
+ *
+ * price (element 7) was added later — older snapshots have 7-element rows,
+ * so always read it defensively (snapshotPrice returns null for them).
  *
  * Snapshot arrays use nulls for missing values. History is capped at
  * MAX_SNAPSHOTS (~150 KB total for a full S&P 500 universe), oldest dropped
@@ -37,9 +40,16 @@ export function makeSnapshot(rows, at) {
       r.score7    ?? null,
       r.composite ?? null,
       ...PILLAR_ORDER.map(id => p[id] ?? null),
+      r.price     ?? null,
     ];
   }
   return { id: `snap-${at}`, at, stocks };
+}
+
+/** Read one stock's recorded price back out of a snapshot row (null on old rows). */
+export function snapshotPrice(row) {
+  if (!Array.isArray(row)) return null;
+  return row[2 + PILLAR_ORDER.length] ?? null;
 }
 
 /**
