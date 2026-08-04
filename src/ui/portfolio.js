@@ -16,6 +16,8 @@ import {
   addHolding, removeHolding, holdingReturn, getHouseholdSummary,
 } from '../portfolio/index.js';
 import { ragFromScore7, RAG_LABELS, RAG_COLORS } from '../engine/rag.js';
+import { computeXray, xrayTiltText } from '../engine/xray.js';
+import { roseHTML } from './rose.js';
 import { compassGaugeHTML, animateGauge } from './gauge.js';
 
 // ---------------------------------------------------------------------------
@@ -47,7 +49,7 @@ function buildQuoteMap() {
   const { screenResults } = getState();
   const m = new Map();
   for (const r of (screenResults?.results || [])) {
-    m.set(r.ticker, { price: r.price, score7: r.score7, rag: r.rag, composite: r.composite });
+    m.set(r.ticker, { price: r.price, score7: r.score7, rag: r.rag, composite: r.composite, pillars: r.pillars });
   }
   _quoteMap = m;
 }
@@ -217,6 +219,45 @@ function householdSummaryHTML(summary, currency) {
 // Main render
 // ---------------------------------------------------------------------------
 
+// ---------------------------------------------------------------------------
+// Portfolio Factor X-Ray — the portfolio's aggregate factor tilts
+// ---------------------------------------------------------------------------
+
+function xrayCardHTML(holdings, fxObj, currency) {
+  const items = [];
+  for (const h of holdings) {
+    const q = _quoteMap.get(h.ticker);
+    if (!q?.price) continue;
+    const ret = holdingReturn(h, q.price, fxObj, currency);
+    if (ret?.value == null || ret.value <= 0) continue;
+    items.push({ value: ret.value, pillars: q.pillars || null });
+  }
+  const xray = computeXray(items);
+  if (!xray) return '';
+
+  const tilt = xrayTiltText(xray);
+  const coverage = xray.n < xray.totalN
+    ? `Based on ${xray.n} of ${xray.totalN} priced holdings — funds and unscored tickers excluded.`
+    : '';
+
+  return `
+    <div class="v3-log-card" style="margin:12px 16px 0">
+      <div class="v3-log-head">
+        <div>
+          <div class="v3-log-title">Factor X-Ray</div>
+          <div class="v3-log-sub">Your portfolio's combined factor exposure, value-weighted</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:14px">
+        <div style="flex-shrink:0">${roseHTML(xray.pillars, { size: 132, color: '#14b8a6' })}</div>
+        <div style="min-width:0">
+          ${tilt ? `<div style="font-size:13px;color:var(--text-0);line-height:1.45">${tilt}</div>` : ''}
+          ${coverage ? `<div style="font-size:11px;color:var(--text-2);margin-top:6px">${coverage}</div>` : ''}
+        </div>
+      </div>
+    </div>`;
+}
+
 export function renderPortfolioView() {
   buildQuoteMap();
   const portfolios = getPortfolios();
@@ -275,6 +316,7 @@ export function renderPortfolioView() {
   pane.innerHTML = `
     ${portfolioTabsHTML(portfolios, _activeId)}
     ${portfolios.length > 1 ? householdSummaryHTML(summary, currency) : ''}
+    ${sorted.length ? xrayCardHTML(sorted, fxObj, currency) : ''}
     <div id="v3-portf-holdings">
       ${holdingsHTML}
     </div>

@@ -21,7 +21,8 @@ import { SP500 } from '../data/sp500.js';
 import { RAG_LABELS, RAG_COLORS, ragFromScore7 } from '../engine/rag.js';
 import { getRemainingBudget } from '../data/budget.js';
 import { computeUniversePillars } from '../engine/universe.js';
-import { recordRun, latestDiff, isBriefingSeen, markBriefingSeen } from '../state/history.js';
+import { recordRun, latestDiff, isBriefingSeen, markBriefingSeen, loadHistory } from '../state/history.js';
+import { buildReportCard, BAND_ORDER } from '../engine/reportcard.js';
 import { roseHTML, animateRose } from './rose.js';
 
 // ---------------------------------------------------------------------------
@@ -259,6 +260,7 @@ export async function refreshPrices() {
       });
       _results = rows;
       renderTable(_results);
+      renderReportCard();
     }
     updateRunMeta(getState().screenResults?.scoredAt);
   } catch { /* quotes are a nicety — never surface boot-time errors for them */ }
@@ -469,6 +471,7 @@ export async function runScreen() {
   updateFilterChips(_results);
   updateRunMeta(runAt);
   renderBriefing();
+  renderReportCard();
   setProgress(0, 0);
   finishRun();
 }
@@ -589,6 +592,89 @@ function renderBriefing() {
       ` : ''}
     </div>`;
   el.style.display = 'block';
+}
+
+// ---------------------------------------------------------------------------
+// Score Report Card — walk-forward "does the score predict?" panel
+// ---------------------------------------------------------------------------
+
+let _reportExpanded = false;
+
+function _fmtRet(v) {
+  if (v == null) return '—';
+  const sign = v >= 0 ? '+' : '';
+  return `${sign}${v.toFixed(1)}%`;
+}
+
+function _retColor(v) {
+  if (v == null) return 'var(--text-2)';
+  return v >= 0 ? 'var(--teal, #14b8a6)' : 'var(--red, #f87171)';
+}
+
+function _reportRow(g) {
+  const cells = BAND_ORDER.map(b => {
+    const band = g.bands[b];
+    return `
+      <div style="text-align:center;flex:1">
+        <div style="font-size:10px;color:${RAG_COLORS[b]};font-weight:600;text-transform:uppercase;letter-spacing:0.04em">${RAG_LABELS[b].replace('★ ', '')}</div>
+        <div style="font-size:14px;font-weight:700;color:${_retColor(band.avg)}">${_fmtRet(band.avg)}</div>
+        <div style="font-size:10px;color:var(--text-2)">${band.n || '—'}</div>
+      </div>`;
+  }).join('');
+  return `
+    <div style="padding:8px 0;border-top:1px solid rgba(255,255,255,0.06)">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px">
+        <span style="font-size:12px;color:var(--text-1)">Scored ${_briefingDate(g.at)} · ${g.days}d ago</span>
+        ${g.spread != null ? `<span style="font-size:12px;font-weight:600;color:${_retColor(g.spread)}">spread ${_fmtRet(g.spread).replace('%', 'pp')}</span>` : ''}
+      </div>
+      <div style="display:flex;gap:4px">${cells}</div>
+    </div>`;
+}
+
+function renderReportCard() {
+  const el = document.getElementById('v3-report-card');
+  if (!el) return;
+
+  let card = [];
+  try {
+    const { screenResults } = getState();
+    const prices = new Map();
+    for (const r of (screenResults?.results || [])) {
+      if (r?.ticker && r.price > 0) prices.set(r.ticker, r.price);
+    }
+    card = buildReportCard(loadHistory(), prices);
+  } catch { /* report card is a luxury */ }
+
+  if (!card.length) { el.innerHTML = ''; el.style.display = 'none'; return; }
+
+  const oldest = card[0];
+  const verdict = oldest.spread == null ? ''
+    : oldest.spread >= 0
+      ? `Higher bands have outperformed lower ones by ${_fmtRet(oldest.spread).replace('%', 'pp')} over ${oldest.days} days.`
+      : `Lower bands have beaten higher ones by ${_fmtRet(-oldest.spread).replace('%', 'pp')} over ${oldest.days} days — the score hasn't predicted lately.`;
+
+  const rows = _reportExpanded ? card.map(g => _reportRow(g)).join('') : _reportRow(oldest);
+
+  el.innerHTML = `
+    <div class="v3-log-card">
+      <div class="v3-log-head">
+        <div>
+          <div class="v3-log-title">Report card</div>
+          <div class="v3-log-sub">Average return since scored, by band — the score grading itself. ${verdict}</div>
+        </div>
+      </div>
+      ${rows}
+      ${card.length > 1 ? `
+        <button class="v3-log-expand" onclick="v3Screen.toggleReportCard()">
+          ${_reportExpanded ? 'Show less' : `Show all ${card.length} runs`}
+        </button>` : ''}
+    </div>`;
+  el.style.display = 'block';
+}
+
+export function toggleReportCard() {
+  _reportExpanded = !_reportExpanded;
+  renderReportCard();
 }
 
 export function dismissBriefing() {
@@ -784,6 +870,7 @@ export function initScreen() {
   }
 
   renderBriefing();
+  renderReportCard();
 
   // Keep prices current between full scans (TTL-guarded, ~10 calls max)
   refreshPrices();
@@ -800,5 +887,5 @@ export function initScreen() {
 // Expose on window for HTML onclick handlers
 window.v3Screen = {
   openDetail, closeDetail, toggleStar, setFilter, setSort, runScreen, stopScreen,
-  navigateDetail, canNavigateDetail, dismissBriefing, toggleBriefing,
+  navigateDetail, canNavigateDetail, dismissBriefing, toggleBriefing, toggleReportCard,
 };

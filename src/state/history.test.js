@@ -9,16 +9,16 @@ const AT = '2026-07-01T10:00:00Z';
 test('makeSnapshot', async (t) => {
   await t.test('packs score7, composite and pillars into compact arrays', () => {
     const snap = makeSnapshot([
-      { ticker: 'AAPL', score7: 7, composite: 100,
+      { ticker: 'AAPL', score7: 7, composite: 100, price: 212.5,
         pillars: { quality: 90, value: 40, growth: 70, safety: 80, momentum: 60 } },
     ], AT);
     assert.equal(snap.at, AT);
-    assert.deepEqual(snap.stocks.AAPL, [7, 100, 90, 40, 70, 80, 60]);
+    assert.deepEqual(snap.stocks.AAPL, [7, 100, 90, 40, 70, 80, 60, 212.5]);
   });
 
   await t.test('missing values become nulls', () => {
     const snap = makeSnapshot([{ ticker: 'X' }], AT);
-    assert.deepEqual(snap.stocks.X, [null, null, null, null, null, null, null]);
+    assert.deepEqual(snap.stocks.X, [null, null, null, null, null, null, null, null]);
   });
 
   await t.test('rows without a ticker are skipped', () => {

@@ -241,8 +241,11 @@ export function extractMetrics(fundamentals, priceHistory, spyHistory) {
     const stockMap = _buildPriceMap(priceHistory);
     const latest   = priceHistory[0]?.date;
 
-    raw.set('rs6m',  latest ? _relativeStrength(stockMap, spyMap, latest, 126) : null);
-    raw.set('rs12m', latest ? _relativeStrength(stockMap, spyMap, latest, 252) : null);
+    // Academic momentum convention (12-1 / 6-1): skip the most recent month,
+    // which tends to mean-revert, so windows are t-12mo..t-1mo and
+    // t-6mo..t-1mo relative to SPY. _approxDateBefore works in calendar days.
+    raw.set('rs6m',  latest ? _relativeStrength(stockMap, spyMap, latest, 182, 30) : null);
+    raw.set('rs12m', latest ? _relativeStrength(stockMap, spyMap, latest, 365, 30) : null);
     raw.set('distFrom52wHigh', _distFrom52wHigh(priceHistory));
   } else {
     raw.set('rs6m',  null);
@@ -276,15 +279,19 @@ function _approxDateBefore(priceMap, refDate, daysBack) {
   return null;
 }
 
-function _relativeStrength(stockMap, spyMap, refDate, daysBack) {
-  const stockNow  = stockMap.get(refDate);
+function _relativeStrength(stockMap, spyMap, refDate, daysBack, skipDays = 0) {
+  const stockNow  = skipDays > 0
+    ? _approxDateBefore(stockMap, refDate, skipDays)
+    : stockMap.get(refDate);
   const stockPast = _approxDateBefore(stockMap, refDate, daysBack);
   if (!stockNow || !stockPast || stockPast <= 0) return null;
   const stockRet = (stockNow - stockPast) / stockPast;
 
   if (!spyMap) return stockRet;
 
-  const spyNow  = spyMap.get(refDate);
+  const spyNow  = skipDays > 0
+    ? _approxDateBefore(spyMap, refDate, skipDays)
+    : spyMap.get(refDate);
   const spyPast = _approxDateBefore(spyMap, refDate, daysBack);
   if (!spyNow || !spyPast || spyPast <= 0) return stockRet;
   const spyRet  = (spyNow - spyPast) / spyPast;
