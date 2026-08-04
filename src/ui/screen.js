@@ -22,7 +22,7 @@ import { RAG_LABELS, RAG_COLORS, ragFromScore7 } from '../engine/rag.js';
 import { getRemainingBudget } from '../data/budget.js';
 import { computeUniversePillars } from '../engine/universe.js';
 import { recordRun, latestDiff, isBriefingSeen, markBriefingSeen, loadHistory } from '../state/history.js';
-import { buildReportCard, BAND_ORDER } from '../engine/reportcard.js';
+import { buildReportCard, reportVerdict, BAND_ORDER } from '../engine/reportcard.js';
 import { roseHTML, animateRose } from './rose.js';
 
 // ---------------------------------------------------------------------------
@@ -612,24 +612,33 @@ function _retColor(v) {
 }
 
 function _reportRow(g) {
+  const uni = g.universe?.avg;
   const cells = BAND_ORDER.map(b => {
     const band = g.bands[b];
+    const hit = band.hitRate != null ? `${Math.round(band.hitRate * 100)}% beat` : '—';
     return `
       <div style="text-align:center;flex:1">
         <div style="font-size:10px;color:${RAG_COLORS[b]};font-weight:600;text-transform:uppercase;letter-spacing:0.04em">${RAG_LABELS[b].replace('★ ', '')}</div>
-        <div style="font-size:14px;font-weight:700;color:${_retColor(band.avg)}">${_fmtRet(band.avg)}</div>
-        <div style="font-size:10px;color:var(--text-2)">${band.n || '—'}</div>
+        <div style="font-size:14px;font-weight:700;color:${_retColor(band.excess)}">${band.excess != null ? _fmtRet(band.excess).replace('%', 'pp') : '—'}</div>
+        <div style="font-size:10px;color:var(--text-2)">${band.n ? `${hit} · ${band.n}` : '—'}</div>
       </div>`;
   }).join('');
   return `
     <div style="padding:8px 0;border-top:1px solid rgba(255,255,255,0.06)">
       <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px">
-        <span style="font-size:12px;color:var(--text-1)">Scored ${_briefingDate(g.at)} · ${g.days}d ago</span>
+        <span style="font-size:12px;color:var(--text-1)">Scored ${_briefingDate(g.at)} · ${g.days}d · universe ${_fmtRet(uni)}</span>
         ${g.spread != null ? `<span style="font-size:12px;font-weight:600;color:${_retColor(g.spread)}">spread ${_fmtRet(g.spread).replace('%', 'pp')}</span>` : ''}
       </div>
       <div style="display:flex;gap:4px">${cells}</div>
     </div>`;
 }
+
+const VERDICT_COLORS = {
+  early: 'var(--text-1)',
+  good:  'var(--teal, #14b8a6)',
+  bad:   'var(--red, #f87171)',
+  mixed: '#f59e0b',
+};
 
 function renderReportCard() {
   const el = document.getElementById('v3-report-card');
@@ -647,23 +656,20 @@ function renderReportCard() {
 
   if (!card.length) { el.innerHTML = ''; el.style.display = 'none'; return; }
 
-  const oldest = card[0];
-  const verdict = oldest.spread == null ? ''
-    : oldest.spread >= 0
-      ? `Higher bands have outperformed lower ones by ${_fmtRet(oldest.spread).replace('%', 'pp')} over ${oldest.days} days.`
-      : `Lower bands have beaten higher ones by ${_fmtRet(-oldest.spread).replace('%', 'pp')} over ${oldest.days} days — the score hasn't predicted lately.`;
-
-  const rows = _reportExpanded ? card.map(g => _reportRow(g)).join('') : _reportRow(oldest);
+  const verdict = reportVerdict(card);
+  const rows = _reportExpanded ? card.map(g => _reportRow(g)).join('') : _reportRow(card[0]);
 
   el.innerHTML = `
     <div class="v3-log-card">
       <div class="v3-log-head">
         <div>
           <div class="v3-log-title">Report card</div>
-          <div class="v3-log-sub">Average return since scored, by band — the score grading itself. ${verdict}</div>
+          <div class="v3-log-sub">Band returns vs the whole universe — the score grading itself.</div>
         </div>
       </div>
+      ${verdict ? `<div style="font-size:12px;line-height:1.5;color:${VERDICT_COLORS[verdict.tone] || 'var(--text-1)'};margin-bottom:4px">${verdict.text}</div>` : ''}
       ${rows}
+      <div style="font-size:10px;color:var(--text-2);margin-top:6px">pp = points vs universe average · "% beat" = share of the band beating the universe median</div>
       ${card.length > 1 ? `
         <button class="v3-log-expand" onclick="v3Screen.toggleReportCard()">
           ${_reportExpanded ? 'Show less' : `Show all ${card.length} runs`}
