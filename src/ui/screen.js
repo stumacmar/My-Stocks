@@ -12,7 +12,7 @@
  * All DOM manipulation targets elements inside #v3-screen-pane.
  */
 
-import { fetchStockData, fetchBulkQuotes } from '../data/fmp.js';
+import { fetchStockData, fetchBulkQuotes, fetchQuote } from '../data/fmp.js';
 import { getState, dispatch, ACTIONS, subscribe } from '../state/store.js';
 import { classicScore } from '../engine/presets.js';
 import { evaluateFlags } from '../engine/flags.js';
@@ -231,6 +231,9 @@ function updateRunMeta(ts) {
 
 let _refreshingPrices = false;
 
+/** Max single-quote calls per refresh when batch-quote is tier-restricted. */
+const QUOTE_FALLBACK_CAP = 50;
+
 export async function refreshPrices() {
   if (_refreshingPrices || _running) return;
   const { apiKey, screenResults } = getState();
@@ -240,11 +243,36 @@ export async function refreshPrices() {
   try {
     const tickers = screenResults.results.map(r => r.ticker);
     const res = await fetchBulkQuotes(tickers, apiKey);
-    if (!res.data?.size) return;
+    const quotes = new Map(res.data || []);
+
+    // Some plans block batch-quote while allowing single /quote. Fall back
+    // for a capped, priority-ordered subset: holdings first, then starred,
+    // then the top of the table — the prices the user actually looks at.
+    const missing = tickers.filter(t => quotes.get(t)?.price == null);
+    if (missing.length && missing.length >= tickers.length / 2) {
+      const owned = _ownedTickers();
+      const { watchlist = [] } = getState();
+      const starred = new Set(watchlist.map(w => typeof w === 'string' ? w : w.ticker));
+      const prio = [...missing].sort((a, b) => {
+        const wa = (owned.has(a) ? 2 : 0) + (starred.has(a) ? 1 : 0);
+        const wb = (owned.has(b) ? 2 : 0) + (starred.has(b) ? 1 : 0);
+        return wb - wa;   // stable sort keeps table (composite) order within ties
+      });
+      let calls = 0;
+      for (const t of prio) {
+        if (calls >= QUOTE_FALLBACK_CAP) break;
+        const single = await fetchQuote(t, apiKey);
+        if (!single.fromCache) calls++;
+        if (single.error?.toLowerCase().includes('budget')) break;
+        if (single.data?.price != null) quotes.set(t, single.data);
+      }
+    }
+
+    if (!quotes.size) return;
 
     let changed = false;
     const rows = screenResults.results.map(r => {
-      const q = res.data.get(r.ticker);
+      const q = quotes.get(r.ticker);
       if (q?.price != null && q.price !== r.price) {
         changed = true;
         return { ...r, price: q.price };
