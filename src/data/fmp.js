@@ -121,6 +121,35 @@ export async function fetchBulkQuotes(symbols, apiKey) {
 }
 
 // ---------------------------------------------------------------------------
+// Single quote — fallback for plans where batch-quote is tier-restricted
+// ---------------------------------------------------------------------------
+
+/**
+ * Fetch one quote via /quote (available on plans that block batch-quote).
+ * Cached under the same key as batch results, so the two mix freely.
+ */
+export async function fetchQuote(ticker, apiKey) {
+  const cKey   = _cacheKey('quote', ticker);
+  const cached = cacheGet(cKey);
+  if (cached) return { data: cached, error: null, callsUsed: 0, fromCache: true, fetchedAt: _now() };
+
+  if (wouldExceedBudget(1)) return _budgetError();
+
+  try {
+    const url  = `${BASE}/quote?symbol=${encodeURIComponent(ticker)}&apikey=${encodeURIComponent(apiKey)}`;
+    const json = await _fetch(url);
+    recordCalls(1);
+
+    const q = Array.isArray(json) ? json[0] : json;
+    if (!q?.symbol) throw new Error('Empty quote response');
+    cacheSet(cKey, q, isMarketHours() ? TTL.QUOTE_MARKET : TTL.QUOTE_CLOSED);
+    return { data: q, error: null, callsUsed: 1, fromCache: false, fetchedAt: _now() };
+  } catch (err) {
+    return { data: null, error: err.message, callsUsed: 1, fromCache: false, fetchedAt: _now() };
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Company profile
 // ---------------------------------------------------------------------------
 
